@@ -16,7 +16,7 @@
 |---|---|---|---|---|
 | DV-53 | 개발 환경 세팅 | | | ✅ 완료 |
 | DV-54 | 디자인 시스템 기반 구축 | DV-60 | Tailwind v4 전환 (@theme 토큰 방식) | ✅ 완료 |
-| | | DV-55 | Pretendard 폰트 & 토큰 인프라 세팅 | ⬜ 할일 |
+| | | DV-55 | Pretendard 폰트 & 토큰 인프라 세팅 | ✅ 완료 |
 | | | DV-56 | Storybook 환경 셋업 | ⬜ 할일 |
 | | | DV-57 | 컬러 토큰 정의 + 스토리 | ⬜ 할일 | 
 | | | DV-58 | 타이포 토큰 정의 + 스토리 | ⬜ 할일 |
@@ -24,7 +24,7 @@
 
 ### 권장 작업 순서
 ```
-DV-55 (인프라)  →  DV-56 (Storybook)  →  DV-57 / DV-58 / DV-59 (토큰들, 순차 or 병렬)
+DV-60 (v4 전환)  →  DV-55 (폰트·토큰 인프라)  →  DV-56 (Storybook)  →  DV-57 / DV-58 / DV-59 (토큰들)
 ```
-- DV-55가 `tokens.css` + `tailwind.config` 뼈대를 깔기 때문에 **가장 먼저**.
-- DV-56 이후부터는 각 토큰을 만들 때 바로 Storybook 스토리로 검증.
+- DV-60 + DV-55 로 **Tailwind v4 `@theme` 기반 토큰 인프라**가 깔림 (`src/styles/tokens.css`가 SoT).
+- 남은 순서: DV-56(Storybook) → 이후 각 토큰(DV-57/58/59)을 만들며 바로 스토리로 검증.

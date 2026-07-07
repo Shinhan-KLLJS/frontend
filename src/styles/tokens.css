@@ -1,0 +1,26 @@
+/**
+ * 디자인 토큰 (Single Source of Truth) — Tailwind v4
+ *
+ * 컬러는 Figma와 동일하게 2계층으로 관리한다:
+ *   Primitive (원시 스케일) → :root 에 정의. 참조 전용(유틸 생성 X).
+ *   Semantic  (사용 토큰)   → @theme inline 에 정의. primitive를 var()로 참조 → 유틸 자동 생성.
+ *
+ * 실제 값 등록:
+ *   - 컬러 스케일 + Bg/Text/Border semantic → DV-57
+ *   - 타이포그래피 스케일                   → DV-58
+ *   - 레이아웃 (PC 2종)                     → DV-59
+ */
+
+/* ── Primitive ── */
+:root {
+  /* 예) --pink-500: #f553da;  --cool-neutral-20: #f4f4f5; */
+}
+
+/* ── Typography ── */
+@theme {
+  --font-sans: 'Pretendard Variable', Pretendard, 'Noto Sans KR';
+}
+
+/* ── Semantic ── */
+@theme inline {
+}
