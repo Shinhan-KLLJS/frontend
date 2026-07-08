@@ -1028,3 +1028,29 @@ export const Shadow: Story = {
     </div>
   ),
 }
+
+export const Layout: Story = {
+  render: () => (
+    <div className="font-sans flex flex-col gap-10 p-8">
+      <header>
+        <h1 className="text-title-3-bold mb-2">Layout</h1>
+      </header>
+
+      <section>
+        <h2 className="text-label-1-normal-bold mb-3">Content Width</h2>
+        <div className="flex flex-col gap-2">
+          <div className="max-w-content-lg rounded-sm bg-chart-sequential-2 px-x3 py-x1">
+            <span className="text-caption-1-medium text-text-primary-inverse">
+              content-lg · 1040
+            </span>
+          </div>
+          <div className="max-w-content-xl rounded-sm bg-primary-brand-solid px-x3 py-x1">
+            <span className="text-caption-1-medium text-text-primary-inverse">
+              content-xl · 1280
+            </span>
+          </div>
+        </div>
+      </section>
+    </div>
+  ),
+}

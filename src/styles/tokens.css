@@ -480,6 +480,17 @@
     0px 24px 38px -10px rgba(23, 23, 23, 0.12);
 }
 
+/* ── Layout ── */
+@theme {
+  /* Breakpoints — PC/lg 1280 · PC/xl 1440 */
+  --breakpoint-lg: 80rem;
+  --breakpoint-xl: 90rem;
+
+  /* Content width */
+  --container-content-lg: 1040px;
+  --container-content-xl: 1280px;
+}
+
 /* Tailwind 기본 팔레트 비활성화 — 아래 디자인 시스템 색만 유틸로 노출 */
 @theme {
   --color-*: initial;
