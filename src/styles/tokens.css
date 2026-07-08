@@ -1,19 +1,184 @@
 /**
  * 디자인 토큰 (Single Source of Truth) — Tailwind v4
  *
- * 컬러는 Figma와 동일하게 2계층으로 관리한다:
- *   Primitive (원시 스케일) → :root 에 정의. 참조 전용(유틸 생성 X).
- *   Semantic  (사용 토큰)   → @theme inline 에 정의. primitive를 var()로 참조 → 유틸 자동 생성.
- *
- * 실제 값 등록:
- *   - 컬러 스케일 + Bg/Text/Border semantic → DV-57
- *   - 타이포그래피 스케일                   → DV-58
- *   - 레이아웃 (PC 2종)                     → DV-59
+ * Primitive (원시 스케일) → :root. 참조 전용(유틸 생성 X).
+ * Semantic  (사용 토큰)   → @theme inline. primitive를 var()로 참조 → 유틸 자동 생성.
+ * 네이밍은 Figma 그대로: Bg/Primary → --color-bg-primary → bg-bg-primary
  */
 
 /* ── Primitive ── */
 :root {
-  /* 예) --pink-500: #f553da;  --cool-neutral-20: #f4f4f5; */
+  /* Cool Neutral */
+  --cool-neutral-0: #ffffff;
+  --cool-neutral-10: #f7f7f8;
+  --cool-neutral-20: #f4f4f5;
+  --cool-neutral-30: #eaebec;
+  --cool-neutral-40: #e1e2e4;
+  --cool-neutral-50: #dbdcdf;
+  --cool-neutral-100: #c2c4c8;
+  --cool-neutral-200: #aeb0b6;
+  --cool-neutral-300: #989ba2;
+  --cool-neutral-400: #878a93;
+  --cool-neutral-500: #70737c;
+  --cool-neutral-600: #5a5c63;
+  --cool-neutral-700: #46474c;
+  --cool-neutral-750: #37383c;
+  --cool-neutral-770: #333438;
+  --cool-neutral-780: #2e2f33;
+  --cool-neutral-800: #292a2d;
+  --cool-neutral-830: #212225;
+  --cool-neutral-850: #1b1c1e;
+  --cool-neutral-900: #171719;
+  --cool-neutral-930: #141415;
+  --cool-neutral-950: #0f0f10;
+  --cool-neutral-1000: #000000;
+
+  /* Red */
+  --red-10: #fffafa;
+  --red-50: #feecec;
+  --red-100: #fed5d5;
+  --red-200: #ffb5b5;
+  --red-300: #ff8c8c;
+  --red-400: #ff6363;
+  --red-500: #ff4242;
+  --red-600: #e52222;
+  --red-700: #b00c0c;
+  --red-800: #730303;
+  --red-900: #3b0101;
+
+  /* Red Orange */
+  --red-orange-10: #fffaf7;
+  --red-orange-50: #feeee5;
+  --red-orange-100: #fed9c4;
+  --red-orange-200: #ffbd96;
+  --red-orange-300: #ff9b61;
+  --red-orange-400: #ff7b2e;
+  --red-orange-500: #ff5e00;
+  --red-orange-520: #f55a00;
+  --red-orange-600: #c94a00;
+  --red-orange-700: #913500;
+  --red-orange-800: #592100;
+  --red-orange-900: #290f00;
+
+  /* Orange */
+  --orange-10: #fffcf7;
+  --orange-50: #fef4e6;
+  --orange-100: #fee6c6;
+  --orange-200: #ffd49c;
+  --orange-300: #ffc06e;
+  --orange-400: #ffa938;
+  --orange-500: #ff9200;
+  --orange-600: #d47800;
+  --orange-610: #d17600;
+  --orange-700: #9c5800;
+  --orange-800: #663a00;
+  --orange-900: #361e00;
+
+  /* Lime */
+  --lime-10: #f8fff2;
+  --lime-50: #e6ffd4;
+  --lime-100: #ccfca9;
+  --lime-200: #aef779;
+  --lime-300: #88f03e;
+  --lime-400: #6be016;
+  --lime-500: #58cf04;
+  --lime-600: #48ad00;
+  --lime-630: #429e00;
+  --lime-700: #347d00;
+  --lime-800: #225200;
+  --lime-900: #112900;
+
+  /* Green */
+  --green-10: #f2fff6;
+  --green-50: #d9ffe6;
+  --green-100: #acfcc7;
+  --green-200: #7df5a5;
+  --green-300: #49e57d;
+  --green-400: #1ed45a;
+  --green-500: #00bf40;
+  --green-600: #009632;
+  --green-700: #006e25;
+  --green-800: #004517;
+  --green-900: #00240c;
+
+  /* Light Blue */
+  --light-blue-10: #f7fdff;
+  --light-blue-50: #e5f6fe;
+  --light-blue-100: #c4ecfe;
+  --light-blue-200: #a1e1ff;
+  --light-blue-300: #70d2ff;
+  --light-blue-400: #3dc2ff;
+  --light-blue-500: #00aeff;
+  --light-blue-600: #008dcf;
+  --light-blue-700: #006796;
+  --light-blue-800: #004261;
+  --light-blue-900: #002130;
+
+  /* Blue */
+  --blue-50: #f3f6fb;
+  --blue-100: #cbdbf3;
+  --blue-200: #9fbff0;
+  --blue-300: #6fa1f0;
+  --blue-400: #3a83f5;
+  --blue-500: #0365fc;
+  --blue-600: #0250ca;
+  --blue-700: #023c97;
+  --blue-800: #012865;
+  --blue-900: #011432;
+
+  /* Cyan */
+  --cyan-10: #f7feff;
+  --cyan-50: #defaff;
+  --cyan-100: #b5f4ff;
+  --cyan-200: #8aedff;
+  --cyan-300: #57dff7;
+  --cyan-400: #28d0ed;
+  --cyan-500: #00bdde;
+  --cyan-600: #0098b2;
+  --cyan-700: #006f82;
+  --cyan-800: #004854;
+  --cyan-900: #00252b;
+
+  /* Violet */
+  --violet-10: #fbfaff;
+  --violet-50: #f0ecfe;
+  --violet-100: #dbd3fe;
+  --violet-200: #c0b0ff;
+  --violet-300: #9e86fc;
+  --violet-400: #7d5ef7;
+  --violet-500: #6541f2;
+  --violet-550: #5b37ed;
+  --violet-600: #4f29e5;
+  --violet-700: #3a16c9;
+  --violet-800: #23098f;
+  --violet-900: #11024d;
+
+  /* Purple */
+  --purple-10: #fefbff;
+  --purple-50: #f9edff;
+  --purple-100: #f2d6ff;
+  --purple-200: #e9baff;
+  --purple-300: #de96ff;
+  --purple-400: #d478ff;
+  --purple-500: #cb59ff;
+  --purple-600: #ad36e3;
+  --purple-700: #861cb8;
+  --purple-800: #580a7d;
+  --purple-900: #290247;
+
+  /* Pink */
+  --pink-10: #fffafe;
+  --pink-50: #feecfb;
+  --pink-100: #fed3f7;
+  --pink-200: #ffb8f3;
+  --pink-300: #ff94ed;
+  --pink-400: #fa73e3;
+  --pink-500: #f553da;
+  --pink-540: #e846cd;
+  --pink-600: #d331b8;
+  --pink-700: #a81690;
+  --pink-800: #730560;
+  --pink-900: #3d0133;
 }
 
 /* ── Typography ── */
@@ -21,6 +186,72 @@
   --font-sans: 'Pretendard Variable', Pretendard, 'Noto Sans KR';
 }
 
+/* Tailwind 기본 팔레트 비활성화 — 아래 디자인 시스템 색만 유틸로 노출 */
+@theme {
+  --color-*: initial;
+}
+
 /* ── Semantic ── */
 @theme inline {
+  /* Bg */
+  --color-bg-primary: var(--cool-neutral-20);
+  --color-bg-secondary: var(--cool-neutral-0);
+  --color-bg-tertiary: var(--cool-neutral-50);
+  --color-bg-disabled: var(--cool-neutral-30);
+  --color-bg-negative: var(--red-50);
+  --color-bg-cautionary: var(--orange-50);
+  --color-bg-positive: var(--green-50);
+  --color-bg-info: var(--light-blue-50);
+
+  /* Text */
+  --color-text-primary: var(--cool-neutral-950);
+  --color-text-secondary: var(--cool-neutral-600);
+  --color-text-tertiary: var(--cool-neutral-500);
+  --color-text-caption: var(--cool-neutral-400);
+  --color-text-primary-inverse: var(--cool-neutral-0);
+  --color-text-secondary-inverse: var(--cool-neutral-400);
+  --color-text-disabled: var(--cool-neutral-300);
+  --color-text-disabled-secondary: var(--cool-neutral-100);
+  --color-text-placeholder: var(--cool-neutral-400);
+  --color-text-brand: var(--blue-500);
+  --color-text-negative: var(--red-500);
+  --color-text-negative-contrast: var(--red-700);
+  --color-text-cautionary: var(--orange-600);
+  --color-text-positive: var(--green-700);
+  --color-text-info: var(--light-blue-600);
+
+  /* Line */
+  --color-line-primary: var(--cool-neutral-100);
+  --color-line-secondary: var(--cool-neutral-50);
+  --color-line-tertiary: var(--cool-neutral-30);
+  --color-line-disabled: var(--cool-neutral-50);
+  --color-line-brand: var(--blue-500);
+  --color-line-negative: var(--red-500);
+  --color-line-positive: var(--green-500);
+  --color-line-info: var(--light-blue-500);
+  --color-line-focus: var(--violet-500);
+
+  /* Chart */
+  --color-chart-categorical-1: var(--blue-500);
+  --color-chart-categorical-2: var(--blue-400);
+  --color-chart-categorical-3: var(--blue-600);
+  --color-chart-categorical-4: var(--blue-300);
+  --color-chart-sequential-1: var(--blue-100);
+  --color-chart-sequential-2: var(--blue-300);
+  --color-chart-sequential-3: var(--blue-500);
+  --color-chart-sequential-4: var(--blue-700);
+  --color-chart-sequential-5: var(--blue-900);
+  --color-chart-diverging-positive: var(--red-500);
+  --color-chart-diverging-neutral: var(--cool-neutral-50);
+  --color-chart-diverging-negative: var(--blue-500);
+  --color-chart-grid: var(--cool-neutral-100);
+  --color-chart-axis-label: var(--cool-neutral-500);
+  --color-chart-surface: var(--cool-neutral-20);
+
+  /* Primary */
+  --color-primary-brand-weak: var(--blue-50);
+  --color-primary-brand-solid: var(--blue-500);
+  --color-primary-brand-solid-hover: var(--blue-400);
+  --color-primary-brand-solid-pressed: var(--blue-600);
+  --color-primary-brand-solid-disabled: var(--cool-neutral-100);
 }
