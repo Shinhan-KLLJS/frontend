@@ -1,0 +1,17 @@
+# CodeRabbit 설정 — https://docs.coderabbit.ai/reference/configuration
+language: 'ko-KR' # 리뷰 코멘트 한국어로
+
+reviews:
+  profile: 'chill' # 사소한 지적 줄이고 중요한 것 위주 (엄격하게 하려면 'assertive')
+  high_level_summary: true # PR 상단에 변경 요약 자동 생성
+  poem: false # 리뷰 끝의 시 끄기
+  auto_review:
+    enabled: true # PR 열리면 자동 리뷰
+    drafts: false # draft PR은 리뷰 안 함
+  path_filters: # 리뷰 제외 경로
+    - '!package-lock.json'
+    - '!dist/**'
+    - '!storybook-static/**'
+
+chat:
+  auto_reply: true # 리뷰 코멘트에 @coderabbitai 로 질문/반박 가능
