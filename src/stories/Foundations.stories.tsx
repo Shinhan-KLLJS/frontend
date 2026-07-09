@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
-import AppLayout from '../components/layout/AppLayout'
+import AppLayout from '@/components/layout/AppLayout'
 
 /**
  * 디자인 토큰 미리보기.
