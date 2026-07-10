@@ -463,6 +463,19 @@
   --spacing-full: 999px;
 }
 
+/* ── Interaction ── */
+:root {
+  --interaction-light-hover: 0.0375;
+  --interaction-light-focus: 0.06;
+  --interaction-light-press: 0.09;
+  --interaction-normal-hover: 0.05;
+  --interaction-normal-focus: 0.08;
+  --interaction-normal-press: 0.12;
+  --interaction-strong-hover: 0.075;
+  --interaction-strong-focus: 0.12;
+  --interaction-strong-press: 0.18;
+}
+
 /* ── Shadow ── */
 @theme {
   --shadow-normal-xsmall: 0px 1px 2px -1px rgba(23, 23, 23, 0.1);
