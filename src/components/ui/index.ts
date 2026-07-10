@@ -18,3 +18,12 @@ export type { InputFieldProps } from './InputField'
 
 export { default as ScrollArea, SCROLLBAR_SIZE } from './ScrollArea'
 export type { ScrollAreaProps, ScrollAreaSize, ScrollAreaAxis } from './ScrollArea'
+
+export { default as Dropdown, DROPDOWN_SIZE } from './Dropdown'
+export type { DropdownProps, DropdownOption, DropdownSize } from './Dropdown'
+
+export { default as SearchBar } from './SearchBar'
+export type { SearchBarProps, SearchBarResult, SearchResultItem } from './SearchBar'
+
+export { default as MenuItem } from './MenuItem'
+export type { MenuItemProps } from './MenuItem'
