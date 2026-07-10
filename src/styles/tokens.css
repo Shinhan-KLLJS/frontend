@@ -499,6 +499,8 @@
   --shadow-normal-xlarge:
     0px 10px 15px -5px rgba(23, 23, 23, 0.1),
     0px 24px 38px -10px rgba(23, 23, 23, 0.12);
+
+  --shadow-normal-lnb: 4px 0px 16px 0px rgba(0, 0, 0, 0.06);
 }
 
 /* ── Layout ── */
