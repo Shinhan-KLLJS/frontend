@@ -463,6 +463,14 @@
   --spacing-full: 999px;
 }
 
+/* ── Radius ── */
+@theme {
+  --radius-x1: 0.25rem; /* 4 */
+  --radius-x2: 0.5rem; /* 8 */
+  --radius-x2-5: 0.625rem; /* 10 */
+  --radius-x3: 0.75rem; /* 12 */
+}
+
 /* ── Interaction ── */
 :root {
   --interaction-light-hover: 0.0375;

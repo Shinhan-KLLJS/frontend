@@ -55,14 +55,14 @@ function RowPreview({
 }) {
   return (
     <div
-      className={`relative w-[280px] rounded-[8px] p-x2 ${ROW_TEXT[size]} ${
+      className={`relative w-[280px] rounded-x2 p-x2 ${ROW_TEXT[size]} ${
         disabled ? 'text-text-disabled' : 'text-text-secondary'
       }`}
     >
       <span className="block truncate">Text</span>
       <span
         aria-hidden="true"
-        className="absolute inset-0 rounded-[8px] bg-[var(--cool-neutral-1000)]"
+        className="absolute inset-0 rounded-x2 bg-[var(--cool-neutral-1000)]"
         style={{ opacity: overlayOpacity }}
       />
     </div>

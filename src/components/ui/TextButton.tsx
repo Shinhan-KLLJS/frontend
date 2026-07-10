@@ -38,7 +38,7 @@ export default function TextButton({
       className={[
         'inline-flex items-center justify-center gap-x1 font-sans whitespace-nowrap',
         'cursor-pointer disabled:cursor-not-allowed',
-        'rounded-[8px] interaction-normal',
+        'rounded-x2 interaction-normal',
         'text-text-primary disabled:text-text-disabled',
         SIZE_CLASS[size],
         className,

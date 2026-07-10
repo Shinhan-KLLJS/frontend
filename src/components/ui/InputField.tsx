@@ -43,7 +43,7 @@ export default function InputField({
 
   // 필드 박스: 상태별 보더/배경
   const boxClass = [
-    'flex w-full items-center gap-x3 rounded-lg border px-x4 py-x3 transition-colors',
+    'flex w-full items-center gap-x3 rounded-x2 border px-x4 py-x3 transition-colors',
     disabled
       ? 'border-line-secondary bg-bg-disabled text-text-disabled-secondary'
       : isError
