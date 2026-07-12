@@ -71,3 +71,6 @@ export type { DatePickerProps } from './DatePicker'
 
 export { default as DateTrigger } from './DateTrigger'
 export type { DateTriggerProps } from './DateTrigger'
+
+export { default as Header } from './Header'
+export type { HeaderProps } from './Header'
