@@ -9,6 +9,7 @@ export interface InputFieldProps extends ComponentPropsWithRef<'input'> {
   errorMessage?: string
   leadingIcon?: ReactNode
   trailingIcon?: ReactNode
+  variant?: 'default' | 'date'
   className?: string
 }
 
@@ -23,6 +24,7 @@ export default function InputField({
   errorMessage,
   leadingIcon,
   trailingIcon,
+  variant = 'default',
   className,
   id,
   disabled,
@@ -41,15 +43,21 @@ export default function InputField({
       .filter(Boolean)
       .join(' ') || undefined
 
-  // 필드 박스: 상태별 보더/배경
+  const isDate = variant === 'date'
+
   const boxClass = [
-    'flex w-full items-center gap-x3 rounded-x2 border px-x4 py-x3 transition-colors',
+    'flex w-full items-center rounded-x2 border transition-colors',
+    isDate ? 'gap-x2 px-x3 py-[14px]' : 'gap-x3 px-x4 py-x3',
     disabled
       ? 'border-line-secondary bg-bg-disabled text-text-disabled-secondary'
       : isError
         ? 'border-line-negative bg-bg-secondary text-text-tertiary'
-        : 'border-line-secondary bg-bg-secondary text-text-tertiary focus-within:border-line-brand',
+        : `${isDate ? 'border-line-primary' : 'border-line-secondary'} bg-bg-secondary text-text-tertiary focus-within:border-line-brand`,
   ].join(' ')
+
+  const inputTypo = isDate
+    ? 'text-label-1-normal-regular placeholder:text-text-secondary'
+    : 'text-body-1-normal-regular placeholder:text-text-placeholder'
 
   return (
     <div
@@ -81,7 +89,7 @@ export default function InputField({
           required={required}
           aria-invalid={isError || undefined}
           aria-describedby={describedBy}
-          className="min-w-0 flex-1 bg-transparent text-body-1-normal-regular text-text-primary outline-none placeholder:text-text-placeholder disabled:cursor-not-allowed disabled:text-text-disabled-secondary disabled:placeholder:text-text-disabled-secondary"
+          className={`min-w-0 flex-1 bg-transparent text-text-primary outline-none disabled:cursor-not-allowed disabled:text-text-disabled-secondary disabled:placeholder:text-text-disabled-secondary ${inputTypo}`}
           {...inputProps}
         />
         {trailingIcon && (

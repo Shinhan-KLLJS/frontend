@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { Mail, Search, X } from 'lucide-react'
+import { Calendar as CalendarIcon, Mail, Search, X } from 'lucide-react'
 import InputField from '@/components/ui/InputField'
 import { Icon } from '@/components/ui'
 
@@ -18,6 +18,7 @@ const meta: Meta<typeof InputField> = {
   argTypes: {
     leadingIcon: { control: false },
     trailingIcon: { control: false },
+    variant: { control: 'select', options: ['default', 'date'] },
   },
 }
 export default meta
@@ -30,6 +31,28 @@ export const Default: Story = {
     placeholder: 'Input',
     helperText: 'Caption',
   },
+}
+
+/** variant=date - 달력용 인풋 */
+export const DateVariant: Story = {
+  render: () => (
+    <div className="flex w-[200px] flex-col gap-x6">
+      <InputField
+        variant="date"
+        label="시작일"
+        required
+        placeholder="YYYY.MM.DD"
+        leadingIcon={<Icon icon={CalendarIcon} size="medium" />}
+      />
+      <InputField
+        variant="date"
+        label="시작일"
+        required
+        defaultValue="2026.07.05"
+        leadingIcon={<Icon icon={CalendarIcon} size="medium" />}
+      />
+    </div>
+  ),
 }
 
 /** Status : Default · Typing(포커스) · Typed · Disabled · Error */
