@@ -25,6 +25,14 @@ export function formatMonth(month: Date): string {
   return `${month.getFullYear()}.${String(month.getMonth() + 1).padStart(2, '0')}`
 }
 
+/** 날짜 입력 마스킹 — 숫자만 남기고 YYYY.MM.DD 형태로 점 자동 삽입 */
+export function maskDateInput(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 4) return digits
+  if (digits.length <= 6) return `${digits.slice(0, 4)}.${digits.slice(4)}`
+  return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6)}`
+}
+
 /** 'YYYY.MM.DD' → Date */
 export function parseDate(text: string): Date | undefined {
   const match = /^(\d{4})\.(\d{1,2})\.(\d{1,2})$/.exec(text.trim())
