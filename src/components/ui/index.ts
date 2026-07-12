@@ -80,3 +80,6 @@ export type { LoadingSpinnerProps } from './LoadingSpinner'
 
 export { default as ProgressBar } from './ProgressBar'
 export type { ProgressBarProps } from './ProgressBar'
+
+export { default as Modal } from './Modal'
+export type { ModalProps } from './Modal'
