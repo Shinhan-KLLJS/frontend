@@ -83,3 +83,9 @@ export type { ProgressBarProps } from './ProgressBar'
 
 export { default as Modal } from './Modal'
 export type { ModalProps } from './Modal'
+
+export { default as Checkbox } from './Checkbox'
+export type { CheckboxProps, CheckboxSize } from './Checkbox'
+
+export { default as LoginButton } from './LoginButton'
+export type { LoginButtonProps, LoginProvider } from './LoginButton'
