@@ -9,6 +9,7 @@ import {
   Button,
   Checkbox,
   InputField,
+  LoadingSpinner,
   LoginButton,
   useToast,
 } from '@/components/ui'
@@ -71,16 +72,26 @@ export default function LoginPage() {
     return <Navigate to={user?.hasTeam ? '/' : '/welcome'} replace />
   }
 
+  // 세션 복원 중(OAuth 복귀 직후 포함)에는 폼 대신 스피너 — 로그인 폼 깜빡임 방지
+  if (status === 'loading') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg-secondary">
+        <LoadingSpinner progress={0} showLabel={false} />
+      </div>
+    )
+  }
+
   return (
     <div className="font-sans flex min-h-screen justify-center bg-bg-secondary">
       <div className="flex min-h-screen w-full max-w-[1440px] items-center justify-center">
         {/* Left  */}
         <div className="hidden w-[640px] shrink-0 p-x10 lg:block">
           <div className="relative h-[880px] w-[560px] shrink-0 overflow-hidden rounded-2xl">
-            <img
-              src={heroImage}
-              alt=""
-              className="absolute inset-0 size-full object-cover"
+            {/* 배경 이미지로 처리 — 부모가 lg 미만에서 display:none이라 모바일/태블릿에선 아예 다운로드되지 않음 */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${heroImage})` }}
             />
             <div className="absolute left-x10 top-x10 flex w-[480px] flex-col gap-x2">
               <h1 className="text-[48px] leading-[1.3] font-medium tracking-[-0.0282em] text-text-primary">
