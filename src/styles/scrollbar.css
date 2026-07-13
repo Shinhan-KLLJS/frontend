@@ -1,0 +1,51 @@
+/**
+ * 커스텀 스크롤바 유틸 
+ */
+
+@utility scrollbar-medium {
+  &::-webkit-scrollbar {
+    width: 13px;
+    height: 13px;
+  }
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: var(--spacing-full);
+    background-clip: content-box;
+    background-color: var(--cool-neutral-40);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--cool-neutral-50);
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: auto;
+    scrollbar-color: var(--cool-neutral-40) transparent;
+  }
+}
+
+@utility scrollbar-small {
+  &::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: var(--spacing-full);
+    background-clip: content-box;
+    background-color: var(--cool-neutral-40);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--cool-neutral-50);
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--cool-neutral-40) transparent;
+  }
+}

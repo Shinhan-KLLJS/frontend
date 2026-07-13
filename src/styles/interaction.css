@@ -1,0 +1,90 @@
+/**
+ * 인터랙션 오버레이 유틸
+ *
+ * 요소 위에 hover/focus/press 상태를 반투명 레이어로 얹는다.
+ * 사용: <button class="interaction-normal ...">
+ */
+
+@utility interaction-normal {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-color: var(--interaction-color, var(--cool-neutral-900));
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  &:hover::after {
+    opacity: var(--interaction-normal-hover);
+  }
+  &:focus-visible::after {
+    opacity: var(--interaction-normal-focus);
+  }
+  &:active::after {
+    opacity: var(--interaction-normal-press);
+  }
+  &:disabled::after,
+  &[aria-disabled='true']::after {
+    opacity: 0;
+  }
+}
+
+@utility interaction-light {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-color: var(--interaction-color, var(--cool-neutral-900));
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  &:hover::after {
+    opacity: var(--interaction-light-hover);
+  }
+  &:focus-visible::after {
+    opacity: var(--interaction-light-focus);
+  }
+  &:active::after {
+    opacity: var(--interaction-light-press);
+  }
+  &:disabled::after,
+  &[aria-disabled='true']::after {
+    opacity: 0;
+  }
+}
+
+@utility interaction-strong {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-color: var(--interaction-color, var(--cool-neutral-900));
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  &:hover::after {
+    opacity: var(--interaction-strong-hover);
+  }
+  &:focus-visible::after {
+    opacity: var(--interaction-strong-focus);
+  }
+  &:active::after {
+    opacity: var(--interaction-strong-press);
+  }
+  &:disabled::after,
+  &[aria-disabled='true']::after {
+    opacity: 0;
+  }
+}
