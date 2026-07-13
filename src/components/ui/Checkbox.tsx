@@ -33,7 +33,7 @@ export default function Checkbox({
       disabled={disabled}
       onClick={() => onChange?.(!checked)}
       className={[
-        'inline-flex items-center gap-[4px] font-sans',
+        'inline-flex items-center gap-x1 font-sans',
         disabled ? 'cursor-not-allowed' : 'cursor-pointer',
         className,
       ]
@@ -44,14 +44,23 @@ export default function Checkbox({
       <Icon
         icon={checked ? SquareCheck : Square}
         size={size}
-        color={disabled ? 'disabled' : checked ? 'brand' : 'caption'}
-        className="shrink-0"
+        color={disabled ? 'disabled' : checked ? 'primary-inverse' : 'caption'}
+        className={[
+          'shrink-0',
+          checked
+            ? disabled
+              ? '[&_rect]:fill-line-disabled [&_rect]:stroke-line-disabled'
+              : '[&_rect]:fill-line-brand [&_rect]:stroke-line-brand'
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
       />
       {children && (
         <span
           className={[
             'text-label-1-normal-medium',
-            disabled ? 'text-text-disabled' : 'text-[var(--cool-neutral-800)]',
+            disabled ? 'text-text-disabled' : 'text-text-caption',
           ].join(' ')}
         >
           {children}
