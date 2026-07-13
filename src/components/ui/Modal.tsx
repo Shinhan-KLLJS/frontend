@@ -1,6 +1,10 @@
-import { useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import type { HTMLAttributes, ReactNode } from 'react'
+import type {
+  HTMLAttributes,
+  KeyboardEvent as ReactKeyboardEvent,
+  ReactNode,
+} from 'react'
 import Button from './Button'
 
 export interface ModalProps extends Omit<
@@ -16,6 +20,13 @@ export interface ModalProps extends Omit<
   onConfirm?: () => void
 }
 
+// 열린 모달 스택 — 최상단 모달만 ESC를 처리하고, 마지막 모달이 닫힐 때만 스크롤 잠금을 해제
+const modalStack: symbol[] = []
+let bodyOverflowBackup = ''
+
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+
 /* ── Modal ── */
 export default function Modal({
   open,
@@ -30,23 +41,61 @@ export default function Modal({
 }: ModalProps) {
   const titleId = useId()
   const bodyId = useId()
+  const panelRef = useRef<HTMLDivElement>(null)
 
-  // 열려 있는 동안 ESC로 닫기 + 배경 스크롤 잠금
+  // 열려 있는 동안: 모달 스택 등록 + 최상단만 ESC 닫기 + 배경 스크롤 잠금(중첩 안전)
   useEffect(() => {
     if (!open) return
+    const stackId = Symbol('modal')
+    modalStack.push(stackId)
+    if (modalStack.length === 1) {
+      bodyOverflowBackup = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+    }
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose?.()
+      if (e.key === 'Escape' && modalStack[modalStack.length - 1] === stackId) {
+        onClose?.()
+      }
     }
     document.addEventListener('keydown', onKeyDown)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = prevOverflow
+      modalStack.splice(modalStack.indexOf(stackId), 1)
+      if (modalStack.length === 0) {
+        document.body.style.overflow = bodyOverflowBackup
+      }
     }
   }, [open, onClose])
 
+  // 열릴 때 모달 안으로 포커스 이동, 닫힐 때 원래 요소로 복원
+  useEffect(() => {
+    if (!open) return
+    const previousActive = document.activeElement as HTMLElement | null
+    const focusables =
+      panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
+    focusables?.[0]?.focus()
+    return () => previousActive?.focus?.()
+  }, [open])
+
   if (!open) return null
+
+  // Tab/Shift+Tab을 모달 내부에서 순환시키는 포커스 트랩
+  const handlePanelKeyDown = (e: ReactKeyboardEvent) => {
+    if (e.key !== 'Tab' || !panelRef.current) return
+    const focusables = [
+      ...panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+    ].filter((el) => !el.hasAttribute('disabled'))
+    if (focusables.length === 0) return
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
 
   return createPortal(
     <div
@@ -56,10 +105,12 @@ export default function Modal({
       }}
     >
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={body ? bodyId : undefined}
+        onKeyDown={handlePanelKeyDown}
         className={[
           'font-sans flex w-[334px] flex-col items-center gap-x5 rounded-2xl bg-bg-secondary px-x5 py-x8 shadow-normal-medium',
           className,

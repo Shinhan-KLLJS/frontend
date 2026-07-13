@@ -16,7 +16,7 @@ const OPTIONS: DropdownOption[] = [
 
 const MENU_OPTIONS: DropdownOption[] = Array.from({ length: 10 }, (_, i) => ({
   value: `menu-${i + 1}`,
-  label: 'Menu 1',
+  label: `Menu ${i + 1}`,
 }))
 
 // Dropdown

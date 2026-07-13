@@ -23,7 +23,7 @@ type Story = StoryObj<typeof Badge>
 
 export const Default: Story = {
   args: {
-    children: '15%',
+    children: '15',
     direction: 'up',
     size: 'medium',
   },

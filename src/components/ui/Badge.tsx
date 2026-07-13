@@ -58,7 +58,11 @@ export default function Badge({
         .join(' ')}
       {...props}
     >
-      <Icon icon={icon} size={SIZE_STYLE[size].icon} />
+      <Icon
+        icon={icon}
+        size={SIZE_STYLE[size].icon}
+        label={direction === 'up' ? '상승' : '하락'}
+      />
       {children}%
     </span>
   )

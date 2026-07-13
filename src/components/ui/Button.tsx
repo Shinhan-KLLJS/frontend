@@ -44,18 +44,26 @@ const COLOR_CLASS: Record<ButtonVariant, Record<ButtonColor, string>> = {
   },
 }
 
-export interface ButtonProps extends Omit<
+interface ButtonBaseProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'color'
 > {
   variant?: ButtonVariant
   color?: ButtonColor
   size?: ButtonSize
-  iconOnly?: boolean
   leadingIcon?: LucideIcon
   trailingIcon?: LucideIcon
   children?: ReactNode
 }
+
+// iconOnly 버튼은 아이콘과 접근 가능한 이름이 없으면 빈 무명 버튼이 되므로 타입으로 강제
+export type ButtonProps =
+  | (ButtonBaseProps & { iconOnly?: false })
+  | (ButtonBaseProps & {
+      iconOnly: true
+      leadingIcon: LucideIcon
+      'aria-label': string
+    })
 
 // 버튼
 export default function Button({

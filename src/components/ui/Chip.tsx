@@ -42,6 +42,7 @@ export default function Chip({
 
   return (
     <button
+      {...props}
       type={type}
       aria-pressed={selected}
       className={[
@@ -52,7 +53,6 @@ export default function Chip({
       ]
         .filter(Boolean)
         .join(' ')}
-      {...props}
     >
       {leadingIcon && <Icon icon={leadingIcon} size={SIZE_STYLE[size].icon} />}
       {children}

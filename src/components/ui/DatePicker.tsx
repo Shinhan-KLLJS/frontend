@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Calendar as CalendarIcon, X } from 'lucide-react'
 import Button from './Button'
 import InputField from './InputField'
 import Icon from './Icon'
 import Calendar, { CalendarMonthNav, type DateRange } from './Calendar'
-import { formatDate, isSameDay, maskDateInput, parseDate } from './date'
+import { dayKey, formatDate, isSameDay, maskDateInput, parseDate } from './date'
 
 export interface DatePickerProps {
   value?: DateRange // 초기 선택 값 - {start}만 있으면 하루(1 Day), {start, end}면 기간(More Day)
@@ -38,6 +38,12 @@ export default function DatePicker({
   )
   const [startText, setStartText] = useState(() => formatDate(value?.start))
   const [endText, setEndText] = useState(() => formatDate(value?.end))
+  const titleId = useId()
+
+  // 달력 클릭과 동일한 min/max 날짜 범위 검사 (직접 입력용)
+  const inBounds = (day: Date) =>
+    !(minDate && dayKey(day) < dayKey(minDate)) &&
+    !(maxDate && dayKey(day) > dayKey(maxDate))
 
   const commit = (next: DateRange) => {
     setRange(next)
@@ -66,7 +72,7 @@ export default function DatePicker({
     const text = maskDateInput(raw) // '20260705' → '2026.07.05' 자동 포맷
     setStartText(text)
     const parsed = parseDate(text)
-    if (!parsed) return
+    if (!parsed || !inBounds(parsed)) return
     const keepEnd =
       range.end && parsed.getTime() <= range.end.getTime()
         ? range.end
@@ -81,7 +87,7 @@ export default function DatePicker({
     const text = maskDateInput(raw)
     setEndText(text)
     const parsed = parseDate(text)
-    if (!parsed || !range.start) return
+    if (!parsed || !range.start || !inBounds(parsed)) return
     if (parsed.getTime() < range.start.getTime()) {
       commit({ start: parsed, end: range.start })
     } else {
@@ -96,6 +102,8 @@ export default function DatePicker({
 
   return (
     <div
+      role="dialog"
+      aria-labelledby={titleId}
       className={[
         'flex w-[480px] flex-col rounded-x3 bg-bg-secondary font-sans shadow-normal-small',
         className,
@@ -105,7 +113,10 @@ export default function DatePicker({
     >
       {/* Header - Title + 닫기 */}
       <div className="flex w-full items-start justify-between border-b border-line-secondary p-x4">
-        <h2 className="min-w-0 flex-1 text-headline-1-bold text-text-primary">
+        <h2
+          id={titleId}
+          className="min-w-0 flex-1 text-headline-1-bold text-text-primary"
+        >
           {title}
         </h2>
         <button

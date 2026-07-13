@@ -71,8 +71,13 @@ export default function Dropdown({
   const rootRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
 
-  const [open, setOpen] = useState(defaultOpen)
+  const [open, setOpen] = useState(defaultOpen && !disabled)
   const [activeIndex, setActiveIndex] = useState(-1)
+
+  // 열린 상태에서 disabled로 바뀌면 목록을 닫는다
+  useEffect(() => {
+    if (disabled) setOpen(false)
+  }, [disabled])
 
   // 제어/비제어 값
   const isControlled = valueProp !== undefined
@@ -99,7 +104,7 @@ export default function Dropdown({
   const closeList = () => setOpen(false)
 
   const selectOption = (option: DropdownOption) => {
-    if (option.disabled) return
+    if (disabled || option.disabled) return
     if (!isControlled) setInternalValue(option.value)
     onChange?.(option.value)
     closeList()
@@ -213,6 +218,7 @@ export default function Dropdown({
         type="button"
         id={triggerId}
         disabled={disabled}
+        role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? listboxId : undefined}

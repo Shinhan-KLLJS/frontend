@@ -13,11 +13,11 @@ export default function ProgressBar({
   ...props
 }: ProgressBarProps) {
   const total = steps.length
-  const clamped = Math.min(
-    Math.max(1, Math.round(currentStep)),
-    Math.max(total, 1),
-  )
-  const ratio = total > 0 ? clamped / total : 0
+  if (total === 0) return null
+
+  const safeCurrentStep = Number.isFinite(currentStep) ? currentStep : 1
+  const clamped = Math.min(Math.max(1, Math.round(safeCurrentStep)), total)
+  const ratio = clamped / total
   return (
     <div
       role="progressbar"

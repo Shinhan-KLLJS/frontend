@@ -1,10 +1,10 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import Icon from './Icon'
 
 export interface MenuItemProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: LucideIcon
-  children?: ReactNode
+  children?: string
   selected?: boolean
   short?: boolean
 }
@@ -23,7 +23,7 @@ export default function MenuItem({
   'aria-label': ariaLabel,
   ...props
 }: MenuItemProps) {
-  const textLabel = typeof children === 'string' ? children : undefined
+  const textLabel = children
 
   return (
     <button

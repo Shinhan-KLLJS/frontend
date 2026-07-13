@@ -254,6 +254,7 @@ export default function Calendar({
             )}
             <CalendarDay
               className="relative"
+              aria-label={`${day.getFullYear()}년 ${day.getMonth() + 1}월 ${day.getDate()}일`}
               state={isDisabled ? 'disable' : undefined}
               selected={isStart || isEnd}
               aria-pressed={isStart || isEnd || undefined}
