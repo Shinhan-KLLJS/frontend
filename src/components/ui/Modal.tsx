@@ -43,6 +43,12 @@ export default function Modal({
   const bodyId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
 
+  // onClose 참조가 바뀌어도 스택 effect가 재실행(스택 재푸시)되지 않도록 ref로 참조
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
   // 열려 있는 동안: 모달 스택 등록 + 최상단만 ESC 닫기 + 배경 스크롤 잠금(중첩 안전)
   useEffect(() => {
     if (!open) return
@@ -54,7 +60,7 @@ export default function Modal({
     }
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && modalStack[modalStack.length - 1] === stackId) {
-        onClose?.()
+        onCloseRef.current?.()
       }
     }
     document.addEventListener('keydown', onKeyDown)
@@ -65,7 +71,7 @@ export default function Modal({
         document.body.style.overflow = bodyOverflowBackup
       }
     }
-  }, [open, onClose])
+  }, [open])
 
   // 열릴 때 모달 안으로 포커스 이동, 닫힐 때 원래 요소로 복원
   useEffect(() => {
