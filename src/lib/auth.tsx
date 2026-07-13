@@ -9,7 +9,12 @@ import {
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { LoadingSpinner } from '@/components/ui'
-import { api, refreshAccessToken, setAccessToken } from './api'
+import {
+  api,
+  refreshAccessToken,
+  setAccessToken,
+  setOnAuthFailure,
+} from './api'
 import type { ApiResponse } from './api'
 import { API_ENDPOINTS } from './config'
 
@@ -46,6 +51,16 @@ export function useAuth(): AuthContextValue {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading')
   const [user, setUser] = useState<AuthUser | null>(null)
+
+  // 요청 중 refresh 최종 실패(세션 만료) 시 guest로 전환 — 보호 화면 노출 방지
+  useEffect(() => {
+    setOnAuthFailure(() => {
+      setAccessToken(null)
+      setUser(null)
+      setStatus('guest')
+    })
+    return () => setOnAuthFailure(null)
+  }, [])
 
   // 앱 진입 시 refresh_token 쿠키로 세션 복원 시도
   useEffect(() => {
