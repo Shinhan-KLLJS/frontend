@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Copy, Link, X } from 'lucide-react'
 import { z } from 'zod'
 import { Button, Icon, InputField, useToast } from '@/components/ui'
+import OnboardingCard from '@/components/team/OnboardingCard'
 import { sendTeamInvites } from '@/lib/team'
 import type { Team } from '@/lib/team'
 
@@ -10,14 +11,16 @@ const emailSchema = z.string().email('이메일 형식이 올바르지 않습니
 
 export interface TeamInvitePanelProps {
   team: Team
-  // updateUser(hasTeam) + 홈 이동은 부모 소유 — 여기서 올리면 온보딩 가드에 걸려 이 화면이 먼저 닫힌다
-  onGoHome: () => void
+  onGoHome: () => void // updateUser(hasTeam) + 홈 이동은 부모 소유
 }
 
 /**
  * 팀 생성 완료 — 팀 코드 복사 + 이메일 초대 리스트 + 팀 코드 일괄 전송
  */
-export default function TeamInvitePanel({ team, onGoHome }: TeamInvitePanelProps) {
+export default function TeamInvitePanel({
+  team,
+  onGoHome,
+}: TeamInvitePanelProps) {
   const { toast } = useToast()
 
   const [emails, setEmails] = useState<string[]>([])
@@ -75,12 +78,12 @@ export default function TeamInvitePanel({ team, onGoHome }: TeamInvitePanelProps
   }
 
   return (
-    <section className="flex w-[840px] max-w-full flex-col gap-x5 rounded-x4 bg-bg-secondary p-x10 shadow-[0px_10px_15px_-5px_rgba(23,23,23,0.1),0px_24px_38px_-10px_rgba(23,23,23,0.12)]">
+    <OnboardingCard className="w-[590px] max-w-full gap-x5 p-x10">
       <header className="flex flex-col items-center gap-x2 text-center">
         <h1 className="text-title-3-bold text-text-primary">
           {team.name} 생성 완료!
         </h1>
-        <p className="text-label-1-normal-regular text-text-secondary">
+        <p className="text-body-1-normal-regular text-text-secondary">
           Loovi에서 팀원과 함께 옥외광고 캠페인을 관리하고 효과를 분석하세요.
         </p>
       </header>
@@ -94,22 +97,23 @@ export default function TeamInvitePanel({ team, onGoHome }: TeamInvitePanelProps
           <span className="flex-1 text-body-1-normal-regular text-text-primary">
             {team.code}
           </span>
-          <button
-            type="button"
+          <Button
+            iconOnly
+            leadingIcon={Copy}
             aria-label="팀 코드 복사"
+            variant="line"
+            color="secondary"
+            size="small"
             onClick={copyTeamCode}
-            className="cursor-pointer rounded-x1 p-x1 text-text-secondary interaction-normal"
-          >
-            <Icon icon={Copy} size="medium" />
-          </button>
+          />
         </div>
       </div>
 
-      <div className="flex flex-col gap-x4 rounded-x3 bg-bg-primary p-x4">
+      <div className="flex h-[256px] flex-col gap-x4 rounded-x5 border border-line-tertiary bg-bg-primary p-x5">
         <form onSubmit={addEmail} className="flex items-start gap-x2">
           <InputField
             aria-label="초대할 이메일"
-            placeholder="초대할 이메일을 입력하세요"
+            placeholder="초대할 팀원의 이메일을 입력하세요"
             className="flex-1"
             value={emailInput}
             onChange={(e) => {
@@ -132,7 +136,7 @@ export default function TeamInvitePanel({ team, onGoHome }: TeamInvitePanelProps
           초대 인원 <span className="text-text-brand">{emails.length}명</span>
         </p>
 
-        <ul className="flex min-h-[96px] flex-col gap-x2">
+        <ul className="flex flex-1 flex-col gap-x2 overflow-y-auto">
           {emails.map((email) => (
             <li
               key={email}
@@ -169,6 +173,6 @@ export default function TeamInvitePanel({ team, onGoHome }: TeamInvitePanelProps
           홈으로 이동
         </Button>
       </div>
-    </section>
+    </OnboardingCard>
   )
 }
