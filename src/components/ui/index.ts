@@ -26,6 +26,9 @@ export type { BadgeProps, BadgeSize, BadgeDirection } from './Badge'
 export { default as InputField } from './InputField'
 export type { InputFieldProps } from './InputField'
 
+export { default as Textarea } from './Textarea'
+export type { TextareaProps } from './Textarea'
+
 export { default as ScrollArea, SCROLLBAR_SIZE } from './ScrollArea'
 export type {
   ScrollAreaProps,
