@@ -83,15 +83,19 @@ export default function VideoUploadCard({
         }}
       />
 
-      {/* success: 업로드한 영상 첫 프레임 + 딤 처리를 카드 배경으로 */}
+      {/* success: 업로드한 영상 첫 프레임 + 딤 처리를 카드 배경으로.
+          프레임이 잘리지 않도록 레터박스(contain + 검정 배경)로 전체를 보여준다 */}
       {status === 'success' && previewUrl && (
-        <div aria-hidden="true" className="absolute inset-0">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[var(--cool-neutral-1000)]"
+        >
           <video
             src={previewUrl}
             muted
             playsInline
             preload="metadata"
-            className="size-full object-cover"
+            className="size-full object-contain"
           />
           <div className="absolute inset-0 bg-[rgba(0,0,0,0.7)]" />
         </div>

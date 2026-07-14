@@ -71,14 +71,15 @@ export default function CampaignSummary({
         {uploadStatus === 'success' ? (
           <div className="flex min-h-[532px] min-w-0 flex-1 flex-col gap-x5 rounded-x4 bg-bg-primary p-x5">
             <div className="flex min-h-0 flex-1 flex-col justify-center gap-x4">
-              <div className="max-h-[204px] min-h-0 w-full flex-1 overflow-hidden rounded-x3 bg-bg-tertiary">
+              {/* 영상은 프레임이 잘리지 않도록 레터박스(contain + 검정 배경)로 전체를 보여준다 */}
+              <div className="max-h-[204px] min-h-0 w-full flex-1 overflow-hidden rounded-x3 bg-[var(--cool-neutral-1000)]">
                 {previewUrl && (
                   <video
                     src={previewUrl}
                     muted
                     playsInline
                     preload="metadata"
-                    className="size-full object-cover"
+                    className="size-full object-contain"
                   />
                 )}
               </div>
