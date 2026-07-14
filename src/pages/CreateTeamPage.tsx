@@ -6,8 +6,10 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import LicenseDropzone from '@/components/team/LicenseDropzone'
 import type { UploadStatus } from '@/components/team/LicenseDropzone'
+import TeamInvitePanel from '@/components/team/TeamInvitePanel'
 import { Button, Icon, InputField, useToast } from '@/components/ui'
 import { maskDateInput, parseDate } from '@/components/ui/date'
+import { useAuth } from '@/lib/auth'
 import { createTeam, uploadBusinessLicense } from '@/lib/team'
 import type { Team } from '@/lib/team'
 
@@ -40,6 +42,7 @@ function maskRegistrationNumber(text: string): string {
  */
 export default function CreateTeamPage() {
   const navigate = useNavigate()
+  const { updateUser } = useAuth()
   const { toast } = useToast()
 
   const [phase, setPhase] = useState<'form' | 'invite'>('form')
@@ -95,13 +98,14 @@ export default function CreateTeamPage() {
   }
 
   if (phase === 'invite' && createdTeam) {
-    // TODO: TeamInvitePanel로 교체 예정 (팀 코드 복사 + 이메일 초대)
     return (
-      <section className="text-center">
-        <h1 className="text-title-3-bold text-text-primary">
-          {createdTeam.name} 생성 완료!
-        </h1>
-      </section>
+      <TeamInvitePanel
+        team={createdTeam}
+        onGoHome={() => {
+          updateUser({ hasTeam: true, teamId: createdTeam.id })
+          navigate('/', { replace: true })
+        }}
+      />
     )
   }
 
