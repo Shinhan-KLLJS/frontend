@@ -25,7 +25,7 @@ export default function CampaignListTable({
   onReportSelect,
 }: CampaignListTableProps) {
   return (
-    <div className="w-full overflow-hidden rounded-x3 border border-line-secondary bg-bg-secondary">
+    <div className="w-full overflow-visible rounded-x3 border border-line-secondary bg-bg-secondary">
       <div
         className={`${GRID_CLASS} h-[48px] border-b border-line-secondary px-x5 text-label-1-normal-bold text-text-secondary`}
       >
