@@ -165,8 +165,9 @@ export default function CampaignRegisterPage() {
   }
 
   return (
-    // 기본 높이(890)를 넘는 경우 최하단 여백 80px (Figma 가이드)
-    <section className="flex min-h-full flex-col pb-[80px]">
+    // p-x5: Figma Container 패딩 (구 레이아웃 wrapper가 주던 것 — AppShell은 패딩이 없어 페이지가 소유).
+    // pb-[80px]: 기본 높이(890)를 넘는 경우 최하단 여백 80px (Figma 가이드)
+    <section className="flex min-h-full flex-col p-x5 pb-[80px]">
       <header className="flex items-end justify-between gap-x5 p-x5">
         <div className="flex min-w-0 flex-1 items-start">
           <button
