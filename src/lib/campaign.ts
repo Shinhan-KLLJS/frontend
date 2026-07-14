@@ -25,3 +25,32 @@ export const campaignInfoSchema = z.object({
 })
 
 export type CampaignInfoValues = z.infer<typeof campaignInfoSchema>
+
+/** 백엔드 ApiResponse의 code/message를 보존하는 에러 — 호출부는 message만 표시 */
+export class CampaignApiError extends Error {
+  code: string
+
+  constructor(code: string, message: string) {
+    super(message)
+    this.name = 'CampaignApiError'
+    this.code = code
+  }
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/** 광고 영상 업로드 — mock: 파일명에 'fail' 포함 시 실패(에러 화면 재현용) */
+export async function uploadCampaignVideo(
+  file: File,
+): Promise<{ videoId: string }> {
+  await delay(2500)
+  if (file.name.toLowerCase().includes('fail')) {
+    throw new CampaignApiError(
+      'CAMPAIGN4001',
+      '영상 업로드에 실패했습니다. 다시 시도하세요.',
+    )
+  }
+  return { videoId: `video-${Date.now()}` }
+}
