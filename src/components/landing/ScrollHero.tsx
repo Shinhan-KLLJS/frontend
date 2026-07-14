@@ -92,8 +92,7 @@ function DesktopScrollHero() {
     offset: ['start start', 'end end'],
   })
 
-  // 섹션 높이 230dvh(뷰포트 대비 유효 스크롤 130dvh) 기준 구간 배분:
-  // 등장(0~0.35, 배경·콘텐츠 모두 35%에 완전히 자리잡음) → 정지 유지(0.35~0.85/0.88) → 배경은 0.85부터, 헤드라인·대시보드는 0.88부터 퇴장
+  // 섹션 높이 230dvh 기준: 등장(0~0.35, 배경·콘텐츠 모두 35%에 완전히 자리잡음) → 정지 유지(0.35~1)
   const visualScale = useTransform(scrollYProgress, [0, 0.35], [1, 0.78])
   const visualY = useTransform(scrollYProgress, [0, 0.35], ['0vh', '21vh'])
   const visualRadius = useTransform(
@@ -109,9 +108,24 @@ function DesktopScrollHero() {
     [0, 1],
   )
   const dashboardY = useTransform(scrollYProgress, [0.23, 0.35], [140, 0])
-  // 퇴장(끝점은 둘 다 1.0으로 동일): 배경은 0.85부터, 헤드라인·대시보드는 0.88부터 더 늦게 사라지기 시작
-  const bgExitOpacity = useTransform(scrollYProgress, [0.85, 1], [1, 0])
-  const contentExitOpacity = useTransform(scrollYProgress, [0.88, 1], [1, 0])
+
+  // sticky가 풀리며 실제로 화면 밖으로 스크롤되어 나가는 구간(섹션 끝~그 아래 한 화면 높이)에
+  // 맞춰 전체를 사라지게 한다. 이 구간이 다음 섹션(Section2)이 화면에 들어오는 시점과 겹쳐서
+  // Hero가 사라지는 동시에 Section2가 나타나는 크로스페이드가 만들어진다.
+  //
+  // 배경(부드러운 그라데이션)과 콘텐츠(대비가 강한 대시보드 스크린샷)를 완전히 같은 값으로
+  // 사라지게 해도, 대비가 강한 콘텐츠가 먼저 사라지는 것처럼 보이는 착시가 있다(사람 눈의
+  // 인지 특성). 이를 상쇄하기 위해 배경을 콘텐츠보다 3% 먼저 사라지기 시작하게 한다.
+  const { scrollYProgress: exitProgress } = useScroll({
+    target: sectionRef,
+    offset: ['end end', 'end start'],
+  })
+  const { scrollYProgress: bgExitProgress } = useScroll({
+    target: sectionRef,
+    offset: ['end 97%', 'end start'],
+  })
+  const bgExitOpacity = useTransform(bgExitProgress, [0, 0.6], [1, 0])
+  const contentExitOpacity = useTransform(exitProgress, [0, 0.6], [1, 0])
   const copyFinalOpacity = useTransform(
     [copyOpacity, contentExitOpacity],
     (values) => (values as number[]).reduce((a, b) => a * b, 1),
