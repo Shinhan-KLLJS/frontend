@@ -6,6 +6,7 @@ import CampaignStatusTag from './CampaignStatusTag'
 interface CampaignListTableProps {
   campaigns: Campaign[]
   onCampaignInfo: (campaign: Campaign) => void
+  onCampaignDelete: (campaign: Campaign) => void
   reportMode?: boolean
   selectedCampaignIds?: Set<string>
   onReportSelect?: (campaignId: string, checked: boolean) => void
@@ -18,6 +19,7 @@ const GRID_CLASS =
 export default function CampaignListTable({
   campaigns,
   onCampaignInfo,
+  onCampaignDelete,
   reportMode = false,
   selectedCampaignIds = new Set(),
   onReportSelect,
@@ -72,6 +74,12 @@ export default function CampaignListTable({
                 key: 'info',
                 label: '캠페인 정보 보기',
                 onSelect: () => onCampaignInfo(campaign),
+              },
+              {
+                key: 'delete',
+                label: '캠페인 삭제',
+                tone: 'negative',
+                onSelect: () => onCampaignDelete(campaign),
               },
             ]}
             renderTrigger={() => <Icon icon={Ellipsis} size="medium" />}

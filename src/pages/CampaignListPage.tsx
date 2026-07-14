@@ -12,6 +12,7 @@ import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
 /** API 연결 전 피그마 기준 캠페인 목록의 기본 화면을 제공합니다. */
 export default function CampaignListPage() {
   const { toast } = useToast()
+  const [campaignItems, setCampaignItems] = useState(CAMPAIGN_FIXTURES)
   const [filter, setFilter] = useState<CampaignFilter>('all')
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<CampaignSort>('name')
@@ -20,7 +21,7 @@ export default function CampaignListPage() {
   const [reportCampaignIds, setReportCampaignIds] = useState<Set<string>>(
     new Set(),
   )
-  const campaigns = useCampaignList(CAMPAIGN_FIXTURES, filter, keyword, sort)
+  const campaigns = useCampaignList(campaignItems, filter, keyword, sort)
   const showPreparationToast = () => toast('다음 작업에서 기능을 연결합니다.')
   const toggleReportCampaign = (campaignId: string, checked: boolean) => {
     setReportCampaignIds((current) => {
@@ -37,6 +38,16 @@ export default function CampaignListPage() {
   const extractReport = () => {
     toast(`선택한 ${reportCampaignIds.size}개 캠페인의 리포트 추출을 시작했습니다.`)
     closeReportMode()
+  }
+  const deleteCampaign = (campaign: Campaign) => {
+    setCampaignItems((items) => items.filter((item) => item.id !== campaign.id))
+    setReportCampaignIds((current) => {
+      const next = new Set(current)
+      next.delete(campaign.id)
+      return next
+    })
+    if (selectedCampaign?.id === campaign.id) setSelectedCampaign(null)
+    toast(`${campaign.name} 캠페인을 삭제했습니다.`)
   }
 
   return (
@@ -87,7 +98,7 @@ export default function CampaignListPage() {
 
       <div className="flex flex-col gap-x5 p-x5">
         <CampaignListControls
-          campaigns={CAMPAIGN_FIXTURES}
+          campaigns={campaignItems}
           filter={filter}
           keyword={keyword}
           sort={sort}
@@ -98,6 +109,7 @@ export default function CampaignListPage() {
         <CampaignListTable
           campaigns={campaigns}
           onCampaignInfo={setSelectedCampaign}
+          onCampaignDelete={deleteCampaign}
           reportMode={reportMode}
           selectedCampaignIds={reportCampaignIds}
           onReportSelect={toggleReportCampaign}
