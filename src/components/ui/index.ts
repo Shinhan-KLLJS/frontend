@@ -46,7 +46,7 @@ export type {
 export { default as MenuItem } from './MenuItem'
 export type { MenuItemProps } from './MenuItem'
 
-export { default as LNB } from './LNB'
+export { default as LNB, LNB_DEFAULT_MENUS } from './LNB'
 export type { LNBProps, LNBMenu } from './LNB'
 
 export { default as Toast, ToastProvider, useToast } from './Toast'
