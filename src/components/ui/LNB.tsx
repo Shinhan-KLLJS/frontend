@@ -10,7 +10,7 @@ import {
   Users,
 } from 'lucide-react'
 import looviLogo from '@/assets/logos/loovi.svg'
-import Icon from './Icon'
+import Button from './Button'
 import MenuItem from './MenuItem'
 
 export interface LNBMenu {
@@ -20,8 +20,8 @@ export interface LNBMenu {
   disabled?: boolean
 }
 
-// Figma LNB 변형 기준 기본 메뉴 4종 (Home/Campaign/Team/Calendar)
-const LNB_DEFAULT_MENUS: LNBMenu[] = [
+// eslint-disable-next-line react-refresh/only-export-components
+export const LNB_DEFAULT_MENUS: LNBMenu[] = [
   { key: 'home', label: '홈', icon: House },
   { key: 'campaign', label: '캠페인', icon: Ad },
   { key: 'team', label: '팀원', icon: Users },
@@ -40,10 +40,7 @@ export interface LNBProps {
 }
 
 /**
- * LNB (왼쪽 사이드바) — side_header(로고 + 접기/펼치기 토글) + MenuItem 리스트
- *
- * - 펼침(240px): 로고 + PanelLeft 토글(hover 시 PanelLeftClose로 스왑, 클릭 시 접힘)
- * - 접힘(60px): 로고 버튼(hover 시 PanelLeftOpen으로 스왑, 클릭 시 펼침)
+ * LNB (왼쪽 사이드바) - side_header(로고 + 접기/펼치기 토글) + MenuItem 리스트
  */
 export default function LNB({
   short: shortProp,
@@ -58,9 +55,12 @@ export default function LNB({
   const [uncontrolledShort, setUncontrolledShort] = useState(defaultShort)
   const short = shortProp ?? uncontrolledShort
 
+  const [toggleHover, setToggleHover] = useState(false)
+
   const setShort = (next: boolean) => {
     if (shortProp === undefined) setUncontrolledShort(next)
     onShortChange?.(next)
+    setToggleHover(false)
   }
 
   return (
@@ -74,7 +74,6 @@ export default function LNB({
         .filter(Boolean)
         .join(' ')}
     >
-      {/* side_header — Default(240×54) / Short(60×54) */}
       <div
         className={[
           'flex h-[54px] shrink-0 items-center border-b border-line-tertiary',
@@ -82,22 +81,32 @@ export default function LNB({
         ].join(' ')}
       >
         {short ? (
-          // 접힘: 로고 표시, hover 시 PanelLeftOpen으로 스왑 → 클릭하면 펼침
-          <button
-            type="button"
-            aria-label="사이드바 펼치기"
-            onClick={() => setShort(false)}
-            className="group inline-flex cursor-pointer items-center justify-center rounded-x1 p-x1 text-text-primary"
+          // 접힘: 로고 표시, hover 시 PanelLeftOpen 아이콘 버튼으로 스왑 → 클릭하면 펼침
+          <div
+            onMouseEnter={() => setToggleHover(true)}
+            onMouseLeave={() => setToggleHover(false)}
           >
-            <img
-              src={looviLogo}
-              alt=""
-              className="size-x5 group-hover:hidden"
-            />
-            <span className="hidden group-hover:inline-flex">
-              <Icon icon={PanelLeftOpen} size={20} color="text-text-primary" />
-            </span>
-          </button>
+            {toggleHover ? (
+              <Button
+                variant="ghost"
+                color="secondary"
+                iconOnly
+                size="medium"
+                leadingIcon={PanelLeftOpen}
+                aria-label="사이드바 펼치기"
+                onClick={() => setShort(false)}
+              />
+            ) : (
+              <button
+                type="button"
+                aria-label="사이드바 펼치기"
+                onClick={() => setShort(false)}
+                className="inline-flex size-[40px] cursor-pointer items-center justify-center rounded-x2-5"
+              >
+                <img src={looviLogo} alt="" className="size-x5" />
+              </button>
+            )}
+          </div>
         ) : (
           <>
             <span className="inline-flex items-center gap-x2">
@@ -106,24 +115,21 @@ export default function LNB({
                 Loovi
               </span>
             </span>
-            {/* 펼침: PanelLeft 표시, hover 시 PanelLeftClose로 스왑 → 클릭하면 접힘 */}
-            <button
-              type="button"
-              aria-label="사이드바 접기"
-              onClick={() => setShort(true)}
-              className="group inline-flex cursor-pointer items-center justify-center rounded-x1 p-x1 text-text-primary"
+            {/* 펼침: PanelLeft 아이콘 버튼, hover 시 PanelLeftClose로 스왑 → 클릭하면 접힘 */}
+            <div
+              onMouseEnter={() => setToggleHover(true)}
+              onMouseLeave={() => setToggleHover(false)}
             >
-              <span className="inline-flex group-hover:hidden">
-                <Icon icon={PanelLeft} size={20} color="text-text-primary" />
-              </span>
-              <span className="hidden group-hover:inline-flex">
-                <Icon
-                  icon={PanelLeftClose}
-                  size={20}
-                  color="text-text-primary"
-                />
-              </span>
-            </button>
+              <Button
+                variant="ghost"
+                color="secondary"
+                iconOnly
+                size="medium"
+                leadingIcon={toggleHover ? PanelLeftClose : PanelLeft}
+                aria-label="사이드바 접기"
+                onClick={() => setShort(true)}
+              />
+            </div>
           </>
         )}
       </div>

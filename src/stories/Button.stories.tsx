@@ -45,9 +45,11 @@ const COMBOS: Array<{ variant: ButtonVariant; color: ButtonColor }> = [
   { variant: 'default', color: 'secondary' },
   { variant: 'line', color: 'primary' },
   { variant: 'line', color: 'secondary' },
+  { variant: 'ghost', color: 'primary' },
+  { variant: 'ghost', color: 'secondary' },
 ]
 
-/** 매트릭스: Variant(default/line) × Color(primary/secondary) × Size(large/medium/small) */
+/** 매트릭스: Variant(default/line/ghost) × Color(primary/secondary) × Size(large/medium/small) */
 export const Matrix: Story = {
   render: () => (
     <div className="font-sans flex flex-col gap-8">

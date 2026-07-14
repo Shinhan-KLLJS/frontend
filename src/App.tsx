@@ -1,12 +1,14 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
 import AppLayout from '@/components/layout/AppLayout'
 import CampaignRegisterPage from '@/pages/CampaignRegisterPage'
-import CampaignsPage from '@/pages/CampaignsPage'
 import HomePage from '@/pages/HomePage'
+import ComingSoonPage from '@/pages/ComingSoonPage'
 import LoginPage from '@/pages/LoginPage'
 import WelcomePage from '@/pages/WelcomePage'
 import { ToastProvider } from '@/components/ui'
 import { AuthProvider, RequireAuth } from '@/lib/auth'
+import { queryClient } from '@/lib/queryClient'
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -31,21 +33,28 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <HomePage /> },
-      // 캠페인 리스트 (준비 중 placeholder) — LNB '캠페인' 메뉴 목적지
-      { path: '/campaigns', element: <CampaignsPage /> },
+      { path: '/campaigns', element: <ComingSoonPage title="캠페인" /> },
       // 캠페인 등록 3단계 위저드 (기본 정보 → 매체 선택 → 최종 확인)
       { path: '/campaigns/new', element: <CampaignRegisterPage /> },
+      { path: '/team', element: <ComingSoonPage title="팀 관리" /> },
+      { path: '/calendar', element: <ComingSoonPage title="캘린더" /> },
+      { path: '/service-intro', element: <ComingSoonPage title="서비스 소개" /> },
+      { path: '/mypage', element: <ComingSoonPage title="마이 페이지" /> },
+      { path: '/settings', element: <ComingSoonPage title="설정" /> },
+      { path: '/support', element: <ComingSoonPage title="고객센터" /> },
     ],
   },
 ])
 
 function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </ToastProvider>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </ToastProvider>
+    </QueryClientProvider>
   )
 }
 
