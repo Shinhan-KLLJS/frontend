@@ -30,6 +30,18 @@ export interface AuthUser {
 
 export type AuthStatus = 'loading' | 'authenticated' | 'guest'
 
+// 로컬 개발용 목 사용자 — VITE_MOCK_AUTH=true 일 때만 사용 (백엔드 없이 대시보드 확인용)
+const MOCK_USER: AuthUser = {
+  id: 0,
+  displayName: '테스트 사용자',
+  email: 'dev@loovi.my',
+  profileImageUrl:
+    'https://img1.daumcdn.net/thumb/R1280x0.fjpg/?fname=http://t1.daumcdn.net/brunch/service/user/f8Qi/image/nB2ho0vRYaBFs2bJiVcwEINfbcU.jpg',
+  status: 'ACTIVE',
+  hasTeam: true,
+  teamId: 1,
+}
+
 interface AuthContextValue {
   status: AuthStatus
   user: AuthUser | null
@@ -64,6 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 앱 진입 시 refresh_token 쿠키로 세션 복원 시도
   useEffect(() => {
+    // 로컬 개발용 목 인증 — 백엔드 없이 로그인 상태로 진입 (DEV 가드로 프로덕션엔 미포함)
+    if (import.meta.env.DEV && import.meta.env.VITE_MOCK_AUTH === 'true') {
+      setUser(MOCK_USER)
+      setStatus('authenticated')
+      return
+    }
+
     let cancelled = false
     ;(async () => {
       const token = await refreshAccessToken()
