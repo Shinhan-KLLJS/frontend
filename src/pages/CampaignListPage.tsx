@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Pencil, Plus } from 'lucide-react'
 import { Button, Icon, useToast } from '@/components/ui'
 import CampaignListControls from '@/components/campaign/CampaignListControls'
+import CampaignDeleteModal from '@/components/campaign/CampaignDeleteModal'
 import CampaignInfoModal from '@/components/campaign/CampaignInfoModal'
 import CampaignListTable from '@/components/campaign/CampaignListTable'
 import { CAMPAIGN_FIXTURES } from '@/lib/campaigns'
@@ -17,6 +18,7 @@ export default function CampaignListPage() {
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<CampaignSort>('name')
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
+  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null)
   const [reportMode, setReportMode] = useState(false)
   const [reportCampaignId, setReportCampaignId] = useState<string | null>(null)
   const campaigns = useCampaignList(campaignItems, filter, keyword, sort)
@@ -33,10 +35,13 @@ export default function CampaignListPage() {
     toast('선택한 캠페인의 리포트 추출을 시작했습니다.')
     closeReportMode()
   }
-  const deleteCampaign = (campaign: Campaign) => {
+  const confirmCampaignDelete = () => {
+    if (!campaignToDelete) return
+    const campaign = campaignToDelete
     setCampaignItems((items) => items.filter((item) => item.id !== campaign.id))
     if (reportCampaignId === campaign.id) setReportCampaignId(null)
     if (selectedCampaign?.id === campaign.id) setSelectedCampaign(null)
+    setCampaignToDelete(null)
     toast(`${campaign.name} 캠페인을 삭제했습니다.`)
   }
 
@@ -98,7 +103,7 @@ export default function CampaignListPage() {
         <CampaignListTable
           campaigns={campaigns}
           onCampaignInfo={setSelectedCampaign}
-          onCampaignDelete={deleteCampaign}
+          onCampaignDelete={setCampaignToDelete}
           reportMode={reportMode}
           selectedReportCampaignId={reportCampaignId}
           onReportSelect={toggleReportCampaign}
@@ -107,6 +112,11 @@ export default function CampaignListPage() {
       <CampaignInfoModal
         campaign={selectedCampaign}
         onClose={() => setSelectedCampaign(null)}
+      />
+      <CampaignDeleteModal
+        campaign={campaignToDelete}
+        onClose={() => setCampaignToDelete(null)}
+        onConfirm={confirmCampaignDelete}
       />
     </section>
   )
