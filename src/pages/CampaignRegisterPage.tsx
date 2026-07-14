@@ -1,7 +1,12 @@
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
+import CampaignInfoForm from '@/components/campaign/CampaignInfoForm'
 import { Icon, ProgressBar } from '@/components/ui'
+import { campaignInfoSchema } from '@/lib/campaign'
+import type { CampaignInfoValues } from '@/lib/campaign'
 
 const REGISTER_STEPS = ['기본 정보', '매체 선택', '최종 확인']
 
@@ -21,6 +26,19 @@ const STEP_SUBTITLE: Record<RegisterStep, string> = {
 export default function CampaignRegisterPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState<RegisterStep>(1)
+
+  // Step1 기본 정보 폼 — 단계를 오가도 값이 유지되도록 페이지가 인스턴스를 소유
+  const form = useForm<CampaignInfoValues>({
+    resolver: zodResolver(campaignInfoSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      name: '',
+      brand: '',
+      period: {},
+      dailyPlayCount: '',
+      memo: '',
+    },
+  })
 
   // 뒤로가기: 2·3단계는 이전 단계로, 1단계는 위저드를 벗어나 캠페인 리스트로
   const handleBack = () => {
@@ -57,11 +75,20 @@ export default function CampaignRegisterPage() {
         />
       </header>
 
-      <div className="flex flex-1 items-start gap-x5 p-x5">
-        {/* 단계별 콘텐츠 — 후속 커밋에서 구현 */}
-        <p className="text-body-2-normal-regular text-text-tertiary">
-          단계 콘텐츠 준비 중
-        </p>
+      <div className="flex flex-1 items-stretch gap-x5 p-x5">
+        {step === 1 && (
+          <>
+            {/* 영상 업로드 카드 — DV-142에서 구현 */}
+            <div className="min-h-[608px] min-w-[470px] flex-1 rounded-x4 border border-line-tertiary bg-bg-secondary p-x10 lg:max-w-[552px]" />
+            <CampaignInfoForm form={form} onNext={() => setStep(2)} />
+          </>
+        )}
+        {step !== 1 && (
+          // 매체 선택·최종 확인 — 후속 커밋에서 구현
+          <p className="text-body-2-normal-regular text-text-tertiary">
+            단계 콘텐츠 준비 중
+          </p>
+        )}
       </div>
     </section>
   )
