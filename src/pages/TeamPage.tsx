@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import TeamInviteModal from '@/components/team/TeamInviteModal'
 import TeamMemberList from '@/components/team/TeamMemberList'
+import TeamNameTitle from '@/components/team/TeamNameTitle'
 import { Button, Modal, SearchBar, useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
 import {
   fetchTeam,
   fetchTeamMembers,
+  leaveTeam,
   removeMember,
   sendTeamInvites,
   transferOwnership,
   updateMemberRole,
+  updateTeamName,
 } from '@/lib/team'
 import type { InviteEntry, Team, TeamMember, TeamRole } from '@/lib/team'
 
@@ -22,6 +25,7 @@ import type { InviteEntry, Team, TeamMember, TeamRole } from '@/lib/team'
 export default function TeamPage() {
   const { user } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   const teamId = user?.teamId ?? null
 
@@ -33,6 +37,7 @@ export default function TeamPage() {
   const [inviteSending, setInviteSending] = useState(false)
   // null이 아니면 Owner 권한 이전 확인 모달이 열린 상태 (open 불리언 겸용)
   const [transferTarget, setTransferTarget] = useState<TeamMember | null>(null)
+  const [leaveOpen, setLeaveOpen] = useState(false)
 
   useEffect(() => {
     if (teamId == null) return
@@ -130,6 +135,32 @@ export default function TeamPage() {
     }
   }
 
+  // 팀명 저장 — 원복 비용이 없는 값이라 즉시 반영(낙관 업데이트) 후 실패 시 원복
+  const handleSaveTeamName = async (name: string) => {
+    if (teamId == null || !team) return
+    const previous = team
+    setTeam({ ...team, name })
+    try {
+      await updateTeamName(teamId, name)
+    } catch {
+      setTeam(previous)
+      toast('팀명 변경에 실패했습니다. 다시 시도하세요.', { status: 'error' })
+    }
+  }
+
+  // 팀 나가기 — 성공 시 팀 생성/합류 분기점으로 이동.
+  // AuthContext의 user.hasTeam은 setter가 없어 여기서 갱신 불가 — 백엔드 연동 시 me 재조회로 동기화 필요
+  const handleLeaveTeam = async () => {
+    setLeaveOpen(false) // ui/Modal은 확인 즉시 닫힘(로딩 미지원) — 결과는 이동/토스트로 안내
+    if (teamId == null) return
+    try {
+      await leaveTeam(teamId)
+      navigate('/welcome', { replace: true })
+    } catch {
+      toast('팀 나가기에 실패했습니다. 다시 시도하세요.', { status: 'error' })
+    }
+  }
+
   // 검색 — 행에 이메일이 함께 노출되는 리스트라 이름+이메일 부분 일치로 필터
   const keyword = query.trim().toLowerCase()
   const filtered = keyword
@@ -152,12 +183,19 @@ export default function TeamPage() {
     // p-x5: Figma Content 패딩 (AppShell은 패딩이 없어 페이지가 소유). pb-[80px]: 최하단 여백 (Figma 가이드)
     <section className="flex min-h-full flex-col p-x5 pb-[80px]">
       {/* Leading — 팀명 + 액션 버튼 (Figma 패딩 좌우 40 · 상하 20) */}
-      <header className="flex items-center justify-between gap-x5 px-x10 py-x5">
-        <h1 className="min-w-0 truncate text-title-2-medium text-text-primary">
-          {team?.name ?? ''}
-        </h1>
+      <header className="flex min-h-[88px] items-center justify-between gap-x5 px-x10 py-x5">
+        {team ? (
+          <TeamNameTitle name={team.name} onSave={handleSaveTeamName} />
+        ) : (
+          // 로딩 중에도 버튼 세트가 우측에 고정되도록 자리만 차지
+          <span aria-hidden="true" />
+        )}
         <div className="flex shrink-0 items-center gap-[6px]">
-          <Button variant="line" color="secondary">
+          <Button
+            variant="line"
+            color="secondary"
+            onClick={() => setLeaveOpen(true)}
+          >
             팀 나가기
           </Button>
           {/* 팀 코드가 필요하므로 팀 정보 로드 전에는 비활성 */}
@@ -198,6 +236,17 @@ export default function TeamPage() {
         body="Owner 권한은 한 명만 가질 수 있습니다. 권한을 이전하면 기존 소유자는 Admin으로 변경됩니다."
         onClose={() => setTransferTarget(null)}
         onConfirm={handleTransferOwnership}
+      />
+
+      {/* 팀 나가기 확인 — 문구·버튼(취소/팀 나가기)은 Figma DV-64 스펙 그대로 */}
+      <Modal
+        open={leaveOpen}
+        title="팀을 나가시겠습니까?"
+        body="팀에서 나가면 이 팀의 캠페인 데이터에 더 이상 접근할 수 없습니다."
+        cancelText="취소"
+        confirmText="팀 나가기"
+        onClose={() => setLeaveOpen(false)}
+        onConfirm={handleLeaveTeam}
       />
 
       <TeamInviteModal
