@@ -18,34 +18,24 @@ export default function CampaignListPage() {
   const [sort, setSort] = useState<CampaignSort>('name')
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [reportMode, setReportMode] = useState(false)
-  const [reportCampaignIds, setReportCampaignIds] = useState<Set<string>>(
-    new Set(),
-  )
+  const [reportCampaignId, setReportCampaignId] = useState<string | null>(null)
   const campaigns = useCampaignList(campaignItems, filter, keyword, sort)
   const showPreparationToast = () => toast('다음 작업에서 기능을 연결합니다.')
   const toggleReportCampaign = (campaignId: string, checked: boolean) => {
-    setReportCampaignIds((current) => {
-      const next = new Set(current)
-      if (checked) next.add(campaignId)
-      else next.delete(campaignId)
-      return next
-    })
+    // 새 항목을 선택하면 기존 대상은 교체하고, 선택 항목을 다시 누르면 해제합니다.
+    setReportCampaignId(checked ? campaignId : null)
   }
   const closeReportMode = () => {
-    setReportCampaignIds(new Set())
+    setReportCampaignId(null)
     setReportMode(false)
   }
   const extractReport = () => {
-    toast(`선택한 ${reportCampaignIds.size}개 캠페인의 리포트 추출을 시작했습니다.`)
+    toast('선택한 캠페인의 리포트 추출을 시작했습니다.')
     closeReportMode()
   }
   const deleteCampaign = (campaign: Campaign) => {
     setCampaignItems((items) => items.filter((item) => item.id !== campaign.id))
-    setReportCampaignIds((current) => {
-      const next = new Set(current)
-      next.delete(campaign.id)
-      return next
-    })
+    if (reportCampaignId === campaign.id) setReportCampaignId(null)
     if (selectedCampaign?.id === campaign.id) setSelectedCampaign(null)
     toast(`${campaign.name} 캠페인을 삭제했습니다.`)
   }
@@ -73,7 +63,7 @@ export default function CampaignListPage() {
                 취소
               </Button>
               <Button
-                disabled={reportCampaignIds.size === 0}
+                disabled={!reportCampaignId}
                 onClick={extractReport}
               >
                 추출하기
@@ -111,7 +101,7 @@ export default function CampaignListPage() {
           onCampaignInfo={setSelectedCampaign}
           onCampaignDelete={deleteCampaign}
           reportMode={reportMode}
-          selectedCampaignIds={reportCampaignIds}
+          selectedReportCampaignId={reportCampaignId}
           onReportSelect={toggleReportCampaign}
         />
       </div>

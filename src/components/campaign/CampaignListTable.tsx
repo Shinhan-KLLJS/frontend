@@ -8,7 +8,7 @@ interface CampaignListTableProps {
   onCampaignInfo: (campaign: Campaign) => void
   onCampaignDelete: (campaign: Campaign) => void
   reportMode?: boolean
-  selectedCampaignIds?: Set<string>
+  selectedReportCampaignId?: string | null
   onReportSelect?: (campaignId: string, checked: boolean) => void
 }
 
@@ -21,7 +21,7 @@ export default function CampaignListTable({
   onCampaignInfo,
   onCampaignDelete,
   reportMode = false,
-  selectedCampaignIds = new Set(),
+  selectedReportCampaignId = null,
   onReportSelect,
 }: CampaignListTableProps) {
   return (
@@ -46,7 +46,7 @@ export default function CampaignListTable({
             {reportMode && (
               <Checkbox
                 size={24}
-                checked={selectedCampaignIds.has(campaign.id)}
+                checked={selectedReportCampaignId === campaign.id}
                 onChange={(checked) => onReportSelect?.(campaign.id, checked)}
                 aria-label={`${campaign.name} 리포트에 포함`}
               />
