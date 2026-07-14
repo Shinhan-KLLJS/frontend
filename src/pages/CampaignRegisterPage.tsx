@@ -4,11 +4,16 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import CampaignInfoForm from '@/components/campaign/CampaignInfoForm'
+import MediaListPanel from '@/components/campaign/MediaListPanel'
 import VideoUploadCard from '@/components/campaign/VideoUploadCard'
 import type { UploadStatus } from '@/components/campaign/VideoUploadCard'
 import { Icon, ProgressBar, useToast } from '@/components/ui'
-import { campaignInfoSchema, uploadCampaignVideo } from '@/lib/campaign'
-import type { CampaignInfoValues } from '@/lib/campaign'
+import {
+  campaignInfoSchema,
+  fetchCampaignMedia,
+  uploadCampaignVideo,
+} from '@/lib/campaign'
+import type { CampaignInfoValues, CampaignMedia } from '@/lib/campaign'
 
 const REGISTER_STEPS = ['기본 정보', '매체 선택', '최종 확인']
 
@@ -106,6 +111,25 @@ export default function CampaignRegisterPage() {
     setUpload(INITIAL_UPLOAD)
   }
 
+  // 매체 선택 — 카드·지도 핀이 하나의 선택 상태를 공유하도록 페이지가 소유
+  const [mediaList, setMediaList] = useState<CampaignMedia[]>([])
+  const [mediaLoading, setMediaLoading] = useState(true)
+  const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    fetchCampaignMedia()
+      .then((list) => {
+        if (active) setMediaList(list)
+      })
+      .finally(() => {
+        if (active) setMediaLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
   // 뒤로가기: 2·3단계는 이전 단계로, 1단계는 위저드를 벗어나 캠페인 리스트로
   const handleBack = () => {
     if (step > 1) setStep((step - 1) as RegisterStep)
@@ -154,8 +178,23 @@ export default function CampaignRegisterPage() {
             <CampaignInfoForm form={form} onNext={() => setStep(2)} />
           </>
         )}
-        {step !== 1 && (
-          // 매체 선택·최종 확인 — 후속 커밋에서 구현
+        {step === 2 && (
+          <div className="relative min-h-[640px] w-full overflow-hidden rounded-x4 border border-line-secondary">
+            {/* 지도 영역 — DV-140에서 카카오맵 연동 */}
+            <div className="absolute inset-0 bg-bg-primary" />
+            <MediaListPanel
+              className="absolute inset-y-0 left-0 z-10 w-[372px] border-r border-line-secondary"
+              mediaList={mediaList}
+              loading={mediaLoading}
+              selectedMediaId={selectedMediaId}
+              onSelectMedia={setSelectedMediaId}
+              onPrev={handleBack}
+              onNext={() => setStep(3)}
+            />
+          </div>
+        )}
+        {step === 3 && (
+          // 최종 확인 — 후속 커밋에서 구현
           <p className="text-body-2-normal-regular text-text-tertiary">
             단계 콘텐츠 준비 중
           </p>
