@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Pencil, Plus } from 'lucide-react'
 import { Button, Icon, useToast } from '@/components/ui'
 import CampaignListControls from '@/components/campaign/CampaignListControls'
+import CampaignInfoModal from '@/components/campaign/CampaignInfoModal'
 import CampaignListTable from '@/components/campaign/CampaignListTable'
 import { CAMPAIGN_FIXTURES } from '@/lib/campaigns'
+import type { Campaign } from '@/lib/campaigns'
 import { useCampaignList } from '@/hooks/useCampaignList'
 import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
 
@@ -13,6 +15,7 @@ export default function CampaignListPage() {
   const [filter, setFilter] = useState<CampaignFilter>('all')
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<CampaignSort>('name')
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const campaigns = useCampaignList(CAMPAIGN_FIXTURES, filter, keyword, sort)
   const showPreparationToast = () => toast('다음 작업에서 기능을 연결합니다.')
 
@@ -52,8 +55,15 @@ export default function CampaignListPage() {
           onKeywordChange={setKeyword}
           onSortChange={setSort}
         />
-        <CampaignListTable campaigns={campaigns} />
+        <CampaignListTable
+          campaigns={campaigns}
+          onCampaignInfo={setSelectedCampaign}
+        />
       </div>
+      <CampaignInfoModal
+        campaign={selectedCampaign}
+        onClose={() => setSelectedCampaign(null)}
+      />
     </section>
   )
 }

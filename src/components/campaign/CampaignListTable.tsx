@@ -1,17 +1,21 @@
 import { Ellipsis } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { DropdownMenu, Icon } from '@/components/ui'
 import type { Campaign } from '@/lib/campaigns'
 import CampaignStatusTag from './CampaignStatusTag'
 
 interface CampaignListTableProps {
   campaigns: Campaign[]
+  onCampaignInfo: (campaign: Campaign) => void
 }
 
 const GRID_CLASS =
   'grid grid-cols-[minmax(0,1fr)_60px_180px_220px_90px_24px] items-center gap-x6'
 
 /** 피그마 가이드의 48px 헤더와 64px 행 높이를 따르는 캠페인 표입니다. */
-export default function CampaignListTable({ campaigns }: CampaignListTableProps) {
+export default function CampaignListTable({
+  campaigns,
+  onCampaignInfo,
+}: CampaignListTableProps) {
   return (
     <div className="w-full overflow-hidden rounded-x3 border border-line-secondary bg-bg-secondary">
       <div
@@ -43,14 +47,19 @@ export default function CampaignListTable({ campaigns }: CampaignListTableProps)
           <span className="text-right text-label-1-normal-regular text-text-secondary">
             {campaign.todayPlayCount}/{campaign.totalPlayCount}
           </span>
-          <Button
-            iconOnly
-            variant="ghost"
-            color="secondary"
-            size="small"
-            leadingIcon={Ellipsis}
-            aria-label={`${campaign.name} 작업 메뉴`}
+          <DropdownMenu
+            triggerAriaLabel={`${campaign.name} 작업 메뉴`}
+            menuAriaLabel={`${campaign.name} 작업`}
             className="justify-self-end"
+            items={[
+              {
+                key: 'info',
+                label: '캠페인 정보 보기',
+                onSelect: () => onCampaignInfo(campaign),
+              },
+            ]}
+            renderTrigger={() => <Icon icon={Ellipsis} size="medium" />}
+            triggerClassName="flex size-[32px] items-center justify-center rounded-x2 text-text-primary interaction-normal"
           />
         </div>
       ))}

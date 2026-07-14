@@ -12,8 +12,10 @@ export interface ModalProps extends Omit<
   'title'
 > {
   open: boolean
-  title: ReactNode
+  title?: ReactNode
   body?: ReactNode
+  children?: ReactNode
+  footer?: ReactNode
   cancelText?: string
   confirmText?: string
   onClose?: () => void
@@ -32,6 +34,8 @@ export default function Modal({
   open,
   title,
   body,
+  children,
+  footer,
   cancelText = '아니요',
   confirmText = '네',
   onClose,
@@ -42,6 +46,7 @@ export default function Modal({
   const titleId = useId()
   const bodyId = useId()
   const panelRef = useRef<HTMLDivElement>(null)
+  const hasDescription = Boolean(body || children)
 
   // onClose 참조가 바뀌어도 스택 effect가 재실행(스택 재푸시)되지 않도록 ref로 참조
   const onCloseRef = useRef(onClose)
@@ -114,44 +119,57 @@ export default function Modal({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={body ? bodyId : undefined}
+        aria-labelledby={title ? titleId : undefined}
+        aria-describedby={hasDescription ? bodyId : undefined}
         onKeyDown={handlePanelKeyDown}
         className={[
-          'font-sans flex w-[334px] flex-col items-center gap-x5 rounded-2xl bg-bg-secondary px-x5 py-x8 shadow-normal-medium',
+          'font-sans flex flex-col rounded-2xl bg-bg-secondary shadow-normal-medium',
+          children
+            ? 'w-auto gap-x5 p-x5'
+            : 'w-[334px] items-center gap-x5 px-x5 py-x8',
           className,
         ]
           .filter(Boolean)
           .join(' ')}
         {...props}
       >
-        <div className="flex w-full flex-col gap-x1 text-center">
-          <h2 id={titleId} className="text-headline-1-bold text-text-primary">
-            {title}
-          </h2>
-          {body && (
-            <p
-              id={bodyId}
-              className="text-body-2-normal-regular text-text-primary"
+        {children ? (
+          <div id={bodyId} className="w-full">
+            {children}
+          </div>
+        ) : (
+          <div className="flex w-full flex-col gap-x1 text-center">
+            {title && (
+              <h2 id={titleId} className="text-headline-1-bold text-text-primary">
+                {title}
+              </h2>
+            )}
+            {body && (
+              <p
+                id={bodyId}
+                className="text-body-2-normal-regular text-text-primary"
+              >
+                {body}
+              </p>
+            )}
+          </div>
+        )}
+        {footer ?? (
+          <div className="flex w-full gap-x2">
+            <Button
+              variant="line"
+              color="secondary"
+              size="large"
+              className="flex-1"
+              onClick={onClose}
             >
-              {body}
-            </p>
-          )}
-        </div>
-        <div className="flex w-full gap-x2">
-          <Button
-            variant="line"
-            color="secondary"
-            size="large"
-            className="flex-1"
-            onClick={onClose}
-          >
-            {cancelText}
-          </Button>
-          <Button size="large" className="flex-1" onClick={onConfirm}>
-            {confirmText}
-          </Button>
-        </div>
+              {cancelText}
+            </Button>
+            <Button size="large" className="flex-1" onClick={onConfirm}>
+              {confirmText}
+            </Button>
+          </div>
+        )}
       </div>
     </div>,
     document.body,
