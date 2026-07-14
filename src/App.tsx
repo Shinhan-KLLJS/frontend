@@ -1,10 +1,32 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import AppLayout from '@/components/layout/AppLayout'
 import HomePage from '@/pages/HomePage'
+import LandingPage from '@/pages/LandingPage'
 import LoginPage from '@/pages/LoginPage'
 import WelcomePage from '@/pages/WelcomePage'
-import { ToastProvider } from '@/components/ui'
-import { AuthProvider, RequireAuth } from '@/lib/auth'
+import { ToastProvider, LoadingSpinner } from '@/components/ui'
+import { AuthProvider, RequireAuth, useAuth } from '@/lib/auth'
+
+/** '/' 전용 분기: 세션 확인 중엔 스피너, 비로그인은 랜딩, 로그인은 기존 대시보드 */
+function RootRoute() {
+  const { status } = useAuth()
+
+  if (status === 'loading') {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <LoadingSpinner progress={0} showLabel={false} />
+      </div>
+    )
+  }
+  if (status === 'guest') {
+    return <LandingPage />
+  }
+  return (
+    <AppLayout>
+      <HomePage />
+    </AppLayout>
+  )
+}
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -21,14 +43,7 @@ const router = createBrowserRouter([
       </RequireAuth>
     ),
   },
-  {
-    element: (
-      <RequireAuth>
-        <AppLayout />
-      </RequireAuth>
-    ),
-    children: [{ path: '/', element: <HomePage /> }],
-  },
+  { path: '/', element: <RootRoute /> },
 ])
 
 function App() {
