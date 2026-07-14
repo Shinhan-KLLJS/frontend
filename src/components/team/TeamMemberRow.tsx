@@ -50,7 +50,7 @@ export default function TeamMemberRow({
   ]
 
   return (
-    <div className="flex h-[86px] items-center gap-x3 border-b border-line-secondary bg-bg-secondary p-x5 last:border-b-0">
+    <div className="flex h-[86px] items-center gap-x3 border-b border-line-secondary bg-bg-secondary p-x5 first:rounded-t-x3 last:rounded-b-x3 last:border-b-0">
       {/* 아바타 — 이미지가 없으면 이름 첫 글자 이니셜로 대체 */}
       <div className="flex size-[40px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-line-secondary bg-bg-primary">
         {member.profileImageUrl ? (

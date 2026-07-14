@@ -26,7 +26,8 @@ export default function TeamMemberList({
   return (
     <div
       className={[
-        'w-full overflow-clip rounded-x3 border border-line-secondary',
+        // overflow-clip 대신 행 자체에 모서리 라운드 — clip은 마지막 행의 케밥 메뉴(아래로 열림)를 잘라 클릭 불가로 만든다
+        'w-full rounded-x3 border border-line-secondary',
         className,
       ]
         .filter(Boolean)
@@ -36,14 +37,14 @@ export default function TeamMemberList({
         <div
           role="status"
           aria-label="팀원 목록 불러오는 중"
-          className="flex h-[86px] items-center justify-center gap-x2 bg-bg-secondary"
+          className="flex h-[86px] items-center justify-center gap-x2 rounded-x3 bg-bg-secondary"
         >
           <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid" />
           <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid [animation-delay:150ms]" />
           <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid [animation-delay:300ms]" />
         </div>
       ) : members.length === 0 ? (
-        <p className="flex h-[86px] items-center justify-center bg-bg-secondary text-label-1-normal-regular text-text-caption">
+        <p className="flex h-[86px] items-center justify-center rounded-x3 bg-bg-secondary text-label-1-normal-regular text-text-caption">
           검색 결과가 없습니다.
         </p>
       ) : (
