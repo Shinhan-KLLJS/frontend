@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { Navigate, createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import AppLayout from '@/components/layout/AppLayout'
 import CampaignListPage from '@/pages/CampaignListPage'
@@ -33,6 +33,8 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <HomePage /> },
+      // 기존 단수형 주소로 접근해도 캠페인 목록으로 자연스럽게 이동합니다.
+      { path: '/campaign', element: <Navigate to="/campaigns" replace /> },
       { path: '/campaigns', element: <CampaignListPage /> },
       { path: '/team', element: <ComingSoonPage title="팀 관리" /> },
       { path: '/calendar', element: <ComingSoonPage title="캘린더" /> },
