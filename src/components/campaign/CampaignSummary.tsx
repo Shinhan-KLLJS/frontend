@@ -115,12 +115,13 @@ export default function CampaignSummary({
         {/* 매체 정보 */}
         <div className="flex min-h-[532px] min-w-0 flex-1 flex-col gap-x5 rounded-x4 bg-bg-primary p-x5">
           <div className="flex min-h-0 flex-1 flex-col justify-center gap-x4">
-            <div className="max-h-[204px] min-h-0 w-full flex-1 overflow-hidden rounded-x3 bg-bg-tertiary">
+            {/* 매체 사진도 영상 미리보기와 동일하게 레터박스로 전체 프레임 노출 */}
+            <div className="max-h-[204px] min-h-0 w-full flex-1 overflow-hidden rounded-x3 bg-[var(--cool-neutral-1000)]">
               {media && (
                 <img
                   src={media.thumbnail}
                   alt=""
-                  className="size-full object-cover"
+                  className="size-full object-contain"
                 />
               )}
             </div>
