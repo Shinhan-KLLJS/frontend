@@ -208,13 +208,16 @@ export default function CampaignRegisterPage() {
         )}
         {step === 2 && (
           <div className="relative min-h-[640px] w-full overflow-hidden rounded-x4 border border-line-secondary">
-            {/* 리스트 패널이 불투명하므로 지도는 패널 오른쪽 영역만 차지 (지역 드롭다운이 지도 좌상단에 오도록) */}
-            <MediaMap
-              className="absolute inset-y-0 left-[372px] right-0"
-              mediaList={mediaList}
-              selectedMediaId={selectedMediaId}
-              onSelectMedia={setSelectedMediaId}
-            />
+            {/* 리스트 패널이 불투명하므로 지도는 패널 오른쪽 영역만 차지 (지역 드롭다운이 지도 좌상단에 오도록).
+                MediaMap 루트가 relative라 포지셔닝은 래퍼가 담당 */}
+            <div className="absolute inset-y-0 left-[372px] right-0">
+              <MediaMap
+                className="size-full"
+                mediaList={mediaList}
+                selectedMediaId={selectedMediaId}
+                onSelectMedia={setSelectedMediaId}
+              />
+            </div>
             <MediaListPanel
               className="absolute inset-y-0 left-0 z-10 w-[372px] border-r border-line-secondary"
               mediaList={mediaList}
