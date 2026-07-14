@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import CampaignInfoForm from '@/components/campaign/CampaignInfoForm'
 import MediaListPanel from '@/components/campaign/MediaListPanel'
+import MediaMap from '@/components/campaign/MediaMap'
 import VideoUploadCard from '@/components/campaign/VideoUploadCard'
 import type { UploadStatus } from '@/components/campaign/VideoUploadCard'
 import { Icon, ProgressBar, useToast } from '@/components/ui'
@@ -180,8 +181,13 @@ export default function CampaignRegisterPage() {
         )}
         {step === 2 && (
           <div className="relative min-h-[640px] w-full overflow-hidden rounded-x4 border border-line-secondary">
-            {/* 지도 영역 — DV-140에서 카카오맵 연동 */}
-            <div className="absolute inset-0 bg-bg-primary" />
+            {/* 리스트 패널이 불투명하므로 지도는 패널 오른쪽 영역만 차지 (지역 드롭다운이 지도 좌상단에 오도록) */}
+            <MediaMap
+              className="absolute inset-y-0 left-[372px] right-0"
+              mediaList={mediaList}
+              selectedMediaId={selectedMediaId}
+              onSelectMedia={setSelectedMediaId}
+            />
             <MediaListPanel
               className="absolute inset-y-0 left-0 z-10 w-[372px] border-r border-line-secondary"
               mediaList={mediaList}
