@@ -36,6 +36,9 @@ export type {
 export { default as Dropdown, DROPDOWN_SIZE } from './Dropdown'
 export type { DropdownProps, DropdownOption, DropdownSize } from './Dropdown'
 
+export { default as DropdownMenu } from './DropdownMenu'
+export type { DropdownMenuProps, DropdownMenuItem } from './DropdownMenu'
+
 export { default as SearchBar } from './SearchBar'
 export type {
   SearchBarProps,
