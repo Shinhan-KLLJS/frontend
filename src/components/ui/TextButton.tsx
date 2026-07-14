@@ -7,8 +7,8 @@ export type TextButtonSize = (typeof TEXT_BUTTON_SIZE)[number]
 
 // Text Button
 const SIZE_CLASS: Record<TextButtonSize, string> = {
-  large: 'h-[36px] px-x4 text-body-1-normal-bold',
-  medium: 'h-[32px] px-x2 text-label-1-normal-bold',
+  large: 'h-[36px] px-x4 py-[6px] text-body-1-normal-bold',
+  medium: 'h-[32px] px-x2 py-[6px] text-label-1-normal-bold',
 }
 
 const ICON_PX: Record<TextButtonSize, number> = {
