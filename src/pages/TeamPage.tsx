@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
+import TeamInviteModal from '@/components/team/TeamInviteModal'
 import TeamMemberList from '@/components/team/TeamMemberList'
 import { Button, SearchBar, useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
-import { fetchTeam, fetchTeamMembers } from '@/lib/team'
-import type { Team, TeamMember } from '@/lib/team'
+import { fetchTeam, fetchTeamMembers, sendTeamInvites } from '@/lib/team'
+import type { InviteEntry, Team, TeamMember } from '@/lib/team'
 
 /**
  * 팀 관리 — 팀원 리스트 · 초대 · 권한 관리 · 팀 나가기 (Figma DV-64 팀 리스트).
@@ -21,6 +22,8 @@ export default function TeamPage() {
   const [members, setMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [inviteSending, setInviteSending] = useState(false)
 
   useEffect(() => {
     if (teamId == null) return
@@ -41,6 +44,23 @@ export default function TeamPage() {
       active = false
     }
   }, [teamId, toast])
+
+  // 초대 전송 — 성공 시에만 모달을 닫아 실패 시 큐를 유지한 채 재시도 가능하게 한다
+  const handleSendInvites = async (entries: InviteEntry[]) => {
+    if (teamId == null) return
+    setInviteSending(true)
+    try {
+      await sendTeamInvites(teamId, entries)
+      toast('팀 코드를 전송했습니다.', { status: 'success' })
+      setInviteOpen(false)
+    } catch {
+      toast('팀 코드 전송에 실패했습니다. 다시 시도하세요.', {
+        status: 'error',
+      })
+    } finally {
+      setInviteSending(false)
+    }
+  }
 
   // 검색 — 행에 이메일이 함께 노출되는 리스트라 이름+이메일 부분 일치로 필터
   const keyword = query.trim().toLowerCase()
@@ -67,7 +87,14 @@ export default function TeamPage() {
           <Button variant="line" color="secondary">
             팀 나가기
           </Button>
-          <Button leadingIcon={Plus}>팀원 초대</Button>
+          {/* 팀 코드가 필요하므로 팀 정보 로드 전에는 비활성 */}
+          <Button
+            leadingIcon={Plus}
+            disabled={!team}
+            onClick={() => setInviteOpen(true)}
+          >
+            팀원 초대
+          </Button>
         </div>
       </header>
 
@@ -87,6 +114,15 @@ export default function TeamPage() {
           loading={loading}
         />
       </div>
+
+      <TeamInviteModal
+        open={inviteOpen}
+        teamCode={team?.code ?? ''}
+        memberEmails={members.map((member) => member.email)}
+        sending={inviteSending}
+        onClose={() => setInviteOpen(false)}
+        onSend={handleSendInvites}
+      />
     </section>
   )
 }
