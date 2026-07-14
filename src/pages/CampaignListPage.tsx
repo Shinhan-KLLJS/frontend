@@ -16,8 +16,28 @@ export default function CampaignListPage() {
   const [keyword, setKeyword] = useState('')
   const [sort, setSort] = useState<CampaignSort>('name')
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
+  const [reportMode, setReportMode] = useState(false)
+  const [reportCampaignIds, setReportCampaignIds] = useState<Set<string>>(
+    new Set(),
+  )
   const campaigns = useCampaignList(CAMPAIGN_FIXTURES, filter, keyword, sort)
   const showPreparationToast = () => toast('다음 작업에서 기능을 연결합니다.')
+  const toggleReportCampaign = (campaignId: string, checked: boolean) => {
+    setReportCampaignIds((current) => {
+      const next = new Set(current)
+      if (checked) next.add(campaignId)
+      else next.delete(campaignId)
+      return next
+    })
+  }
+  const closeReportMode = () => {
+    setReportCampaignIds(new Set())
+    setReportMode(false)
+  }
+  const extractReport = () => {
+    toast(`선택한 ${reportCampaignIds.size}개 캠페인의 리포트 추출을 시작했습니다.`)
+    closeReportMode()
+  }
 
   return (
     <section className="min-h-full bg-bg-secondary p-x5">
@@ -36,12 +56,32 @@ export default function CampaignListPage() {
           </button>
         </div>
         <div className="flex items-center gap-[6px]">
-          <Button variant="line" color="secondary" onClick={showPreparationToast}>
-            리포트 추출
-          </Button>
-          <Button leadingIcon={Plus} onClick={showPreparationToast}>
-            캠페인 등록
-          </Button>
+          {reportMode ? (
+            <>
+              <Button variant="line" color="secondary" onClick={closeReportMode}>
+                취소
+              </Button>
+              <Button
+                disabled={reportCampaignIds.size === 0}
+                onClick={extractReport}
+              >
+                추출하기
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="line"
+                color="secondary"
+                onClick={() => setReportMode(true)}
+              >
+                리포트 추출
+              </Button>
+              <Button leadingIcon={Plus} onClick={showPreparationToast}>
+                캠페인 등록
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -58,6 +98,9 @@ export default function CampaignListPage() {
         <CampaignListTable
           campaigns={campaigns}
           onCampaignInfo={setSelectedCampaign}
+          reportMode={reportMode}
+          selectedCampaignIds={reportCampaignIds}
+          onReportSelect={toggleReportCampaign}
         />
       </div>
       <CampaignInfoModal

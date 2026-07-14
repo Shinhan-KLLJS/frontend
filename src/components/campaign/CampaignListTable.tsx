@@ -1,11 +1,14 @@
 import { Ellipsis } from 'lucide-react'
-import { DropdownMenu, Icon } from '@/components/ui'
+import { Checkbox, DropdownMenu, Icon } from '@/components/ui'
 import type { Campaign } from '@/lib/campaigns'
 import CampaignStatusTag from './CampaignStatusTag'
 
 interface CampaignListTableProps {
   campaigns: Campaign[]
   onCampaignInfo: (campaign: Campaign) => void
+  reportMode?: boolean
+  selectedCampaignIds?: Set<string>
+  onReportSelect?: (campaignId: string, checked: boolean) => void
 }
 
 const GRID_CLASS =
@@ -15,6 +18,9 @@ const GRID_CLASS =
 export default function CampaignListTable({
   campaigns,
   onCampaignInfo,
+  reportMode = false,
+  selectedCampaignIds = new Set(),
+  onReportSelect,
 }: CampaignListTableProps) {
   return (
     <div className="w-full overflow-hidden rounded-x3 border border-line-secondary bg-bg-secondary">
@@ -34,9 +40,19 @@ export default function CampaignListTable({
           key={campaign.id}
           className={`${GRID_CLASS} h-[64px] border-b border-line-tertiary px-x5 last:border-b-0`}
         >
-          <span className="truncate text-body-2-normal-medium text-text-primary">
-            {campaign.name}
-          </span>
+          <div className="flex min-w-0 items-center gap-x1">
+            {reportMode && (
+              <Checkbox
+                size={24}
+                checked={selectedCampaignIds.has(campaign.id)}
+                onChange={(checked) => onReportSelect?.(campaign.id, checked)}
+                aria-label={`${campaign.name} 리포트에 포함`}
+              />
+            )}
+            <span className="truncate text-body-2-normal-medium text-text-primary">
+              {campaign.name}
+            </span>
+          </div>
           <CampaignStatusTag status={campaign.status} />
           <span className="text-label-1-normal-regular text-text-secondary">
             {campaign.startDate} - {campaign.endDate}
