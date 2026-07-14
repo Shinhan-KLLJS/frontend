@@ -88,7 +88,6 @@ export default function CampaignListPage() {
 
       <div className="flex flex-col gap-x5 p-x5">
         <CampaignListControls
-          campaigns={campaignItems}
           filter={filter}
           keyword={keyword}
           sort={sort}

@@ -1,10 +1,8 @@
 import { ChevronDown } from 'lucide-react'
 import { Chip, DropdownMenu, Icon, SearchBar } from '@/components/ui'
-import type { Campaign } from '@/lib/campaigns'
 import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
 
 interface CampaignListControlsProps {
-  campaigns: Campaign[]
   filter: CampaignFilter
   keyword: string
   sort: CampaignSort
@@ -28,7 +26,6 @@ const SORTS: { value: CampaignSort; label: string }[] = [
 
 /** 상태 칩, 이름 검색, 정렬 메뉴를 캠페인 목록 상태에 연결합니다. */
 export default function CampaignListControls({
-  campaigns,
   filter,
   keyword,
   sort,
@@ -56,11 +53,6 @@ export default function CampaignListControls({
         <SearchBar
           value={keyword}
           onChange={onKeywordChange}
-          results={campaigns.map((campaign) => ({
-            id: campaign.id,
-            label: campaign.name,
-          }))}
-          onSelect={(campaign) => onKeywordChange(campaign.label)}
           placeholder="캠페인명을 검색하세요"
           className="w-[307px]"
         />
