@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
 import AppLayout from '@/components/layout/AppLayout'
 import HomePage from '@/pages/HomePage'
 import ComingSoonPage from '@/pages/ComingSoonPage'
@@ -6,6 +7,7 @@ import LoginPage from '@/pages/LoginPage'
 import WelcomePage from '@/pages/WelcomePage'
 import { ToastProvider } from '@/components/ui'
 import { AuthProvider, RequireAuth } from '@/lib/auth'
+import { queryClient } from '@/lib/queryClient'
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -43,11 +45,13 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </ToastProvider>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </ToastProvider>
+    </QueryClientProvider>
   )
 }
 
