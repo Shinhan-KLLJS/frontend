@@ -1,11 +1,15 @@
 import TeamMemberRow from '@/components/team/TeamMemberRow'
-import type { TeamMember } from '@/lib/team'
+import type { TeamMember, TeamRole } from '@/lib/team'
 
 export interface TeamMemberListProps {
   members: TeamMember[]
   /** 로그인 유저 id — 내 행(Me 배지) 판별 */
   meUserId: number | null
+  /** 로그인 유저의 팀 내 역할 — 행 관리 메뉴 활성화 기준 */
+  myRole: TeamRole
   loading?: boolean
+  onSelectRole: (member: TeamMember, role: TeamRole) => void
+  onRemoveMember: (member: TeamMember) => void
   className?: string
 }
 
@@ -13,7 +17,10 @@ export interface TeamMemberListProps {
 export default function TeamMemberList({
   members,
   meUserId,
+  myRole,
   loading = false,
+  onSelectRole,
+  onRemoveMember,
   className,
 }: TeamMemberListProps) {
   return (
@@ -45,6 +52,9 @@ export default function TeamMemberList({
             key={member.id}
             member={member}
             isMe={member.userId === meUserId}
+            myRole={myRole}
+            onSelectRole={(role) => onSelectRole(member, role)}
+            onRemove={() => onRemoveMember(member)}
           />
         ))
       )}
