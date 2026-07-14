@@ -4,6 +4,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import HomePage from '@/pages/HomePage'
 import ComingSoonPage from '@/pages/ComingSoonPage'
 import LoginPage from '@/pages/LoginPage'
+import TeamPage from '@/pages/TeamPage'
 import WelcomePage from '@/pages/WelcomePage'
 import { ToastProvider } from '@/components/ui'
 import { AuthProvider, RequireAuth } from '@/lib/auth'
@@ -33,7 +34,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <HomePage /> },
       { path: '/campaigns', element: <ComingSoonPage title="캠페인" /> },
-      { path: '/team', element: <ComingSoonPage title="팀 관리" /> },
+      { path: '/team', element: <TeamPage /> },
       { path: '/calendar', element: <ComingSoonPage title="캘린더" /> },
       { path: '/service-intro', element: <ComingSoonPage title="서비스 소개" /> },
       { path: '/mypage', element: <ComingSoonPage title="마이 페이지" /> },
