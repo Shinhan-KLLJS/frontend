@@ -1,5 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import AppLayout from '@/components/layout/AppLayout'
+import CampaignRegisterPage from '@/pages/CampaignRegisterPage'
+import CampaignsPage from '@/pages/CampaignsPage'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
 import WelcomePage from '@/pages/WelcomePage'
@@ -27,7 +29,13 @@ const router = createBrowserRouter([
         <AppLayout />
       </RequireAuth>
     ),
-    children: [{ path: '/', element: <HomePage /> }],
+    children: [
+      { path: '/', element: <HomePage /> },
+      // 캠페인 리스트 (준비 중 placeholder) — LNB '캠페인' 메뉴 목적지
+      { path: '/campaigns', element: <CampaignsPage /> },
+      // 캠페인 등록 3단계 위저드 (기본 정보 → 매체 선택 → 최종 확인)
+      { path: '/campaigns/new', element: <CampaignRegisterPage /> },
+    ],
   },
 ])
 
