@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
+import TeamMemberList from '@/components/team/TeamMemberList'
 import { Button, SearchBar, useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
 import { fetchTeam, fetchTeamMembers } from '@/lib/team'
@@ -41,6 +42,16 @@ export default function TeamPage() {
     }
   }, [teamId, toast])
 
+  // 검색 — 행에 이메일이 함께 노출되는 리스트라 이름+이메일 부분 일치로 필터
+  const keyword = query.trim().toLowerCase()
+  const filtered = keyword
+    ? members.filter(
+        (member) =>
+          member.name.toLowerCase().includes(keyword) ||
+          member.email.toLowerCase().includes(keyword),
+      )
+    : members
+
   // 소속 팀이 없으면 팀 생성/합류 분기점으로 (딥링크 방어)
   if (user && !user.hasTeam) return <Navigate to="/welcome" replace />
 
@@ -70,31 +81,11 @@ export default function TeamPage() {
           aria-label="팀원 검색"
         />
 
-        {/* 팀원 리스트 카드 — 상세 행 UI는 팀원 리스트 서브태스크에서 구현 */}
-        <div className="w-full overflow-clip rounded-x3 border border-line-secondary">
-          {loading ? (
-            <div
-              role="status"
-              aria-label="팀원 목록 불러오는 중"
-              className="flex h-[86px] items-center justify-center gap-x2 bg-bg-secondary"
-            >
-              <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid" />
-              <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid [animation-delay:150ms]" />
-              <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid [animation-delay:300ms]" />
-            </div>
-          ) : (
-            members.map((member) => (
-              <div
-                key={member.id}
-                className="flex h-[86px] items-center border-b border-line-secondary bg-bg-secondary p-x5 last:border-b-0"
-              >
-                <p className="text-body-1-normal-medium text-text-primary">
-                  {member.name}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
+        <TeamMemberList
+          members={filtered}
+          meUserId={user?.id ?? null}
+          loading={loading}
+        />
       </div>
     </section>
   )
