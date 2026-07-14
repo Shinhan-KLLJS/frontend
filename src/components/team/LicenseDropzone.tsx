@@ -3,17 +3,11 @@ import type { DragEvent } from 'react'
 import { CircleCheck, CircleX, FilePlus2 } from 'lucide-react'
 import { Button, Icon } from '@/components/ui'
 
-export const UPLOAD_STATUS = [
-  'idle',
-  'uploading',
-  'success',
-  'error',
-] as const
+export const UPLOAD_STATUS = ['idle', 'uploading', 'success', 'error'] as const
 export type UploadStatus = (typeof UPLOAD_STATUS)[number]
 
 export interface LicenseDropzoneProps {
   status: UploadStatus
-  // 업로드 호출과 상태 전이는 부모(CreateTeamPage)가 소유 — 여기선 파일 선택/드롭 이벤트만 전달
   onFileSelect: (file: File) => void
 }
 
@@ -48,7 +42,7 @@ export default function LicenseDropzone({
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
       className={[
-        'flex size-full flex-col items-center justify-center gap-x4 rounded-x3 border border-line-brand p-x5 transition-colors',
+        'flex size-full flex-col items-center justify-center gap-x4 rounded-x5 border-2 border-line-brand p-x5 transition-colors',
         isDragging ? 'bg-primary-brand-weak' : 'bg-bg-secondary',
       ].join(' ')}
     >
@@ -70,7 +64,7 @@ export default function LicenseDropzone({
         <>
           <Icon icon={FilePlus2} size={48} color="brand" strokeWidth={1.2} />
           <p className="text-center text-label-1-normal-regular text-text-secondary">
-            사업자등록증을 마우스로 드래그해 업로드하세요
+            사업자등록증을 끌어다 놓거나 파일을 선택하세요.
             <br />
             또는
           </p>
@@ -78,7 +72,7 @@ export default function LicenseDropzone({
             variant="line"
             color="secondary"
             size="medium"
-            className="w-[296px] max-w-full"
+            className="w-full"
             onClick={openFileDialog}
           >
             파일 선택하기
@@ -95,10 +89,7 @@ export default function LicenseDropzone({
           </div>
           <div className="flex flex-col items-center gap-x1 text-center">
             <p role="status" className="text-headline-2-bold text-text-primary">
-              파일을 업로드 중입니다
-            </p>
-            <p className="text-label-1-normal-regular text-text-secondary">
-              업로드가 완료되면 알려드리겠습니다.
+              사업자등록증 인증 중
             </p>
           </div>
         </>
@@ -112,17 +103,22 @@ export default function LicenseDropzone({
             color="var(--color-text-primary-inverse)"
             fill="var(--color-line-positive)"
           />
-          <p role="status" className="text-headline-2-bold text-text-primary">
-            사업자등록증 업로드 완료
-          </p>
+          <div className="flex flex-col items-center gap-x1 text-center">
+            <p role="status" className="text-headline-2-bold text-text-primary">
+              사업자등록증 인증 완료
+            </p>
+            <p className="text-label-1-normal-regular text-text-secondary">
+              사업자등록증 정보가 확인되었습니다.
+            </p>
+          </div>
           <Button
             variant="line"
             color="secondary"
             size="medium"
-            className="w-[296px] max-w-full"
+            className="w-full"
             onClick={openFileDialog}
           >
-            사업자등록증 재업로드
+            다른 파일 업로드하기
           </Button>
         </>
       )}
@@ -140,15 +136,19 @@ export default function LicenseDropzone({
               사업자등록증 업로드 실패
             </p>
             <p className="text-label-1-normal-regular text-text-secondary">
-              사업자등록증 업로드에 실패했습니다. 다시 시도해 주세요.
+              사업자등록증을 업로드하지 못했습니다.
+              <br />
+              잠시 후 다시 시도해 주세요.
             </p>
           </div>
           <Button
+            variant="line"
+            color="secondary"
             size="medium"
-            className="w-[296px] max-w-full"
+            className="w-full"
             onClick={openFileDialog}
           >
-            사업자등록증 재업로드
+            다시 업로드하기
           </Button>
         </>
       )}
