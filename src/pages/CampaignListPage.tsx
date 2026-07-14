@@ -1,12 +1,19 @@
+import { useState } from 'react'
 import { Pencil, Plus } from 'lucide-react'
 import { Button, Icon, useToast } from '@/components/ui'
 import CampaignListControls from '@/components/campaign/CampaignListControls'
 import CampaignListTable from '@/components/campaign/CampaignListTable'
 import { CAMPAIGN_FIXTURES } from '@/lib/campaigns'
+import { useCampaignList } from '@/hooks/useCampaignList'
+import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
 
 /** API 연결 전 피그마 기준 캠페인 목록의 기본 화면을 제공합니다. */
 export default function CampaignListPage() {
   const { toast } = useToast()
+  const [filter, setFilter] = useState<CampaignFilter>('all')
+  const [keyword, setKeyword] = useState('')
+  const [sort, setSort] = useState<CampaignSort>('name')
+  const campaigns = useCampaignList(CAMPAIGN_FIXTURES, filter, keyword, sort)
   const showPreparationToast = () => toast('다음 작업에서 기능을 연결합니다.')
 
   return (
@@ -36,8 +43,16 @@ export default function CampaignListPage() {
       </header>
 
       <div className="flex flex-col gap-x5 p-x5">
-        <CampaignListControls />
-        <CampaignListTable campaigns={CAMPAIGN_FIXTURES} />
+        <CampaignListControls
+          campaigns={CAMPAIGN_FIXTURES}
+          filter={filter}
+          keyword={keyword}
+          sort={sort}
+          onFilterChange={setFilter}
+          onKeywordChange={setKeyword}
+          onSortChange={setSort}
+        />
+        <CampaignListTable campaigns={campaigns} />
       </div>
     </section>
   )

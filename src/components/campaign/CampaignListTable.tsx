@@ -54,6 +54,12 @@ export default function CampaignListTable({ campaigns }: CampaignListTableProps)
           />
         </div>
       ))}
+
+      {campaigns.length === 0 && (
+        <div className="flex h-[256px] items-center justify-center text-body-2-normal-regular text-text-tertiary">
+          조건에 맞는 캠페인이 없습니다.
+        </div>
+      )}
     </div>
   )
 }
