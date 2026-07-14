@@ -22,10 +22,11 @@ export default function OnboardingLayout() {
         <div className="absolute left-[35%] top-[65%] size-[420px] rounded-full bg-[var(--blue-100)] opacity-50 blur-[120px]" />
       </div>
 
+      {/* 온보딩 헤더는 화면 전체 폭 — ui Header의 min/max-width 고정값을 해제 */}
       <Header
         login
         avatarSrc={user?.profileImageUrl}
-        className="relative min-w-0 max-w-none"
+        className="relative min-w-0! max-w-none!"
       />
 
       <main className="relative flex flex-1 items-center justify-center p-x5">
