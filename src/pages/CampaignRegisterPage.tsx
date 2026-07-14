@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import CampaignInfoForm from '@/components/campaign/CampaignInfoForm'
+import CampaignSummary from '@/components/campaign/CampaignSummary'
 import MediaListPanel from '@/components/campaign/MediaListPanel'
 import MediaMap from '@/components/campaign/MediaMap'
 import VideoUploadCard from '@/components/campaign/VideoUploadCard'
@@ -11,6 +12,7 @@ import type { UploadStatus } from '@/components/campaign/VideoUploadCard'
 import { Icon, ProgressBar, useToast } from '@/components/ui'
 import {
   campaignInfoSchema,
+  createCampaign,
   fetchCampaignMedia,
   uploadCampaignVideo,
 } from '@/lib/campaign'
@@ -131,6 +133,31 @@ export default function CampaignRegisterPage() {
     }
   }, [])
 
+  const selectedMedia =
+    mediaList.find((media) => media.id === selectedMediaId) ?? null
+
+  // 캠페인 등록 제출
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleRegister = async () => {
+    if (!selectedMedia || !upload.videoId) return
+    setSubmitting(true)
+    try {
+      await createCampaign({
+        ...form.getValues(),
+        mediaId: selectedMedia.id,
+        videoId: upload.videoId,
+      })
+      toast('캠페인이 등록되었습니다.', { status: 'success' })
+      navigate('/campaigns')
+    } catch {
+      toast('캠페인 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.', {
+        status: 'error',
+      })
+      setSubmitting(false)
+    }
+  }
+
   // 뒤로가기: 2·3단계는 이전 단계로, 1단계는 위저드를 벗어나 캠페인 리스트로
   const handleBack = () => {
     if (step > 1) setStep((step - 1) as RegisterStep)
@@ -200,10 +227,18 @@ export default function CampaignRegisterPage() {
           </div>
         )}
         {step === 3 && (
-          // 최종 확인 — 후속 커밋에서 구현
-          <p className="text-body-2-normal-regular text-text-tertiary">
-            단계 콘텐츠 준비 중
-          </p>
+          <CampaignSummary
+            info={form.getValues()}
+            media={selectedMedia}
+            uploadStatus={upload.status}
+            previewUrl={upload.previewUrl}
+            onFileSelect={handleFileSelect}
+            onUploadCancel={handleUploadCancel}
+            onEditInfo={() => setStep(1)}
+            onEditMedia={() => setStep(2)}
+            onSubmit={handleRegister}
+            submitting={submitting}
+          />
         )}
       </div>
     </section>

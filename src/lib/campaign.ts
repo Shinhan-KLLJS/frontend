@@ -166,3 +166,16 @@ export async function uploadCampaignVideo(
   }
   return { videoId: `video-${Date.now()}` }
 }
+
+export interface CreateCampaignInput extends CampaignInfoValues {
+  mediaId: string
+  videoId: string
+}
+
+/** 캠페인 등록 — mock: 항상 성공 */
+export async function createCampaign(
+  _input: CreateCampaignInput,
+): Promise<{ id: number }> {
+  await delay(1200)
+  return { id: 1 }
+}
