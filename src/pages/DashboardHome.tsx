@@ -6,6 +6,7 @@ import type { KpiMetric } from '@/components/dashboard/KpiSection'
 import type { TolaMetric } from '@/components/dashboard/TolaSection'
 import type { ViewerPoint } from '@/components/dashboard/RealtimeViewerChart'
 import type { WatchTimeBucket } from '@/components/dashboard/AverageWatchTimeCard'
+import type { DemographicRatio } from '@/components/dashboard/DemographicRatioCard'
 import HomePage from '@/pages/HomePage'
 import {
   fromApiDate,
@@ -14,11 +15,13 @@ import {
   useCampaignDelivery,
   useCampaignFunnel,
   useCampaigns,
+  useDemographic,
   useRealtimeHourly,
 } from '@/lib/dashboard'
 import type {
   CampaignAverageWatchTime,
   CampaignDelivery,
+  CampaignDemographic,
   CampaignFunnel,
   CampaignRealtimeHourly,
 } from '@/lib/dashboard'
@@ -159,6 +162,16 @@ function toWatchTime(a: CampaignAverageWatchTime): {
   }
 }
 
+/** 성별·연령 시청 비율 → 카드 데이터. ratio는 0~1 가정 → %로 환산. */
+function toDemographics(d: CampaignDemographic): DemographicRatio[] {
+  return d.ageGroups.map((g) => ({
+    ageGroup: g.label,
+    total: Math.round(g.totalRatio * 1000) / 10,
+    male: Math.round(g.maleRatio * 1000) / 10,
+    female: Math.round(g.femaleRatio * 1000) / 10,
+  }))
+}
+
 /** 오늘 하루(시작=종료)를 기본 조회 기간으로. */
 function todayRange(): DateRange {
   const now = new Date()
@@ -210,6 +223,10 @@ export default function DashboardHome() {
   const realtimeData = realtime ? toRealtimeData(realtime) : undefined
   const { data: average } = useAverageWatchTime(selected?.campaignId, dateRange)
   const watchTime = average ? toWatchTime(average) : undefined
+
+  // 성별·연령 시청 비율
+  const { data: demographic } = useDemographic(selected?.campaignId, dateRange)
+  const demographics = demographic ? toDemographics(demographic) : undefined
 
   if (isPending) {
     return (
@@ -263,6 +280,7 @@ export default function DashboardHome() {
       realtimeData={realtimeData}
       averageSeconds={watchTime?.averageSeconds}
       watchBuckets={watchTime?.buckets}
+      demographics={demographics}
     />
   )
 }

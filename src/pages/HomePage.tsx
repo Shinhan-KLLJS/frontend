@@ -3,6 +3,7 @@ import AgeExposureHeatmap from '@/components/dashboard/AgeExposureHeatmap'
 import AverageWatchTimeCard from '@/components/dashboard/AverageWatchTimeCard'
 import DashboardToolbar from '@/components/dashboard/DashboardToolbar'
 import DemographicRatioCard from '@/components/dashboard/DemographicRatioCard'
+import type { DemographicRatio } from '@/components/dashboard/DemographicRatioCard'
 import type { GenderFilter } from '@/components/dashboard/GenderFilterChips'
 import KpiSection from '@/components/dashboard/KpiSection'
 import type { KpiMetric } from '@/components/dashboard/KpiSection'
@@ -48,6 +49,8 @@ export interface HomePageProps {
   /** 실 평균 시청시간(초)·구간 비중(미제공 시 fixture) */
   averageSeconds?: number
   watchBuckets?: WatchTimeBucket[]
+  /** 실 성별·연령 시청 비율(미제공 시 fixture) */
+  demographics?: DemographicRatio[]
 }
 
 /**
@@ -71,6 +74,7 @@ export default function HomePage({
   realtimeData,
   averageSeconds,
   watchBuckets,
+  demographics,
 }: HomePageProps) {
   const firstCampaign = campaigns[0]
   const [innerId, setInnerId] = useState(
@@ -126,7 +130,7 @@ export default function HomePage({
         <div className="flex h-[348px] min-w-0 gap-x5">
           <MovementFlowCard />
           <DemographicRatioCard
-            data={campaign.demographics}
+            data={demographics ?? campaign.demographics}
             filter={demographicFilter}
             onFilterChange={setDemographicFilter}
           />
