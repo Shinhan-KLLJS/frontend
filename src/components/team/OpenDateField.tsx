@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Calendar, ChevronDown, ChevronUp } from 'lucide-react'
 import { DatePicker, Icon } from '@/components/ui'
 import { formatDate, parseDate } from '@/components/ui/date'
@@ -21,21 +21,29 @@ export default function OpenDateField({
   errorMessage,
 }: OpenDateFieldProps) {
   const [open, setOpen] = useState(false)
+  const labelId = useId()
+  const errorId = useId()
   const selected = parseDate(value)
 
   return (
     <div className="relative flex w-full min-w-0 flex-1 flex-col gap-x2">
-      <label className="flex items-center gap-xs text-label-1-normal-bold text-text-secondary">
+      {/* label 요소는 button을 가리킬 수 없어(htmlFor 미지원) span+aria-labelledby로 접근성 이름을 연결 */}
+      <span
+        id={labelId}
+        className="flex items-center gap-xs text-label-1-normal-bold text-text-secondary"
+      >
         개업일
         <span aria-hidden="true" className="text-text-negative">
           *
         </span>
-      </label>
+      </span>
 
       <button
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-labelledby={labelId}
+        aria-describedby={errorMessage ? errorId : undefined}
         onClick={() => setOpen((prev) => !prev)}
         className={[
           'flex w-full cursor-pointer items-center justify-between gap-x2 rounded-x2 border bg-bg-secondary px-x4 py-x3 transition-colors',
@@ -63,7 +71,7 @@ export default function OpenDateField({
       </button>
 
       {errorMessage && (
-        <p className="text-caption-1-regular text-text-negative">
+        <p id={errorId} className="text-caption-1-regular text-text-negative">
           {errorMessage}
         </p>
       )}
@@ -73,6 +81,7 @@ export default function OpenDateField({
           <DatePicker
             value={selected ? { start: selected } : undefined}
             defaultMonth={selected}
+            maxDate={new Date()}
             onChange={(range) => {
               if (range.start) {
                 onChange(formatDate(range.start))

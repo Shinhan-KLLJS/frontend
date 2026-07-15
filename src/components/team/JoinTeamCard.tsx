@@ -47,6 +47,7 @@ export default function JoinTeamCard({
           placeholder="팀 코드를 입력하세요"
           value={code}
           maxLength={7}
+          disabled={submitting}
           onChange={(e) => onCodeChange(maskTeamCode(e.target.value))}
           errorMessage={errorMessage}
         />

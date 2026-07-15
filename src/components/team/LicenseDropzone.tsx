@@ -15,6 +15,11 @@ export interface LicenseDropzoneProps {
 /**
  * 사업자등록증 업로드 드롭존 — 드래그&드롭 + 파일 선택, 상태(idle/uploading/success/error)별 안내 표시
  */
+/** 허용 형식(이미지·PDF)만 통과 — accept은 파일 다이얼로그에만 적용되므로 드래그&드롭도 동일하게 막는다 */
+function isAllowedFile(file: File): boolean {
+  return file.type.startsWith('image/') || file.type === 'application/pdf'
+}
+
 export default function LicenseDropzone({
   status,
   onFileSelect,
@@ -34,7 +39,7 @@ export default function LicenseDropzone({
     setIsDragging(false)
     if (status === 'uploading') return
     const file = e.dataTransfer.files[0]
-    if (file) onFileSelect(file)
+    if (file && isAllowedFile(file)) onFileSelect(file)
   }
 
   return (
@@ -55,7 +60,7 @@ export default function LicenseDropzone({
         aria-label="사업자등록증 파일 선택"
         onChange={(e) => {
           const file = e.target.files?.[0]
-          if (file) onFileSelect(file)
+          if (file && isAllowedFile(file)) onFileSelect(file)
           // 같은 파일 재선택도 onChange가 발생하도록 초기화
           e.target.value = ''
         }}
