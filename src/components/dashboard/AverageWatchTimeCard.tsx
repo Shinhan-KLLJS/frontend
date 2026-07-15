@@ -26,7 +26,7 @@ export default function AverageWatchTimeCard({
       />
       <div className="flex min-h-0 flex-1 flex-col items-center gap-x5">
         <div
-          className="relative h-[168px] w-full overflow-hidden"
+          className="relative h-[168px] w-full shrink-0 overflow-hidden"
           aria-hidden="true"
         >
           <ResponsiveContainer width="100%" height="100%">
@@ -72,7 +72,7 @@ export default function AverageWatchTimeCard({
             </span>
           </div>
         </div>
-        <ul className="flex w-full items-center justify-center gap-x2 py-x1">
+        <ul className="flex w-full shrink-0 items-center justify-center gap-x2 py-x1">
           {buckets.map((bucket) => (
             <li
               key={bucket.label}
