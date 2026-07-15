@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import type { DragEvent } from 'react'
-import { CircleCheck, CircleX, FilePlus2 } from 'lucide-react'
-import { Button, Icon } from '@/components/ui'
+import { CircleCheck, CircleX } from 'lucide-react'
+import { Button, Icon, LoadingDots } from '@/components/ui'
+import uploadFileImage from '@/assets/upload-file.svg'
 
 export const UPLOAD_STATUS = ['idle', 'uploading', 'success', 'error'] as const
 export type UploadStatus = (typeof UPLOAD_STATUS)[number]
@@ -62,7 +63,7 @@ export default function LicenseDropzone({
 
       {status === 'idle' && (
         <>
-          <Icon icon={FilePlus2} size={48} color="brand" strokeWidth={1.2} />
+          <img src={uploadFileImage} alt="" className="size-[48px]" />
           <p className="text-center text-label-1-normal-regular text-text-secondary">
             사업자등록증을 끌어다 놓거나 파일을 선택하세요.
             <br />
@@ -82,11 +83,7 @@ export default function LicenseDropzone({
 
       {status === 'uploading' && (
         <>
-          <div className="flex items-center gap-x2" aria-hidden="true">
-            <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid" />
-            <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid [animation-delay:150ms]" />
-            <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid [animation-delay:300ms]" />
-          </div>
+          <LoadingDots />
           <div className="flex flex-col items-center gap-x1 text-center">
             <p role="status" className="text-headline-2-bold text-text-primary">
               사업자등록증 인증 중
