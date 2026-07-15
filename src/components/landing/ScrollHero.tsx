@@ -40,18 +40,18 @@ function HeroCopy({ className = '' }: { className?: string }) {
 }
 
 /**
- * 대시보드 원본(hero-content.png)은 세로로 긴 스크린샷 전체이며, Figma 디자인은
- * 상단 약 43.4%만 잘라서 보여준다 (Figma 실측: 크롭 컨테이너 876×487 안에서
- * 이미지가 height 230.6% / width 100.03% / top 0 로 배치됨).
+ * 대시보드 원본(hero-content.png)은 세로로 긴 스크린샷 전체(2880×3691)다. 박스
+ * 비율을 고정하지 않고 `object-cover`+상단 기준으로 채운다 — 박스 비율이 뷰포트에
+ * 따라 달라져도(모바일은 aspect-[876/487] 고정, 데스크탑은 폭·높이 각자 86%) 갭
+ * 없이 항상 꽉 차고, 세로로 더/덜 보여주는 것만 달라진다.
  */
 function HeroDashboardImage() {
   return (
-    <div className="relative size-full overflow-hidden rounded-t-[16px]">
+    <div className="size-full overflow-hidden rounded-t-[16px]">
       <img
         src={heroContent}
         alt="Loovi 대시보드"
-        className="absolute left-0 top-0 max-w-none"
-        style={{ width: '100.03%', height: '230.6%' }}
+        className="size-full object-cover object-top"
       />
     </div>
   )
@@ -64,7 +64,7 @@ function StaticHero() {
       <HeroCopy />
       <div className="relative mt-x8 overflow-hidden rounded-[24px]">
         <img src={heroBg} alt="" className="block w-full object-cover" />
-        <div className="absolute inset-x-[7%] bottom-0 w-[86%]">
+        <div className="absolute inset-x-[7%] bottom-0 aspect-[876/487] w-[86%]">
           <HeroDashboardImage />
         </div>
       </div>
@@ -157,9 +157,8 @@ function DesktopScrollHero() {
             style={{ opacity: bgExitOpacity }}
           />
           <motion.div
-            className="absolute bottom-0 left-1/2 h-[86%]"
+            className="absolute bottom-0 left-1/2 h-[94%] w-[86%]"
             style={{
-              aspectRatio: '876 / 487',
               x: '-50%',
               opacity: dashboardFinalOpacity,
               y: dashboardY,

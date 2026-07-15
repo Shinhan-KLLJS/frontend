@@ -1,0 +1,263 @@
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from 'motion/react'
+import { useMediaQuery } from '@/lib/useMediaQuery'
+import normalInfoImage from '@/assets/landing/Normal-info-3.png'
+import mediaMapImage from '@/assets/landing/Media-Map.png'
+import lastCheckInfoImage from '@/assets/landing/Last-Check-Info.png'
+
+const STEPS = [
+  { key: 'normal-info', label: '기본 정보 입력', image: normalInfoImage },
+  { key: 'media-map', label: '송출 위치 선택', image: mediaMapImage },
+  { key: 'last-check', label: '최종 확인', image: lastCheckInfoImage },
+] as const
+
+type TabSize = 'large' | 'medium'
+
+function FlowTabButton({
+  selected,
+  size,
+  children,
+  onClick,
+}: {
+  selected: boolean
+  size: TabSize
+  children: ReactNode
+  onClick: () => void
+}) {
+  const sizeClass =
+    size === 'medium'
+      ? 'px-x2 py-x3 text-label-1-normal-bold'
+      : 'px-x4 py-x3 text-body-1-normal-bold'
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`interaction-normal whitespace-nowrap rounded-full ${sizeClass} ${
+        selected
+          ? 'bg-primary-brand-solid text-text-primary-inverse'
+          : 'text-text-primary'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
+function FlowTabs({
+  activeIndex,
+  onSelect,
+  size = 'large',
+  className = '',
+}: {
+  activeIndex: number
+  onSelect: (index: number) => void
+  size?: TabSize
+  className?: string
+}) {
+  const padding = size === 'medium' ? 'p-x2' : 'p-x3'
+
+  return (
+    <div
+      className={`flex items-center gap-x4 rounded-full bg-bg-secondary ${padding} ${className}`}
+    >
+      {STEPS.map((step, index) => (
+        <FlowTabButton
+          key={step.key}
+          selected={activeIndex === index}
+          size={size}
+          onClick={() => onSelect(index)}
+        >
+          {step.label}
+        </FlowTabButton>
+      ))}
+    </div>
+  )
+}
+
+/** 캐러셀 트랙 wrapper의 실제 렌더링 너비 — 드래그 스냅 임계값·이동 거리 계산에 쓴다. */
+function useElementWidth() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    const update = () => setWidth(ref.current?.offsetWidth ?? 0)
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+
+  return [ref, width] as const
+}
+
+const SPRING = { type: 'spring', stiffness: 300, damping: 32 } as const
+// 슬라이드 사이 간격(px). motion.div의 gap-x10 클래스와 같은 값으로 맞춰야 한다.
+const SLIDE_GAP = 40
+
+function FlowImageTrack({
+  activeIndex,
+  onChangeIndex,
+  className = '',
+}: {
+  activeIndex: number
+  onChangeIndex: (index: number) => void
+  className?: string
+}) {
+  const [trackRef, trackWidth] = useElementWidth()
+  const x = useMotionValue(0)
+  const slideStep = trackWidth + SLIDE_GAP
+
+  useEffect(() => {
+    animate(x, -activeIndex * slideStep, SPRING)
+  }, [activeIndex, slideStep, x])
+
+  return (
+    <div
+      ref={trackRef}
+      className={`overflow-hidden rounded-[16px] shadow-normal-large ${className}`}
+    >
+      <motion.div
+        className="flex h-full cursor-grab gap-x10 active:cursor-grabbing"
+        style={{ x }}
+        drag="x"
+        dragConstraints={{ left: -(STEPS.length - 1) * slideStep, right: 0 }}
+        dragElastic={0.15}
+        dragMomentum={false}
+        onDragEnd={(_, info) => {
+          const threshold = trackWidth * 0.25
+          if (info.offset.x < -threshold && activeIndex < STEPS.length - 1) {
+            onChangeIndex(activeIndex + 1)
+          } else if (info.offset.x > threshold && activeIndex > 0) {
+            onChangeIndex(activeIndex - 1)
+          } else {
+            animate(x, -activeIndex * slideStep, SPRING)
+          }
+        }}
+      >
+        {STEPS.map((step) => (
+          <img
+            key={step.key}
+            src={step.image}
+            alt={step.label}
+            draggable={false}
+            className="h-full w-full shrink-0 object-cover"
+          />
+        ))}
+      </motion.div>
+    </div>
+  )
+}
+
+/** 데스크탑(lg 이상): 좌측 타이틀+탭, 우측 793×514 고정 이미지의 좌우 2단 레이아웃. */
+function DesktopSection3() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const reduceMotion = useReducedMotion()
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const { scrollYProgress: entranceProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'start start'],
+  })
+  const entranceOpacity = useTransform(entranceProgress, [0.5, 1], [0, 1])
+  const entranceY = useTransform(entranceProgress, [0.5, 1], [40, 0])
+
+  return (
+    <section ref={sectionRef} className="px-x10 pt-[300px] pb-[200px]">
+      <motion.div
+        className="mx-auto flex w-full max-w-[1200px] items-start gap-x5"
+        style={reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }}
+      >
+        <div className="flex flex-1 flex-col items-start gap-x10">
+          <div className="flex flex-col items-start gap-x3">
+            <h2 className="text-display-3-medium text-text-primary">
+              캠페인 등록
+            </h2>
+            <p className="text-heading-1-regular text-text-primary">
+              광고 영상을 업로드하고 송출할 지역과
+              <br />
+              매체를 선택해 캠페인을 등록할 수 있어요
+            </p>
+          </div>
+
+          <FlowTabs
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            size="medium"
+          />
+        </div>
+
+        <FlowImageTrack
+          activeIndex={activeIndex}
+          onChangeIndex={setActiveIndex}
+          className="w-[793px] aspect-[793/514] shrink-0"
+        />
+      </motion.div>
+    </section>
+  )
+}
+
+/** lg 미만(태블릿·모바일): 세로 중앙 정렬 스택, 이미지는 반응형 너비. */
+function StaticSection3() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const reduceMotion = useReducedMotion()
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const { scrollYProgress: entranceProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'start start'],
+  })
+  const entranceOpacity = useTransform(entranceProgress, [0.5, 1], [0, 1])
+  const entranceY = useTransform(entranceProgress, [0.5, 1], [40, 0])
+
+  return (
+    <section
+      ref={sectionRef}
+      className="flex flex-col items-center gap-x10 px-x5 py-[100px]"
+    >
+      <motion.div
+        className="flex w-full flex-col items-center gap-x10"
+        style={reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }}
+      >
+        <div className="flex flex-col items-center gap-x3 text-center">
+          <h2 className="text-display-3-medium text-text-primary">
+            캠페인 등록
+          </h2>
+          <p className="text-heading-1-regular text-text-primary">
+            광고 영상을 업로드하고 송출할 지역과 매체를 선택해 캠페인을 등록할 수
+            있어요
+          </p>
+        </div>
+
+        <div className="flex w-full max-w-[1000px] flex-col items-center gap-x10">
+          <FlowTabs
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            size="large"
+          />
+          <FlowImageTrack
+            activeIndex={activeIndex}
+            onChangeIndex={setActiveIndex}
+            className="w-full aspect-[1000/667]"
+          />
+        </div>
+      </motion.div>
+    </section>
+  )
+}
+
+export default function Section3() {
+  const isDesktop = useMediaQuery('(min-width: 1280px)') // tokens.css --breakpoint-lg
+
+  if (!isDesktop) {
+    return <StaticSection3 />
+  }
+
+  return <DesktopSection3 />
+}

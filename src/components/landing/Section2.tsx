@@ -60,7 +60,7 @@ const WIDGETS = [
   {
     key: 'time-years-heat-map',
     label: 'Time Years Heat Map',
-    x: 938,
+    x: 838,
     y: 702,
     width: 576,
     height: 360,
@@ -68,7 +68,7 @@ const WIDGETS = [
   {
     key: 'gender-years-view',
     label: 'Gender Years View',
-    x: 1009,
+    x: 909,
     y: 31,
     width: 564,
     height: 368,
