@@ -20,8 +20,8 @@ const FILTERS: { value: CampaignFilter; label: string }[] = [
 
 const SORTS: { value: CampaignSort; label: string }[] = [
   { value: 'name', label: '이름순' },
-  { value: 'latest', label: '최신순' },
-  { value: 'oldest', label: '오래된순' },
+  { value: 'latest', label: '등록 최신순' },
+  { value: 'oldest', label: '등록 오래된순' },
 ]
 
 /** 상태 칩, 이름 검색, 정렬 메뉴를 캠페인 목록 상태에 연결합니다. */
@@ -54,7 +54,7 @@ export default function CampaignListControls({
           value={keyword}
           onChange={onKeywordChange}
           placeholder="캠페인명을 검색하세요"
-          className="w-[307px]"
+          className="w-[307px] [&>div:first-child]:h-[40px] [&>div:first-child]:py-x2"
         />
         <DropdownMenu
           triggerAriaLabel="캠페인 정렬"

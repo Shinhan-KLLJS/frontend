@@ -8,6 +8,7 @@ export interface Campaign {
   name: string
   brandName: string
   status: CampaignStatus
+  createdAt: string
   startDate: string
   endDate: string
   mediaAddress: string
@@ -27,6 +28,7 @@ export const CAMPAIGN_FIXTURES: Campaign[] = [
     name: '0711 나이키 썸머 프로모션 홍보 영상',
     brandName: '나이키 코리아',
     status: 'running',
+    createdAt: '2026.07.01',
     startDate: '2026.07.11',
     endDate: '2026.08.15',
     mediaAddress: '서울 강남구 영동대로 513',
@@ -43,6 +45,7 @@ export const CAMPAIGN_FIXTURES: Campaign[] = [
     name: '루이비통 26 SS 패션 컬렉션',
     brandName: '루이비통 코리아',
     status: 'running',
+    createdAt: '2026.07.02',
     startDate: '2026.07.10',
     endDate: '2026.07.31',
     mediaAddress: '서울 강남구 테헤란로 517',
@@ -59,6 +62,7 @@ export const CAMPAIGN_FIXTURES: Campaign[] = [
     name: '현대오일뱅크 에너지 캠페인',
     brandName: '현대오일뱅크',
     status: 'before',
+    createdAt: '2026.07.12',
     startDate: '2026.07.20',
     endDate: '2026.08.20',
     mediaAddress: '서울 중구 세종대로 110',
@@ -75,6 +79,7 @@ export const CAMPAIGN_FIXTURES: Campaign[] = [
     name: 'LG에너지솔루션 배터리 전시회',
     brandName: 'LG에너지솔루션',
     status: 'completed',
+    createdAt: '2026.05.25',
     startDate: '2026.06.01',
     endDate: '2026.06.30',
     mediaAddress: '서울 강남구 봉은사로 524',
@@ -91,6 +96,7 @@ export const CAMPAIGN_FIXTURES: Campaign[] = [
     name: '삼성 갤럭시 신제품 런칭',
     brandName: '삼성전자',
     status: 'completed',
+    createdAt: '2026.05.01',
     startDate: '2026.05.15',
     endDate: '2026.06.15',
     mediaAddress: '서울 서초구 강남대로 465',
@@ -107,6 +113,7 @@ export const CAMPAIGN_FIXTURES: Campaign[] = [
     name: '신세계 백화점 여름 정기 세일',
     brandName: '신세계',
     status: 'before',
+    createdAt: '2026.07.15',
     startDate: '2026.07.25',
     endDate: '2026.08.10',
     mediaAddress: '서울 중구 소공로 63',
@@ -123,6 +130,7 @@ export const CAMPAIGN_FIXTURES: Campaign[] = [
     name: '카카오모빌리티 브랜드 캠페인',
     brandName: '카카오모빌리티',
     status: 'running',
+    createdAt: '2026.06.28',
     startDate: '2026.07.01',
     endDate: '2026.07.31',
     mediaAddress: '서울 영등포구 국제금융로 10',
@@ -139,6 +147,7 @@ export const CAMPAIGN_FIXTURES: Campaign[] = [
     name: '아모레퍼시픽 홀리데이 컬렉션',
     brandName: '아모레퍼시픽',
     status: 'completed',
+    createdAt: '2026.04.20',
     startDate: '2026.05.01',
     endDate: '2026.05.31',
     mediaAddress: '서울 용산구 한강대로 100',

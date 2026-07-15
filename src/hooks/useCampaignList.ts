@@ -37,7 +37,7 @@ export function useCampaignList(
         if (sort === 'name') {
           return left.name.localeCompare(right.name, 'ko-KR')
         }
-        const dateOrder = toTime(left.startDate) - toTime(right.startDate)
+        const dateOrder = toTime(left.createdAt) - toTime(right.createdAt)
         return sort === 'latest' ? -dateOrder : dateOrder
       })
   }, [campaigns, filter, keyword, sort])
