@@ -9,6 +9,7 @@ import type { KpiMetric } from '@/components/dashboard/KpiSection'
 import MovementFlowCard from '@/components/dashboard/MovementFlowCard'
 import RealtimeViewerChart from '@/components/dashboard/RealtimeViewerChart'
 import TolaSection from '@/components/dashboard/TolaSection'
+import type { TolaMetric } from '@/components/dashboard/TolaSection'
 import type { DateRange } from '@/components/ui'
 import {
   DASHBOARD_AGE_GROUPS,
@@ -36,6 +37,10 @@ export interface HomePageProps {
   kpiMetrics?: KpiMetric[]
   /** 다운타임이 무중단 송출 추정치인지(안내 문구 노출). 기본 true */
   estimatedDowntime?: boolean
+  /** 실 깔때기(TOLA) 지표(미제공 시 fixture campaign.tola 사용) */
+  tolaMetrics?: TolaMetric[]
+  /** TOLA 툴팁의 데이터 집계 기준 시각 "HH:mm" */
+  tolaCutoffLabel?: string
 }
 
 /**
@@ -54,6 +59,8 @@ export default function HomePage({
   maxDate,
   kpiMetrics,
   estimatedDowntime = true,
+  tolaMetrics,
+  tolaCutoffLabel,
 }: HomePageProps) {
   const firstCampaign = campaigns[0]
   const [innerId, setInnerId] = useState(
@@ -94,7 +101,10 @@ export default function HomePage({
             />
           }
         />
-        <TolaSection metrics={campaign.tola} />
+        <TolaSection
+          metrics={tolaMetrics ?? campaign.tola}
+          cutoffLabel={tolaCutoffLabel}
+        />
         <div className="grid min-w-0 grid-cols-[3fr_2fr] gap-x5">
           <RealtimeViewerChart data={campaign.viewers} />
           <AverageWatchTimeCard

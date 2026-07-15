@@ -3,14 +3,16 @@ import { Button, LoadingSpinner } from '@/components/ui'
 import type { DateRange } from '@/components/ui'
 import { DEFAULT_KPI_ICONS } from '@/components/dashboard/KpiSection'
 import type { KpiMetric } from '@/components/dashboard/KpiSection'
+import type { TolaMetric } from '@/components/dashboard/TolaSection'
 import HomePage from '@/pages/HomePage'
 import {
   fromApiDate,
   pickDefaultCampaign,
   useCampaignDelivery,
+  useCampaignFunnel,
   useCampaigns,
 } from '@/lib/dashboard'
-import type { CampaignDelivery } from '@/lib/dashboard'
+import type { CampaignDelivery, CampaignFunnel } from '@/lib/dashboard'
 import {
   DASHBOARD_CAMPAIGNS,
   type DashboardCampaignFixture,
@@ -57,6 +59,63 @@ function toKpiMetrics(d: CampaignDelivery): KpiMetric[] {
   ]
 }
 
+// TOLA 지표 설명(툴팁). API엔 설명 필드가 없어 프론트에서 고정.
+const TOLA_DESCRIPTIONS = {
+  traffic: '매체 주변을 통과한 전체 인원입니다.',
+  attention: '광고 화면을 바라본 것으로 감지된 인원입니다.',
+  conversion: '전체 유동인구 중 주목인구의 비율입니다.',
+  exposure: '유효 시청 조건을 충족한 추정 인원입니다.',
+} as const
+
+/** 깔때기 응답 → TOLA 카드 4종. 순서: 유동 → 주목 → 전환률 → 노출. */
+function toTolaMetrics(f: CampaignFunnel): TolaMetric[] {
+  const m = f.metrics
+  return [
+    {
+      key: 'traffic',
+      label: '전체 유동인구',
+      value: `${m.totalTrafficCount.value.toLocaleString()}명`,
+      comparison: m.totalTrafficCount.yesterdayComparison.increaseRate,
+      description: TOLA_DESCRIPTIONS.traffic,
+    },
+    {
+      key: 'attention',
+      label: '주목인구',
+      value: `${m.attentionPopulationCount.value.toLocaleString()}명`,
+      comparison: m.attentionPopulationCount.yesterdayComparison.increaseRate,
+      description: TOLA_DESCRIPTIONS.attention,
+    },
+    {
+      key: 'conversion',
+      label: '주목 전환률',
+      value: `${formatPercent(m.attentionConversionRate.value)}%`,
+      comparison: m.attentionConversionRate.yesterdayComparison.increaseRate,
+      description: TOLA_DESCRIPTIONS.conversion,
+    },
+    {
+      key: 'exposure',
+      label: '노출인구',
+      value: `${m.exposedPopulationCount.value.toLocaleString()}명`,
+      comparison: m.exposedPopulationCount.yesterdayComparison.increaseRate,
+      description: TOLA_DESCRIPTIONS.exposure,
+    },
+  ]
+}
+
+/** ISO date-time → KST "HH:mm" (툴팁 "기준" 표기). */
+function formatKstTime(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Asia/Seoul',
+    }).format(new Date(iso))
+  } catch {
+    return ''
+  }
+}
+
 /** 오늘 하루(시작=종료)를 기본 조회 기간으로. */
 function todayRange(): DateRange {
   const now = new Date()
@@ -95,6 +154,13 @@ export default function DashboardHome() {
   // 캠페인 + 조회 기간 → 송출정보 조회 (KPI 섹션 소스). refreshIntervalSec 주기로 자동 갱신.
   const { data: delivery } = useCampaignDelivery(selected?.campaignId, dateRange)
   const kpiMetrics = delivery ? toKpiMetrics(delivery) : undefined
+
+  // 깔때기(TOLA) 조회
+  const { data: funnel } = useCampaignFunnel(selected?.campaignId, dateRange)
+  const tolaMetrics = funnel ? toTolaMetrics(funnel) : undefined
+  const tolaCutoffLabel = funnel
+    ? formatKstTime(funnel.aggregationCutoffTime)
+    : undefined
 
   if (isPending) {
     return (
@@ -143,6 +209,8 @@ export default function DashboardHome() {
       maxDate={selected ? fromApiDate(selected.executionEndDate) : undefined}
       kpiMetrics={kpiMetrics}
       estimatedDowntime={delivery?.isEstimated ?? true}
+      tolaMetrics={tolaMetrics}
+      tolaCutoffLabel={tolaCutoffLabel}
     />
   )
 }

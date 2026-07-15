@@ -19,4 +19,6 @@ export const API_ENDPOINTS = {
     `/api/v1/dashboard/campaigns/${campaignId}`, // GET 캠페인 상세 (selected_start_date·selected_end_date 쿼리 필수)
   dashboardCampaignDelivery: (campaignId: number) =>
     `/api/v1/dashboard/campaigns/${campaignId}/delivery`, // GET 송출정보 (KPI, selected_start_date·selected_end_date 쿼리)
+  dashboardCampaignFunnel: (campaignId: number) =>
+    `/api/v1/dashboard/campaigns/${campaignId}/funnel`, // GET 깔때기(TOLA) 지표 (selected_start_date·selected_end_date 쿼리)
 } as const

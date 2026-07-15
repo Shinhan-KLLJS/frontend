@@ -2,7 +2,7 @@ import { Info } from 'lucide-react'
 import tolaWave from '@/assets/dashboard/tola-wave.svg'
 import tolaDim from '@/assets/dashboard/tola-dim.svg'
 import tolaBody from '@/assets/dashboard/tola-body.svg'
-import { Badge, Icon } from '@/components/ui'
+import { Badge, Icon, Tooltip } from '@/components/ui'
 import DashboardPanel from './DashboardPanel'
 
 export interface TolaMetric {
@@ -15,10 +15,12 @@ export interface TolaMetric {
 
 export interface TolaSectionProps {
   metrics: TolaMetric[]
+  /** 데이터 집계 기준 시각 "HH:mm" — 툴팁에 "HH:mm 기준"으로 표기 */
+  cutoffLabel?: string
 }
 
 /** 유동인구가 시청으로 전환되는 TOLA 퍼널 지표를 표현합니다. */
-export default function TolaSection({ metrics }: TolaSectionProps) {
+export default function TolaSection({ metrics, cutoffLabel }: TolaSectionProps) {
   return (
     <DashboardPanel
       aria-label="TOLA 전환 지표"
@@ -43,14 +45,14 @@ export default function TolaSection({ metrics }: TolaSectionProps) {
                 <span className="truncate text-label-1-normal-medium text-text-secondary">
                   {metric.label}
                 </span>
-                <span title={metric.description}>
+                <Tooltip content={`${cutoffLabel ?? '00:00'} 기준`}>
                   <Icon
                     icon={Info}
                     size={16}
                     color="secondary"
-                    label="지표 설명"
+                    label={`${metric.label} 데이터 집계 기준 시각`}
                   />
-                </span>
+                </Tooltip>
               </div>
               <strong className="block text-title-3-bold text-text-primary">
                 {metric.value}

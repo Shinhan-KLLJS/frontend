@@ -76,6 +76,43 @@ export interface CampaignDelivery {
   isEstimated: boolean // 무중단 송출 추정 여부(다운타임 실측 아님)
 }
 
+/** 어제 대비 비교치 */
+export interface YesterdayComparison {
+  baseDate: string // yyyy-MM-dd
+  baseValue: number
+  increaseRate: number // % (양수=증가, 음수=감소)
+}
+
+export interface PopulationMetric {
+  value: number
+  unit: string
+  yesterdayComparison: YesterdayComparison
+}
+
+export interface RateMetric {
+  value: number
+  unit: string
+  yesterdayComparison: YesterdayComparison
+}
+
+/** 깔때기(TOLA) — GET /dashboard/campaigns/{campaignId}/funnel */
+export interface CampaignFunnel {
+  campaignId: number
+  selectedPeriod: Period
+  effectivePeriod: Period
+  periodStatus: PeriodStatus
+  serverTime: string
+  aggregationUnit: string
+  aggregationCutoffTime: string // ISO date-time — 툴팁 "HH:mm 기준" 표기 소스
+  refreshIntervalSec: number
+  metrics: {
+    totalTrafficCount: PopulationMetric // 전체 유동인구
+    exposedPopulationCount: PopulationMetric // 노출인구
+    attentionPopulationCount: PopulationMetric // 주목인구
+    attentionConversionRate: RateMetric // 주목 전환률
+  }
+}
+
 export interface CampaignQuery {
   keyword?: string
   status?: CampaignStatus
@@ -143,6 +180,23 @@ export async function fetchCampaignDelivery(
   return data.result
 }
 
+/** 깔때기(TOLA) 지표 조회 — 조회 기간 필수. */
+export async function fetchCampaignFunnel(
+  campaignId: number,
+  period: { start: Date; end: Date },
+): Promise<CampaignFunnel> {
+  const { data } = await api.get<ApiResponse<CampaignFunnel>>(
+    API_ENDPOINTS.dashboardCampaignFunnel(campaignId),
+    {
+      params: {
+        selected_start_date: toApiDate(period.start),
+        selected_end_date: toApiDate(period.end),
+      },
+    },
+  )
+  return data.result
+}
+
 /** 필터 적용 전 전체 목록 기준 기본 선택 캠페인. 없으면 최신순 첫 항목. */
 export function pickDefaultCampaign(
   campaigns: CampaignSummary[],
@@ -157,6 +211,8 @@ export const campaignKeys = {
     ['campaigns', 'detail', campaignId, start, end] as const,
   delivery: (campaignId: number, start: string, end: string) =>
     ['campaigns', 'delivery', campaignId, start, end] as const,
+  funnel: (campaignId: number, start: string, end: string) =>
+    ['campaigns', 'funnel', campaignId, start, end] as const,
 }
 
 /** 캠페인 목록 react-query 훅 */
@@ -214,6 +270,34 @@ export function useCampaignDelivery(
         : ['campaigns', 'delivery', 'disabled'],
     queryFn: () =>
       fetchCampaignDelivery(campaignId as number, {
+        start: period.start as Date,
+        end: period.end as Date,
+      }),
+    enabled,
+    refetchInterval: (query) => {
+      const sec = query.state.data?.refreshIntervalSec
+      return sec && sec > 0 ? sec * 1000 : false
+    },
+  })
+}
+
+/** 깔때기(TOLA) 지표 react-query 훅. refreshIntervalSec 주기로 자동 재조회. */
+export function useCampaignFunnel(
+  campaignId: number | undefined,
+  period: { start?: Date; end?: Date },
+) {
+  const enabled = Boolean(campaignId && period.start && period.end)
+  return useQuery({
+    queryKey:
+      enabled && campaignId && period.start && period.end
+        ? campaignKeys.funnel(
+            campaignId,
+            toApiDate(period.start),
+            toApiDate(period.end),
+          )
+        : ['campaigns', 'funnel', 'disabled'],
+    queryFn: () =>
+      fetchCampaignFunnel(campaignId as number, {
         start: period.start as Date,
         end: period.end as Date,
       }),

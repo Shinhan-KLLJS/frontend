@@ -95,3 +95,6 @@ export type { CheckboxProps, CheckboxSize } from './Checkbox'
 
 export { default as LoginButton } from './LoginButton'
 export type { LoginButtonProps, LoginProvider } from './LoginButton'
+
+export { default as Tooltip } from './Tooltip'
+export type { TooltipProps } from './Tooltip'
