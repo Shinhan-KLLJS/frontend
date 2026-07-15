@@ -1,66 +1,137 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import HomePage from '@/pages/HomePage'
+import { useState, type ReactNode } from 'react'
+import DashboardToolbar from '@/components/dashboard/DashboardToolbar'
+import KpiSection from '@/components/dashboard/KpiSection'
+import TolaSection from '@/components/dashboard/TolaSection'
+import RealtimeViewerChart from '@/components/dashboard/RealtimeViewerChart'
+import AverageWatchTimeCard from '@/components/dashboard/AverageWatchTimeCard'
+import MovementFlowCard from '@/components/dashboard/MovementFlowCard'
+import DemographicRatioCard from '@/components/dashboard/DemographicRatioCard'
+import AgeExposureHeatmap from '@/components/dashboard/AgeExposureHeatmap'
+import type { GenderFilter } from '@/components/dashboard/GenderFilterChips'
+import type { DateRange } from '@/components/ui'
+import { DASHBOARD_CAMPAIGNS } from '@/lib/dashboardFixtures'
 import {
-  DASHBOARD_CAMPAIGNS,
-  type DashboardCampaignFixture,
-} from '@/lib/dashboardFixtures'
+  DASHBOARD_AGE_GROUPS,
+  DASHBOARD_HOURS,
+} from '@/lib/dashboardHeatmapFixture'
 
-const baseCampaign = DASHBOARD_CAMPAIGNS[0]!
-const zeroCampaign: DashboardCampaignFixture = {
-  ...baseCampaign,
-  id: 'campaign-zero',
-  name: '집계 시작 전 신규 캠페인 · 모든 지표 0 상태',
-  kpi: baseCampaign.kpi.map((metric) => ({
-    ...metric,
-    value: metric.key === 'downtime' ? '0건' : '0',
-  })),
-  tola: baseCampaign.tola.map((metric) => ({
-    ...metric,
-    value: metric.key === 'conversion' ? '0%' : '0명',
-    comparison: undefined,
-  })),
-  viewers: baseCampaign.viewers.map((point) => ({ ...point, viewers: 0 })),
-  averageSeconds: 0,
-  watchBuckets: baseCampaign.watchBuckets.map((bucket) => ({
-    ...bucket,
-    value: 0,
-  })),
-  demographics: baseCampaign.demographics.map((item) => ({
-    ...item,
-    total: 0,
-    male: 0,
-    female: 0,
-  })),
-  exposureCells: baseCampaign.exposureCells.map((cell) => ({
-    ...cell,
-    all: 0,
-    male: 0,
-    female: 0,
-  })),
+const c = DASHBOARD_CAMPAIGNS[0]!
+const WIDTHS = [1280, 1440] as const
+
+/**
+ * 섹션을 1280·1440 페이지 너비에서 각각(HomePage와 동일한 좌우 패딩) 세로로 쌓아 보여준다.
+ * render를 너비마다 새로 호출해 각 인스턴스가 독립 상태를 갖게 한다.
+ */
+function AtPageWidths({ render }: { render: () => ReactNode }) {
+  return (
+    <div className="flex flex-col gap-x10 bg-bg-secondary p-x5">
+      {WIDTHS.map((w) => (
+        <div key={w} className="flex flex-col gap-x2">
+          <span className="text-label-1-normal-medium text-text-caption">
+            페이지 {w}px
+          </span>
+          <div style={{ width: w }} className="bg-bg-primary px-x5 py-x5">
+            <div className="px-x5">{render()}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
-const meta = {
-  title: 'Pages/Dashboard/Home',
-  component: HomePage,
+const meta: Meta = {
+  title: 'Pages/Dashboard/Sections',
   parameters: { layout: 'fullscreen' },
-  decorators: [
-    (Story) => (
-      <div className="min-w-[1040px] bg-bg-primary">
-        <Story />
-      </div>
-    ),
-  ],
-} satisfies Meta<typeof HomePage>
-
+}
 export default meta
-type Story = StoryObj<typeof meta>
+type Story = StoryObj
 
-export const Default: Story = {}
-
-export const LongCampaignName: Story = {
-  args: { initialCampaignId: DASHBOARD_CAMPAIGNS[1]!.id },
+// 1) 헤더 + 송출횟수 — 툴바(캠페인·기간) + 송출 KPI
+function HeaderKpiSection() {
+  const [selectedId, setSelectedId] = useState(c.id)
+  const [dateRange, setDateRange] = useState<DateRange>({
+    start: new Date(2026, 6, 7),
+    end: new Date(2026, 6, 7),
+  })
+  return (
+    <KpiSection
+      metrics={c.kpi}
+      estimatedDowntime
+      toolbar={
+        <DashboardToolbar
+          campaigns={DASHBOARD_CAMPAIGNS}
+          selectedId={selectedId}
+          onCampaignChange={setSelectedId}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+        />
+      }
+    />
+  )
+}
+export const HeaderAndKpi: Story = {
+  name: '1) 헤더 + 송출횟수',
+  render: () => <AtPageWidths render={() => <HeaderKpiSection />} />,
 }
 
-export const ZeroValues: Story = {
-  args: { campaigns: [zeroCampaign], initialCampaignId: zeroCampaign.id },
+// 2) KPI — 유동·주목·전환·노출(TOLA)
+export const Tola: Story = {
+  name: '2) KPI(유동·주목·전환·노출)',
+  render: () => <AtPageWidths render={() => <TolaSection metrics={c.tola} />} />,
+}
+
+// 3) 실시간 시청수(가변) + 평균 시청시간(376 고정)
+export const RealtimeAndAverage: Story = {
+  name: '3) 실시간 시청수 + 평균 시청시간',
+  render: () => (
+    <AtPageWidths
+      render={() => (
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_376px] gap-x5">
+          <RealtimeViewerChart data={c.viewers} />
+          <AverageWatchTimeCard
+            averageSeconds={c.averageSeconds}
+            buckets={c.watchBuckets}
+          />
+        </div>
+      )}
+    />
+  ),
+}
+
+// 4) 이동 동선(376 고정) + 성별·연령 시청 비율(가변)
+function MovementAndRatioSection() {
+  const [filter, setFilter] = useState<GenderFilter>('all')
+  return (
+    <div className="flex h-[348px] min-w-0 gap-x5">
+      <MovementFlowCard />
+      <DemographicRatioCard
+        data={c.demographics}
+        filter={filter}
+        onFilterChange={setFilter}
+      />
+    </div>
+  )
+}
+export const MovementAndRatio: Story = {
+  name: '4) 이동 동선 + 시청 비율',
+  render: () => <AtPageWidths render={() => <MovementAndRatioSection />} />,
+}
+
+// 5) 시간·연령별 노출도 히트맵
+function HeatmapSection() {
+  const [filter, setFilter] = useState<GenderFilter>('all')
+  return (
+    <AgeExposureHeatmap
+      hours={DASHBOARD_HOURS}
+      ageGroups={DASHBOARD_AGE_GROUPS}
+      cells={c.exposureCells}
+      filter={filter}
+      onFilterChange={setFilter}
+    />
+  )
+}
+export const Heatmap: Story = {
+  name: '5) 시간·연령별 노출도',
+  render: () => <AtPageWidths render={() => <HeatmapSection />} />,
 }
