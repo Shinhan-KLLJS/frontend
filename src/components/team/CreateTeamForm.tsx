@@ -1,9 +1,8 @@
 import type { FormEvent } from 'react'
 import { Controller } from 'react-hook-form'
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form'
-import { Calendar, ChevronDown } from 'lucide-react'
-import { Button, Icon, InputField } from '@/components/ui'
-import { maskDateInput } from '@/components/ui/date'
+import { Button, InputField } from '@/components/ui'
+import OpenDateField from '@/components/team/OpenDateField'
 import { maskRegistrationNumber } from '@/lib/team-format'
 import type { CreateTeamFormValues } from '@/lib/team-schema'
 
@@ -48,7 +47,7 @@ export default function CreateTeamForm({
           label="대표자명"
           required
           placeholder="대표자명을 입력하세요"
-          className="flex-1"
+          className="min-w-0 flex-1"
           errorMessage={errors.ceoName?.message}
           {...register('ceoName')}
         />
@@ -56,18 +55,9 @@ export default function CreateTeamForm({
           name="openedAt"
           control={control}
           render={({ field, fieldState }) => (
-            <InputField
-              label="개업일"
-              required
-              placeholder="YYYY.MM.DD"
-              className="flex-1"
-              leadingIcon={<Icon icon={Calendar} size={24} color="secondary" />}
-              trailingIcon={
-                <Icon icon={ChevronDown} size={20} color="secondary" />
-              }
+            <OpenDateField
               value={field.value}
-              onChange={(e) => field.onChange(maskDateInput(e.target.value))}
-              onBlur={field.onBlur}
+              onChange={field.onChange}
               errorMessage={fieldState.error?.message}
             />
           )}
