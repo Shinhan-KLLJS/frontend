@@ -161,7 +161,7 @@ export interface WatchTimeBucketData {
   bucket: string
   label: string
   count: number
-  ratio: number // 0~1 비율
+  ratio: number // 0~100(%)
 }
 export interface CampaignAverageWatchTime extends PeriodResource {
   campaignId: number
@@ -567,11 +567,10 @@ export function useRealtimeGraph(
   const cursorRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
-    if (!enabled || !campaignId) {
-      setPoints([])
-      cursorRef.current = undefined
-      return
-    }
+    // 캠페인/enabled가 바뀌면 이전 커서·포인트를 버리고 새로 시작(캠페인 간 데이터 혼입 방지)
+    cursorRef.current = undefined
+    setPoints([])
+    if (!enabled || !campaignId) return
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | undefined
 

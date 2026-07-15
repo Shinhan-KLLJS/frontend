@@ -91,6 +91,7 @@ export default function TolaSection({
       </div>
       <div
         className="relative h-[100px] w-full"
+        role="img"
         aria-label="유동인구에서 노출인구로 좁아지는 전환 흐름"
       >
         <img src={tolaWave} alt="" className="absolute inset-0 h-full w-full" />

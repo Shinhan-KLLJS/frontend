@@ -10,11 +10,9 @@ export interface TooltipProps {
 }
 
 /**
- * 호버/포커스 툴팁 (Figma Tooltip/Tooltip · Size=Medium, Position=Bottom).
- *
- * 다크 반투명 배경(cool-neutral-900 88% + brand-solid 5% 2겹) + backdrop-blur,
- * 흰 텍스트(label-1 medium). 꼭지는 우상단 고정, 위를 향한다.
- * 내용 폭은 최대 256px까지 자동(줄바꿈).
+ * 호버/포커스 툴팁 (Position=Bottom).
+ * 다크 배경(cool-neutral-900) + 흰 텍스트(label-1 medium), 꼭지는 우상단 고정·위 지향.
+ * 내용 폭 최대 280px까지 자동(줄바꿈).
  */
 export default function Tooltip({
   content,

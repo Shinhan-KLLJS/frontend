@@ -114,10 +114,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
-    try {
-      await api.post(API_ENDPOINTS.logout)
-    } catch {
-      // 로그아웃 API 실패해도 로컬 세션은 정리한다
+    // 목 인증(로컬)에서는 백엔드가 없으므로 API 호출 없이 상태만 정리
+    const isMock =
+      import.meta.env.DEV && import.meta.env.VITE_MOCK_AUTH === 'true'
+    if (!isMock) {
+      try {
+        await api.post(API_ENDPOINTS.logout)
+      } catch {
+        // 로그아웃 API 실패해도 로컬 세션은 정리한다
+      }
     }
     setAccessToken(null)
     setUser(null)

@@ -60,7 +60,7 @@ export default function AgeExposureHeatmap({
       </div>
       <div className="min-w-0 overflow-x-auto">
         <div
-          role="img"
+          role="group"
           aria-label={`${filter} 기준 시간·연령별 노출도 히트맵`}
           className="flex min-w-[920px] flex-col gap-x2"
         >
@@ -77,6 +77,7 @@ export default function AgeExposureHeatmap({
                   return (
                     <span
                       key={`${ageGroup}-${hour}`}
+                      role="img"
                       title={`${hour}시 ${ageGroup} 노출 강도 ${level}`}
                       aria-label={`${hour}시 ${ageGroup} 노출 강도 ${level}`}
                       className={`size-[36px] shrink-0 rounded-x1 ${LEVEL_STYLE[level]}`}
