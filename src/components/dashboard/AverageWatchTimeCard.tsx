@@ -47,7 +47,9 @@ export default function AverageWatchTimeCard({
             </PieChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-label-2-regular text-text-tertiary">평균</span>
+            <span className="text-label-2-regular text-text-tertiary">
+              평균
+            </span>
             <strong className="text-title-2-bold text-text-primary">
               {averageSeconds.toFixed(1)}초
             </strong>
@@ -55,7 +57,10 @@ export default function AverageWatchTimeCard({
         </div>
         <ul className="flex w-[112px] shrink-0 flex-col gap-x3">
           {buckets.map((bucket) => (
-            <li key={bucket.label} className="flex items-center justify-between gap-x2">
+            <li
+              key={bucket.label}
+              className="flex items-center justify-between gap-x2"
+            >
               <span className="flex min-w-0 items-center gap-x2 text-label-2-regular text-text-secondary">
                 <i
                   className="h-x2 w-x2 shrink-0 rounded-full"
@@ -71,7 +76,9 @@ export default function AverageWatchTimeCard({
         </ul>
       </div>
       <p className="sr-only">
-        평균 시청시간은 {averageSeconds.toFixed(1)}초이며, {buckets.map((bucket) => `${bucket.label} ${bucket.value}%`).join(', ')}입니다.
+        평균 시청시간은 {averageSeconds.toFixed(1)}초이며,{' '}
+        {buckets.map((bucket) => `${bucket.label} ${bucket.value}%`).join(', ')}
+        입니다.
       </p>
     </DashboardPanel>
   )

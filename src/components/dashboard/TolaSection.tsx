@@ -41,7 +41,12 @@ export default function TolaSection({ metrics }: TolaSectionProps) {
                 {metric.label}
               </span>
               <span title={metric.description}>
-                <Icon icon={Info} size={16} color="secondary" label="지표 설명" />
+                <Icon
+                  icon={Info}
+                  size={16}
+                  color="secondary"
+                  label="지표 설명"
+                />
               </span>
             </div>
             <strong className="text-title-3-bold text-text-primary">

@@ -44,8 +44,13 @@ export default function DemographicRatioCard({
         {data.map(({ ageGroup, male, female }, index) => {
           const value = values[index]
           return (
-            <div key={ageGroup} className="grid grid-cols-[48px_1fr_44px] items-center gap-x3">
-              <span className="text-label-2-regular text-text-secondary">{ageGroup}</span>
+            <div
+              key={ageGroup}
+              className="grid grid-cols-[48px_1fr_44px] items-center gap-x3"
+            >
+              <span className="text-label-2-regular text-text-secondary">
+                {ageGroup}
+              </span>
               <div className="flex h-[14px] overflow-hidden rounded-full bg-chart-surface">
                 {filter !== 'female' && (
                   <span
@@ -68,8 +73,12 @@ export default function DemographicRatioCard({
         })}
       </div>
       <div className="flex items-center justify-end gap-x4 text-caption-1-regular text-text-tertiary">
-        {filter !== 'female' && <Legend color="bg-chart-categorical-1" label="남성" />}
-        {filter !== 'male' && <Legend color="bg-chart-categorical-2" label="여성" />}
+        {filter !== 'female' && (
+          <Legend color="bg-chart-categorical-1" label="남성" />
+        )}
+        {filter !== 'male' && (
+          <Legend color="bg-chart-categorical-2" label="여성" />
+        )}
       </div>
     </DashboardPanel>
   )

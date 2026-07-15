@@ -1,5 +1,10 @@
 import type { LucideIcon } from 'lucide-react'
-import { ChartNoAxesColumnIncreasing, Clock3, Play, PlayOff } from 'lucide-react'
+import {
+  ChartNoAxesColumnIncreasing,
+  Clock3,
+  Play,
+  PlayOff,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
 import kpiBackground from '@/assets/dashboard/kpi-background.svg'
 import { Icon } from '@/components/ui'
@@ -32,16 +37,15 @@ export default function KpiSection({
   estimatedDowntime = false,
 }: KpiSectionProps) {
   return (
-    <section
-      aria-label="캠페인 핵심 지표"
-      className="relative min-w-0 overflow-hidden rounded-[20px] bg-[linear-gradient(107deg,var(--blue-50),var(--blue-100))] p-x5"
-    >
-      <img
-        src={kpiBackground}
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-full w-full object-cover opacity-80"
-      />
+    <section aria-label="캠페인 핵심 지표" className="relative min-w-0 p-x5">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[20px] bg-[linear-gradient(107deg,var(--blue-50),var(--blue-100))]">
+        <img
+          src={kpiBackground}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-full w-full object-cover opacity-80"
+        />
+      </div>
       <div className="relative flex min-w-0 flex-col gap-x5">
         {toolbar}
         <div className="grid min-w-0 grid-cols-4 gap-x5">

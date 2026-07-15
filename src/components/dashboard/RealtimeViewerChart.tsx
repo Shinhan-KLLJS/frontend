@@ -20,7 +20,9 @@ export interface RealtimeViewerChartProps {
 }
 
 /** 시간대별 실시간 시청 수를 반응형 영역 차트로 표현합니다. */
-export default function RealtimeViewerChart({ data }: RealtimeViewerChartProps) {
+export default function RealtimeViewerChart({
+  data,
+}: RealtimeViewerChartProps) {
   const gradientId = useId().replace(/:/g, '')
   const latest = data.at(-1)
 
@@ -32,11 +34,22 @@ export default function RealtimeViewerChart({ data }: RealtimeViewerChartProps) 
       />
       <div className="min-h-0 min-w-0 flex-1" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+          <AreaChart
+            data={data}
+            margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
+          >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-chart-categorical-1)" stopOpacity={0.24} />
-                <stop offset="100%" stopColor="var(--color-chart-categorical-1)" stopOpacity={0} />
+                <stop
+                  offset="0%"
+                  stopColor="var(--color-chart-categorical-1)"
+                  stopOpacity={0.24}
+                />
+                <stop
+                  offset="100%"
+                  stopColor="var(--color-chart-categorical-1)"
+                  stopOpacity={0}
+                />
               </linearGradient>
             </defs>
             <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" />
@@ -67,7 +80,9 @@ export default function RealtimeViewerChart({ data }: RealtimeViewerChartProps) 
         </ResponsiveContainer>
       </div>
       <p className="sr-only">
-        {latest ? `최근 ${latest.time} 시청 수는 ${latest.viewers}명입니다.` : '표시할 시청 데이터가 없습니다.'}
+        {latest
+          ? `최근 ${latest.time} 시청 수는 ${latest.viewers}명입니다.`
+          : '표시할 시청 데이터가 없습니다.'}
       </p>
     </DashboardPanel>
   )

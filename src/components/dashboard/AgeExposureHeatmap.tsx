@@ -36,7 +36,9 @@ export default function AgeExposureHeatmap({
   filter,
   onFilterChange,
 }: AgeExposureHeatmapProps) {
-  const cellMap = new Map(cells.map((cell) => [`${cell.ageGroup}-${cell.hour}`, cell]))
+  const cellMap = new Map(
+    cells.map((cell) => [`${cell.ageGroup}-${cell.hour}`, cell]),
+  )
   const columns = `64px repeat(${hours.length}, minmax(28px, 1fr))`
 
   return (
@@ -61,12 +63,18 @@ export default function AgeExposureHeatmap({
         >
           <span />
           {hours.map((hour) => (
-            <span key={hour} className="text-center text-caption-2-regular text-text-caption">
+            <span
+              key={hour}
+              className="text-center text-caption-2-regular text-text-caption"
+            >
               {hour}
             </span>
           ))}
           {ageGroups.flatMap((ageGroup) => [
-            <span key={`${ageGroup}-label`} className="text-label-2-regular text-text-secondary">
+            <span
+              key={`${ageGroup}-label`}
+              className="text-label-2-regular text-text-secondary"
+            >
               {ageGroup}
             </span>,
             ...hours.map((hour) => {
@@ -86,7 +94,10 @@ export default function AgeExposureHeatmap({
       <div className="flex items-center justify-end gap-x2 text-caption-1-regular text-text-tertiary">
         <span>낮음</span>
         {([0, 1, 2, 3, 4] as ExposureLevel[]).map((level) => (
-          <i key={level} className={`h-[10px] w-[28px] rounded-[2px] ${LEVEL_STYLE[level]}`} />
+          <i
+            key={level}
+            className={`h-[10px] w-[28px] rounded-[2px] ${LEVEL_STYLE[level]}`}
+          />
         ))}
         <span>높음</span>
       </div>
