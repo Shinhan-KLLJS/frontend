@@ -81,6 +81,9 @@ export type { HeaderProps } from './Header'
 export { default as LoadingSpinner } from './LoadingSpinner'
 export type { LoadingSpinnerProps } from './LoadingSpinner'
 
+export { default as LoadingDots } from './LoadingDots'
+export type { LoadingDotsProps } from './LoadingDots'
+
 export { default as ProgressBar } from './ProgressBar'
 export type { ProgressBarProps } from './ProgressBar'
 
