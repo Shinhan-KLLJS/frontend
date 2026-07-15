@@ -204,19 +204,19 @@ function toWatchTime(a: CampaignAverageWatchTime): {
     averageSeconds: a.averageWatchTimeSec ?? 0,
     buckets: a.watchTimeBuckets.map((b, i) => ({
       label: b.label,
-      value: Math.round(b.ratio * 1000) / 10, // 0~1 → %(소수 1자리)
+      value: Math.round(b.ratio * 10) / 10, // ratio는 0~100(%) — 소수 1자리 반올림
       color: WATCH_COLORS[i % WATCH_COLORS.length],
     })),
   }
 }
 
-/** 성별·연령 시청 비율 → 카드 데이터. ratio는 0~1 가정 → %로 환산. */
+/** 성별·연령 시청 비율 → 카드 데이터. ratio는 0~100(%) — 소수 1자리 반올림. */
 function toDemographics(d: CampaignDemographic): DemographicRatio[] {
   return d.ageGroups.map((g) => ({
     ageGroup: g.label,
-    total: Math.round(g.totalRatio * 1000) / 10,
-    male: Math.round(g.maleRatio * 1000) / 10,
-    female: Math.round(g.femaleRatio * 1000) / 10,
+    total: Math.round(g.totalRatio * 10) / 10,
+    male: Math.round(g.maleRatio * 10) / 10,
+    female: Math.round(g.femaleRatio * 10) / 10,
   }))
 }
 
