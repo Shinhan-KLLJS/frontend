@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from 'react'
 import {
   motion,
@@ -13,6 +14,12 @@ import {
   useTransform,
 } from 'motion/react'
 import { useMediaQuery } from '@/lib/useMediaQuery'
+import tolaDataImage from '@/assets/landing/TOLA-Data.png'
+import liveViewerGraphImage from '@/assets/landing/Live-Viewer-Graph.png'
+import bestFlowImage from '@/assets/landing/Best-Flow.png'
+import averageViewTimeImage from '@/assets/landing/Average-View-Time-2.png'
+import GenderYearsView from './GenderYearsView'
+import TimeYearsHeatMap from './TimeYearsHeatMap'
 import section2Image1 from '@/assets/landing/section2-image1.png'
 import section2Image2 from '@/assets/landing/section2-image2.png'
 import section2Image3 from '@/assets/landing/section2-image3.png'
@@ -44,50 +51,78 @@ const WIDGETS = [
   {
     key: 'live-viewer-graph',
     label: 'Live Viewer Graph',
-    x: -80,
-    y: -19,
+    x: -180,
+    y: 101,
     width: 395,
     height: 230,
   },
-  { key: 'best-flow', label: 'Best Flow', x: -38, y: 490, width: 376, height: 348 },
+  { key: 'best-flow', label: 'Best Flow', x: -258, y: 490, width: 376, height: 348 },
   {
     key: 'time-years-heat-map',
     label: 'Time Years Heat Map',
-    x: -112,
-    y: 859,
+    x: 938,
+    y: 702,
     width: 576,
-    height: 283,
+    height: 360,
   },
   {
     key: 'gender-years-view',
     label: 'Gender Years View',
-    x: 999,
-    y: -99,
+    x: 1009,
+    y: 31,
     width: 564,
-    height: 348,
+    height: 368,
   },
   {
     key: 'average-view-time',
     label: 'Average View Time',
-    x: 938,
-    y: 782,
-    width: 376,
-    height: 328,
+    x: -82,
+    y: 744,
+    width: 450,
+    height: 336,
   },
 ] as const
 
-function PlaceholderCard({
-  label,
-  className = '',
-}: {
-  label: string
-  className?: string
-}) {
+function TolaDataImage({ className = '' }: { className?: string }) {
+  return (
+    <img
+      src={tolaDataImage}
+      alt="TOLA Data"
+      className={`rounded-[16px] object-cover shadow-normal-large ${className}`}
+    />
+  )
+}
+
+function LiveViewerGraphImage({ className = '' }: { className?: string }) {
+  return (
+    <img
+      src={liveViewerGraphImage}
+      alt="Live Viewer Graph"
+      className={`rounded-[16px] object-cover shadow-normal-large ${className}`}
+    />
+  )
+}
+
+function BestFlowImage({ className = '' }: { className?: string }) {
+  return (
+    <img
+      src={bestFlowImage}
+      alt="Best Flow"
+      className={`rounded-[16px] object-cover shadow-normal-large ${className}`}
+    />
+  )
+}
+
+function AverageViewTimeImage({ className = '' }: { className?: string }) {
   return (
     <div
-      className={`flex items-center justify-center rounded-[16px] border border-line-tertiary bg-bg-secondary ${className}`}
+      className={`overflow-hidden rounded-[16px] bg-bg-secondary p-x1 shadow-normal-large ${className}`}
     >
-      <span className="text-label-1-normal-bold text-text-secondary">{label}</span>
+      <img
+        src={averageViewTimeImage}
+        alt="Average View Time"
+        className="size-full rounded-[12px] object-contain object-center"
+      />
     </div>
   )
 }
@@ -123,17 +158,21 @@ export function LoopCard({ loop }: { loop: boolean }) {
 
 const SectionTitle = forwardRef<
   HTMLHeadingElement,
-  { className?: string; style?: CSSProperties }
->(function SectionTitle({ className = '', style }, ref) {
+  { className?: string; style?: CSSProperties; children?: ReactNode }
+>(function SectionTitle({ className = '', style, children }, ref) {
   return (
     <h2
       ref={ref}
       className={`text-[32px] font-medium leading-[1.3] tracking-[-0.03em] text-center text-text-primary md:text-display-2-medium ${className}`}
       style={style}
     >
-      유동인구로만 예측하던
-      <br />
-      기존의 옥외광고 측정 효과
+      {children ?? (
+        <>
+          유동인구로만 예측하던
+          <br />
+          기존의 옥외광고 측정 효과
+        </>
+      )}
     </h2>
   )
 })
@@ -232,6 +271,23 @@ function DesktopSection2() {
     if (tolaWrapperRef.current) tolaWrapperRef.current.style.opacity = String(v)
   })
 
+  // TOLA Data 뒤에 깔리는 배경 그라디언트 — TOLA와 같은 tolaOpacity를 그대로
+  // 재생 구간으로 써서 TOLA가 디졸브되어 나타나는 것과 정확히 같은 타이밍에,
+  // 아래에서 위로 스크롤되어 올라오는 것처럼 clip-path로 쓸어 올리며 등장한다.
+  const tolaGradientRef = useRef<HTMLDivElement>(null)
+  useMotionValueEvent(tolaOpacity, 'change', (v) => {
+    if (tolaGradientRef.current) {
+      tolaGradientRef.current.style.clipPath = `inset(${(1 - v) * 100}% 0% 0% 0%)`
+    }
+  })
+
+  // TOLA 위에 뜨는 새 타이틀 — 원래 타이틀이 있던 자리를 그대로 물려받되,
+  // 등장 타이밍은 TOLA가 아니라 5개 위젯과 같은 widgetOpacity로 맞춘다.
+  const tolaTitleRef = useRef<HTMLHeadingElement>(null)
+  useMotionValueEvent(widgetOpacity, 'change', (v) => {
+    if (tolaTitleRef.current) tolaTitleRef.current.style.opacity = String(v)
+  })
+
   const widgetRefs = useRef<Record<string, HTMLDivElement | null>>({})
   useMotionValueEvent(widgetOpacity, 'change', (v) => {
     for (const el of Object.values(widgetRefs.current)) {
@@ -244,9 +300,25 @@ function DesktopSection2() {
     }
   })
 
+  // Gender Years View 위젯의 막대 채워짐 애니메이션 트리거. 위젯이 절반쯤
+  // 보이기 시작하면 한 번만 true로 고정한다(스크롤을 살짝 오갈 때 막대가
+  // 다시 접혔다 펴지는 깜빡임을 막기 위해).
+  const [isGenderWidgetRevealed, setIsGenderWidgetRevealed] = useState(false)
+  useMotionValueEvent(widgetOpacity, 'change', (v) => {
+    if (v > 0.3) setIsGenderWidgetRevealed(true)
+  })
+
   return (
     <section ref={sectionRef} className="relative h-[420dvh]">
       <div className="sticky top-0 flex h-dvh items-center justify-center overflow-hidden">
+        <div
+          ref={tolaGradientRef}
+          className="absolute inset-0 bg-gradient-to-b from-white to-[#3a83f5]"
+          style={{
+            clipPath: `inset(${(1 - tolaOpacity.get()) * 100}% 0% 0% 0%)`,
+          }}
+        />
+
         <motion.div
           className="relative"
           style={{
@@ -262,6 +334,16 @@ function DesktopSection2() {
             className="absolute inset-x-0 top-[150px]"
             style={{ opacity: titleOpacity.get() }}
           />
+
+          <SectionTitle
+            ref={tolaTitleRef}
+            className="absolute inset-x-0 top-[223px]"
+            style={{ opacity: widgetOpacity.get() }}
+          >
+            이제 Loovi에서
+            <br />
+            확인해 보세요
+          </SectionTitle>
 
           {/* opacity 담당(부모) / scale 담당(자식) 분리 — 루프카드, opacity는 ref로 직접 갱신 */}
           <div
@@ -293,13 +375,14 @@ function DesktopSection2() {
               width: TOLA_DATA.width,
               height: TOLA_DATA.height,
               opacity: tolaOpacity.get(),
+              zIndex: 10,
             }}
           >
             <motion.div
               className="size-full origin-center"
               style={{ scale: shrinkScale }}
             >
-              <PlaceholderCard label={TOLA_DATA.label} className="size-full" />
+              <TolaDataImage className="size-full" />
             </motion.div>
           </div>
 
@@ -317,9 +400,25 @@ function DesktopSection2() {
                 height: widget.height,
                 opacity: widgetOpacity.get(),
                 transform: `translateY(${widgetY.get()}px)`,
+                zIndex: widget.key === 'best-flow' ? 0 : 10,
               }}
             >
-              <PlaceholderCard label={widget.label} className="size-full" />
+              {widget.key === 'gender-years-view' ? (
+                <div className="size-full origin-top-left scale-[0.85]">
+                  <GenderYearsView
+                    className="size-full"
+                    active={isGenderWidgetRevealed}
+                  />
+                </div>
+              ) : widget.key === 'live-viewer-graph' ? (
+                <LiveViewerGraphImage className="size-full" />
+              ) : widget.key === 'best-flow' ? (
+                <BestFlowImage className="size-full" />
+              ) : widget.key === 'time-years-heat-map' ? (
+                <TimeYearsHeatMap className="size-full" />
+              ) : (
+                <AverageViewTimeImage className="size-full" />
+              )}
             </div>
           ))}
         </motion.div>
@@ -329,11 +428,11 @@ function DesktopSection2() {
 }
 
 function FadeInCard({
-  label,
   reduceMotion,
+  children,
 }: {
-  label: string
   reduceMotion: boolean
+  children: ReactNode
 }) {
   return (
     <motion.div
@@ -343,7 +442,7 @@ function FadeInCard({
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
-      <PlaceholderCard label={label} className="aspect-[4/3] w-full" />
+      {children}
     </motion.div>
   )
 }
@@ -366,13 +465,23 @@ function StaticSection2() {
         </div>
       </motion.div>
       <div className="mt-x6 flex flex-col items-center gap-x6 px-x5">
-        <FadeInCard label={TOLA_DATA.label} reduceMotion={!!reduceMotion} />
+        <FadeInCard reduceMotion={!!reduceMotion}>
+          <TolaDataImage className="w-full" />
+        </FadeInCard>
         {WIDGETS.map((widget) => (
-          <FadeInCard
-            key={widget.key}
-            label={widget.label}
-            reduceMotion={!!reduceMotion}
-          />
+          <FadeInCard key={widget.key} reduceMotion={!!reduceMotion}>
+            {widget.key === 'gender-years-view' ? (
+              <GenderYearsView className="w-full" />
+            ) : widget.key === 'live-viewer-graph' ? (
+              <LiveViewerGraphImage className="w-full" />
+            ) : widget.key === 'best-flow' ? (
+              <BestFlowImage className="w-full" />
+            ) : widget.key === 'time-years-heat-map' ? (
+              <TimeYearsHeatMap className="w-full" />
+            ) : (
+              <AverageViewTimeImage className="w-full" />
+            )}
+          </FadeInCard>
         ))}
       </div>
     </section>

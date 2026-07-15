@@ -6,6 +6,7 @@ export default function LandingPage() {
       <ScrollHero />
       <Section2 />
       {/* 이후 섹션은 여기 순차 추가 */}
+      <div className="h-[200px] w-full rounded-b-[40px] bg-[#3a83f5]" />
     </div>
   )
 }
