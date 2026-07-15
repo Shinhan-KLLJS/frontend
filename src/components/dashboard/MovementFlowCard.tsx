@@ -3,7 +3,7 @@ import movementMap from '@/assets/dashboard/movement-map.png'
 /** 지도 SDK 없이 제공되는 정적 이동 동선 미리보기입니다. */
 export default function MovementFlowCard() {
   return (
-    <section className="aspect-[376/348] h-auto overflow-hidden rounded-x3 border border-line-tertiary bg-bg-secondary">
+    <section className="h-[348px] w-[376px] shrink-0 overflow-hidden rounded-x3 border border-line-tertiary bg-bg-secondary">
       <svg
         viewBox="0 0 376 348"
         role="img"
