@@ -10,13 +10,15 @@ import MediaMap from '@/components/campaign/MediaMap'
 import VideoUploadCard from '@/components/campaign/VideoUploadCard'
 import type { UploadStatus } from '@/components/campaign/VideoUploadCard'
 import { Icon, ProgressBar, useToast } from '@/components/ui'
+import { useAuth } from '@/lib/auth'
 import {
   campaignInfoSchema,
+  CampaignApiError,
   createCampaign,
-  fetchCampaignMedia,
   uploadCampaignVideo,
+  useMediaUnits,
 } from '@/lib/campaign'
-import type { CampaignInfoValues, CampaignMedia } from '@/lib/campaign'
+import type { CampaignInfoValues } from '@/lib/campaign'
 
 const REGISTER_STEPS = ['기본 정보', '매체 선택', '최종 확인']
 
@@ -33,14 +35,15 @@ interface UploadState {
   file: File | null
   /** success 시 영상 미리보기용 objectURL — 교체/이탈 시 revoke 필요 */
   previewUrl: string | null
-  videoId: string | null
+  /** 업로드 완료 시 발급된 creativeToken — 캠페인 등록 요청에 사용 */
+  creativeToken: string | null
 }
 
 const INITIAL_UPLOAD: UploadState = {
   status: 'idle',
   file: null,
   previewUrl: null,
-  videoId: null,
+  creativeToken: null,
 }
 
 /**
@@ -50,6 +53,7 @@ const INITIAL_UPLOAD: UploadState = {
  */
 export default function CampaignRegisterPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [step, setStep] = useState<RegisterStep>(1)
 
   // Step1 기본 정보 폼 — 단계를 오가도 값이 유지되도록 페이지가 인스턴스를 소유
@@ -88,21 +92,21 @@ export default function CampaignRegisterPage() {
     }
     if (upload.previewUrl) URL.revokeObjectURL(upload.previewUrl)
     const seq = ++uploadSeqRef.current
-    setUpload({ status: 'uploading', file, previewUrl: null, videoId: null })
+    setUpload({ status: 'uploading', file, previewUrl: null, creativeToken: null })
     uploadCampaignVideo(file)
-      .then(({ videoId }) => {
+      .then(({ creativeToken }) => {
         if (seq !== uploadSeqRef.current) return // 취소·재업로드로 무효화된 응답
         setUpload({
           status: 'success',
           file,
           previewUrl: URL.createObjectURL(file),
-          videoId,
+          creativeToken,
         })
         toast('영상 업로드가 완료되었습니다.', { status: 'success' })
       })
       .catch(() => {
         if (seq !== uploadSeqRef.current) return
-        setUpload({ status: 'error', file, previewUrl: null, videoId: null })
+        setUpload({ status: 'error', file, previewUrl: null, creativeToken: null })
         toast('영상 업로드에 실패했습니다. 다시 시도하세요.', {
           status: 'error',
         })
@@ -114,24 +118,10 @@ export default function CampaignRegisterPage() {
     setUpload(INITIAL_UPLOAD)
   }
 
-  // 매체 선택 — 카드·지도 핀이 하나의 선택 상태를 공유하도록 페이지가 소유
-  const [mediaList, setMediaList] = useState<CampaignMedia[]>([])
-  const [mediaLoading, setMediaLoading] = useState(true)
+  // 매체 선택 — 카드·지도 핀이 하나의 선택 상태를 공유하도록 페이지가 소유.
+  // 목록 조회는 대시보드와 동일하게 react-query(useMediaUnits)로 캐싱·loading 처리
+  const { data: mediaList = [], isPending: mediaLoading } = useMediaUnits()
   const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null)
-
-  useEffect(() => {
-    let active = true
-    fetchCampaignMedia()
-      .then((list) => {
-        if (active) setMediaList(list)
-      })
-      .finally(() => {
-        if (active) setMediaLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [])
 
   const selectedMedia =
     mediaList.find((media) => media.id === selectedMediaId) ?? null
@@ -140,20 +130,28 @@ export default function CampaignRegisterPage() {
   const [submitting, setSubmitting] = useState(false)
 
   const handleRegister = async () => {
-    if (!selectedMedia || !upload.videoId) return
+    if (!selectedMedia || !upload.creativeToken) return
+    if (user?.teamId == null) {
+      toast('소속 팀 정보를 확인할 수 없습니다. 다시 로그인해 주세요.', {
+        status: 'error',
+      })
+      return
+    }
     setSubmitting(true)
     try {
-      await createCampaign({
-        ...form.getValues(),
-        mediaId: selectedMedia.id,
-        videoId: upload.videoId,
+      await createCampaign(user.teamId, {
+        info: form.getValues(),
+        mediaUnitId: Number(selectedMedia.id),
+        creativeToken: upload.creativeToken,
       })
       toast('캠페인이 등록되었습니다.', { status: 'success' })
       navigate('/campaigns')
-    } catch {
-      toast('캠페인 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.', {
-        status: 'error',
-      })
+    } catch (err) {
+      const message =
+        err instanceof CampaignApiError
+          ? err.message
+          : '캠페인 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+      toast(message, { status: 'error' })
       setSubmitting(false)
     }
   }

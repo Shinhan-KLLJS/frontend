@@ -1,16 +1,15 @@
 /**
- * 캠페인 등록 API — 현재는 프론트 전용 mock.
- * 백엔드 스펙 확정 시 이 파일의 함수 본문만 api 호출로 교체한다.
- * (함수는 ApiResponse 래퍼가 아닌 result 타입을 resolve하고, 실패는 throw — 호출부 무변경 교체 목적)
+ * 캠페인 등록 API.
+ * 함수는 ApiResponse 래퍼가 아닌 result 타입을 resolve하고, 실패는 CampaignApiError로 throw한다(호출부는 message만 표시).
  */
+import axios, { isAxiosError } from 'axios'
+import type { AxiosResponse } from 'axios'
+import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import type { DateRange } from '@/components/ui'
-import media1 from '@/assets/campaign/media-1.png'
-import media2 from '@/assets/campaign/media-2.png'
-import media3 from '@/assets/campaign/media-3.png'
-import media4 from '@/assets/campaign/media-4.png'
-import media5 from '@/assets/campaign/media-5.png'
-import media6 from '@/assets/campaign/media-6.png'
+import { api } from './api'
+import type { ApiResponse } from './api'
+import { API_ENDPOINTS } from './config'
 
 /** 기본 정보 폼 스키마 — Step1 '다음' 활성 조건이자 등록 요청 값의 원천 */
 export const campaignInfoSchema = z.object({
@@ -43,10 +42,70 @@ export class CampaignApiError extends Error {
   }
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+function toCampaignApiError(err: unknown): CampaignApiError {
+  if (isAxiosError(err) && err.response?.data) {
+    const body = err.response.data as Partial<ApiResponse<unknown>>
+    if (body.message) {
+      return new CampaignApiError(body.code ?? 'UNKNOWN', body.message)
+    }
+  }
+  return new CampaignApiError(
+    'NETWORK_ERROR',
+    '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+  )
 }
 
+/** ApiResponse 래퍼를 풀어 result를 반환하고, 실패(HTTP 오류/isSuccess=false)는 CampaignApiError로 변환 */
+async function unwrap<T>(
+  call: Promise<AxiosResponse<ApiResponse<T>>>,
+): Promise<T> {
+  let data: ApiResponse<T>
+  try {
+    data = (await call).data
+  } catch (err) {
+    throw toCampaignApiError(err)
+  }
+  if (!data.isSuccess) {
+    throw new CampaignApiError(data.code, data.message)
+  }
+  return data.result
+}
+
+// ── 매체 목록 ──────────────────────────────────────────────
+
+/** 매체 형태 — 백엔드 enum */
+type MediaShapeType = 'FLAT' | 'VERTICAL' | 'CORNER'
+
+const SHAPE_TYPE_LABEL: Record<MediaShapeType, string> = {
+  FLAT: '평면형',
+  VERTICAL: '세로형',
+  CORNER: '곡면형',
+}
+
+/** GET /media-units 응답의 매체 한 건 (백엔드 원형) */
+interface MediaUnitDto {
+  mediaUnitId: number
+  mediaName: string
+  photoUrl: string
+  locationAddress: string
+  sido: string
+  sigungu: string
+  latitude: number
+  longitude: number
+  widthMm: number
+  heightMm: number
+  resolutionWidthPx: number
+  resolutionHeightPx: number
+  shapeTypes: MediaShapeType[]
+  available: boolean
+  unavailableReason: string | null
+}
+
+interface MediaUnitsResult {
+  mediaUnits: MediaUnitDto[]
+}
+
+/** 화면에서 소비하는 매체 모델 (카드·지도·최종 확인 공용) */
 export interface CampaignMedia {
   id: string
   name: string
@@ -63,119 +122,154 @@ export interface CampaignMedia {
   lat: number
   lng: number
   thumbnail: string
+  /** 선택 가능 여부 — false면 이미 다른 캠페인이 점유 중 */
+  available: boolean
+  unavailableReason: string | null
 }
 
-/** 매체 mock 데이터 — 썸네일은 Figma 캠페인 등록 섹션 에셋 */
-const MOCK_MEDIA: CampaignMedia[] = [
-  {
-    id: 'media-1',
-    name: '삼성동 신라스테이 전광판',
-    address: '서울 강남구 명동대로 506',
-    sido: '서울특별시',
-    sigungu: '강남구',
-    resolution: '1312 x 1664px',
-    size: '12 X 16m',
-    types: ['평면형', '세로형'],
-    lat: 37.5088,
-    lng: 127.0631,
-    thumbnail: media1,
-  },
-  {
-    id: 'media-2',
-    name: '파르나스 미디어타워 전광판',
-    address: '서울 강남구 영동대로 513',
-    sido: '서울특별시',
-    sigungu: '강남구',
-    resolution: '1215 x 1792px',
-    size: '81 X 20m',
-    types: ['평면형', '세로형'],
-    lat: 37.5109,
-    lng: 127.0605,
-    thumbnail: media2,
-  },
-  {
-    id: 'media-3',
-    name: '코엑스 K-POP 스퀘어 전광판',
-    address: '서울 강남구 영동대로 511',
-    sido: '서울특별시',
-    sigungu: '강남구',
-    resolution: '7840 x 1952px',
-    size: '81 X 20m',
-    types: ['곡면형'],
-    lat: 37.5126,
-    lng: 127.0588,
-    thumbnail: media3,
-  },
-  {
-    id: 'media-4',
-    name: '역삼 센터필드 미디어월',
-    address: '서울 강남구 테헤란로 231',
-    sido: '서울특별시',
-    sigungu: '강남구',
-    resolution: '1920 x 1080px',
-    size: '24 X 14m',
-    types: ['평면형'],
-    lat: 37.5037,
-    lng: 127.0413,
-    thumbnail: media4,
-  },
-  {
-    id: 'media-5',
-    name: '잠실 롯데월드타워 미디어파사드',
-    address: '서울 송파구 올림픽로 300',
-    sido: '서울특별시',
-    sigungu: '송파구',
-    resolution: '2160 x 3840px',
-    size: '30 X 120m',
-    types: ['평면형', '세로형'],
-    lat: 37.5126,
-    lng: 127.1025,
-    thumbnail: media5,
-  },
-  {
-    id: 'media-6',
-    name: '서면 중앙대로 전광판',
-    address: '부산 부산진구 중앙대로 708',
-    sido: '부산광역시',
-    sigungu: '부산진구',
-    resolution: '1664 x 1248px',
-    size: '16 X 12m',
-    types: ['평면형'],
-    lat: 35.1587,
-    lng: 129.0597,
-    thumbnail: media6,
-  },
-]
-
-/** 송출 매체 리스트 조회 — mock: 지연 후 정적 목록 반환 */
-export async function fetchCampaignMedia(): Promise<CampaignMedia[]> {
-  await delay(500)
-  return MOCK_MEDIA
+/** mm → m 표기 (정수면 소수점 제거: 12000 → '12') */
+function mmToMeter(mm: number): string {
+  return Number((mm / 1000).toFixed(1)).toString()
 }
 
-/** 광고 영상 업로드 — mock: 파일명에 'fail' 포함 시 실패(에러 화면 재현용) */
-export async function uploadCampaignVideo(
-  file: File,
-): Promise<{ videoId: string }> {
-  await delay(2500)
-  if (file.name.toLowerCase().includes('fail')) {
-    throw new CampaignApiError(
-      'CAMPAIGN4001',
-      '영상 업로드에 실패했습니다. 다시 시도하세요.',
-    )
+/** 백엔드 매체 → 화면 모델 매핑 (표기 문자열·한글 형태 라벨 생성) */
+function toCampaignMedia(dto: MediaUnitDto): CampaignMedia {
+  return {
+    id: String(dto.mediaUnitId),
+    name: dto.mediaName,
+    address: dto.locationAddress,
+    sido: dto.sido,
+    sigungu: dto.sigungu,
+    resolution: `${dto.resolutionWidthPx} x ${dto.resolutionHeightPx}px`,
+    size: `${mmToMeter(dto.widthMm)} X ${mmToMeter(dto.heightMm)}m`,
+    types: dto.shapeTypes.map((type) => SHAPE_TYPE_LABEL[type] ?? type),
+    lat: dto.latitude,
+    lng: dto.longitude,
+    thumbnail: dto.photoUrl,
+    available: dto.available,
+    unavailableReason: dto.unavailableReason,
   }
-  return { videoId: `video-${Date.now()}` }
 }
 
-export interface CreateCampaignInput extends CampaignInfoValues {
-  mediaId: string
-  videoId: string
+/** 송출 매체 리스트 조회 — 검색·지역 필터는 현재 클라이언트에서 처리하므로 전체 목록을 받는다 */
+export async function fetchCampaignMedia(): Promise<CampaignMedia[]> {
+  const result = await unwrap(
+    api.get<ApiResponse<MediaUnitsResult>>(API_ENDPOINTS.mediaUnits),
+  )
+  return result.mediaUnits.map(toCampaignMedia)
 }
 
-/** 캠페인 등록 — mock: 항상 성공 */
+export const mediaUnitKeys = {
+  all: ['media-units'] as const,
+}
+
+/** 매체 목록 react-query 훅 — 대시보드(useCampaigns)와 동일 패턴 (캐싱·loading/error) */
+export function useMediaUnits() {
+  return useQuery({
+    queryKey: mediaUnitKeys.all,
+    queryFn: fetchCampaignMedia,
+  })
+}
+
+// ── 영상 업로드 ────────────────────────────────────────────
+
+/** POST /campaign-creatives/upload-url 응답 — presigned 업로드 계약 */
+interface UploadUrlResult {
+  uploadUrl: string
+  creativeUrl: string
+  method: string
+  requiredHeaders: Record<string, string>
+  creativeToken: string
+  expiresAt: string
+}
+
+/** 업로드 결과 — creativeToken은 캠페인 등록 요청에 사용 */
+export interface CreativeUpload {
+  creativeToken: string
+  creativeUrl: string
+}
+
+/**
+ * 광고 영상 업로드 — presigned 2단계.
+ * 1) 백엔드에서 업로드 URL·토큰 발급 → 2) 발급받은 URL로 스토리지에 파일 직접 업로드.
+ * 2단계는 인증 헤더/쿠키가 붙지 않도록 api 인스턴스가 아닌 순수 axios로 호출한다.
+ */
+export async function uploadCampaignVideo(file: File): Promise<CreativeUpload> {
+  const issued = await unwrap(
+    api.post<ApiResponse<UploadUrlResult>>(
+      API_ENDPOINTS.campaignCreativeUploadUrl,
+      {
+        creativeType: 'VIDEO',
+        originalFilename: file.name,
+        contentType: file.type,
+      },
+    ),
+  )
+
+  try {
+    await axios.request({
+      url: issued.uploadUrl,
+      method: issued.method,
+      headers: issued.requiredHeaders,
+      data: file,
+    })
+  } catch (err) {
+    throw toCampaignApiError(err)
+  }
+
+  return { creativeToken: issued.creativeToken, creativeUrl: issued.creativeUrl }
+}
+
+// ── 캠페인 등록 ────────────────────────────────────────────
+
+export interface CreateCampaignInput {
+  info: CampaignInfoValues
+  mediaUnitId: number
+  creativeToken: string
+}
+
+interface CreateCampaignResult {
+  campaignId: number
+  teamId: number
+  campaignName: string
+  status: string
+  creativeType: 'IMAGE' | 'VIDEO'
+  creativeUrl: string
+  mediaUnitId: number
+}
+
+/** Date → 'YYYY-MM-DD' (로컬 기준 — toISOString의 UTC 변환으로 날짜가 하루 밀리는 것 방지) */
+function toApiDate(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/** 캠페인 등록 — 최종 제출. 기본 정보 폼 값을 백엔드 필드로 매핑해 전송 */
 export async function createCampaign(
-  _input: CreateCampaignInput,
-): Promise<{ id: number }> {
-  await delay(1200)
-  return { id: 1 }
+  teamId: number,
+  input: CreateCampaignInput,
+): Promise<{ campaignId: number }> {
+  const { info } = input
+  if (!info.period.start || !info.period.end) {
+    throw new CampaignApiError('INVALID_PERIOD', '송출기간을 선택해 주세요.')
+  }
+
+  const result = await unwrap(
+    api.post<ApiResponse<CreateCampaignResult>>(
+      API_ENDPOINTS.teamCampaigns(teamId),
+      {
+        creativeToken: input.creativeToken,
+        campaignName: info.name,
+        brandName: info.brand,
+        executionStartDate: toApiDate(info.period.start),
+        executionEndDate: toApiDate(info.period.end),
+        dailyTargetPlayCount: Number(info.dailyPlayCount),
+        description: info.memo,
+        mediaUnitId: input.mediaUnitId,
+      },
+    ),
+  )
+  return { campaignId: result.campaignId }
 }
