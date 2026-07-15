@@ -16,7 +16,11 @@ export interface TooltipProps {
  * 흰 텍스트(label-1 medium). 꼭지는 우상단 고정, 위를 향한다.
  * 내용 폭은 최대 256px까지 자동(줄바꿈).
  */
-export default function Tooltip({ content, children, className }: TooltipProps) {
+export default function Tooltip({
+  content,
+  children,
+  className,
+}: TooltipProps) {
   const [open, setOpen] = useState(false)
   const tooltipId = useId()
 
@@ -39,20 +43,21 @@ export default function Tooltip({ content, children, className }: TooltipProps) 
           id={tooltipId}
           className={[
             'pointer-events-none absolute right-0 top-[calc(100%+8px)] z-50',
-            'w-max min-w-[64px] max-w-[280px] rounded-x2 px-x3 py-x2 backdrop-blur-[32px]',
+            'w-max min-w-[64px] max-w-[280px] rounded-x2 px-x3 py-x2',
             className,
           ]
             .filter(Boolean)
             .join(' ')}
         >
           {/* 꼭지 — 우상단 고정, 위 지향 */}
-          <span className="absolute -top-[5px] right-[10px] size-[10px] overflow-hidden rounded-tl-[2px]">
-            <span className="absolute inset-0 rotate-45 bg-[#171719] opacity-[0.88]" />
-            <span className="absolute inset-0 rotate-45 bg-primary-brand-solid opacity-[0.05]" />
+          <span className="absolute -top-[5px] right-0 h-[5px] w-[20px] overflow-hidden">
+            <span className="absolute left-[5px] top-[2px] size-[10px] rotate-45 rounded-tl-[2px]">
+              <span className="absolute inset-0 bg-[var(--cool-neutral-900)]" />
+            </span>
           </span>
-          {/* 배경 2겹 (블러는 바깥 레이어에) */}
-          <span className="absolute inset-0 rounded-x2 bg-[#171719] opacity-[0.88]" />
-          <span className="absolute inset-0 rounded-x2 bg-primary-brand-solid opacity-[0.05]" />
+
+          {/* 배경 */}
+          <span className="absolute inset-0 rounded-x2 bg-[var(--cool-neutral-900)]" />
           <span className="relative block break-words text-label-1-normal-medium text-text-primary-inverse">
             {content}
           </span>

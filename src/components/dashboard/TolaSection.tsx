@@ -3,6 +3,7 @@ import tolaWave from '@/assets/dashboard/tola-wave.svg'
 import tolaDim from '@/assets/dashboard/tola-dim.svg'
 import tolaBody from '@/assets/dashboard/tola-body.svg'
 import { Badge, Icon, Tooltip } from '@/components/ui'
+import { formatCutoffLabel } from '@/lib/dashboardTime'
 import DashboardPanel from './DashboardPanel'
 
 export interface TolaMetric {
@@ -20,32 +21,41 @@ export interface TolaSectionProps {
 }
 
 /** 유동인구가 시청으로 전환되는 TOLA 퍼널 지표를 표현합니다. */
-export default function TolaSection({ metrics, cutoffLabel }: TolaSectionProps) {
+export default function TolaSection({
+  metrics,
+  cutoffLabel,
+}: TolaSectionProps) {
   return (
     <DashboardPanel
       aria-label="TOLA 전환 지표"
       className="relative flex h-[244px] flex-col gap-x5"
     >
+      {/* 4개 세로 구분선 — 각 지표 칸(그리드 4열)의 왼쪽 경계에 맞춤, 높이 160px */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-x5 left-1/4 right-1/4"
+        className="pointer-events-none absolute inset-x-x5 top-x5 h-[160px]"
       >
         <i className="absolute inset-y-0 left-0 border-l border-line-tertiary" />
+        <i className="absolute inset-y-0 left-1/4 border-l border-line-tertiary" />
         <i className="absolute inset-y-0 left-1/2 border-l border-line-tertiary" />
-        <i className="absolute inset-y-0 right-0 border-l border-line-tertiary" />
+        <i className="absolute inset-y-0 left-3/4 border-l border-line-tertiary" />
       </div>
       <div className="relative z-10 grid h-[84px] grid-cols-4">
         {metrics.map((metric) => (
           <article
             key={metric.key}
-            className="flex min-w-0 flex-col justify-between px-x2"
+            className="flex min-w-0 flex-col justify-between pl-x2 pr-x4 "
           >
             <div>
               <div className="flex items-center justify-between gap-x3">
                 <span className="truncate text-label-1-normal-medium text-text-secondary">
                   {metric.label}
                 </span>
-                <Tooltip content={`${cutoffLabel ?? '00:00'} 기준`}>
+                <Tooltip
+                  content={
+                    cutoffLabel ? `${cutoffLabel} 기준` : formatCutoffLabel()
+                  }
+                >
                   <Icon
                     icon={Info}
                     size={16}

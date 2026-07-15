@@ -11,18 +11,22 @@ export interface WatchTimeBucket {
 export interface AverageWatchTimeCardProps {
   averageSeconds: number
   buckets: WatchTimeBucket[]
+  /** 집계 기준 시각 라벨(예: "14:37 기준") — 헤더 (i) 툴팁 */
+  cutoffLabel?: string
 }
 
 /** 평균 시청시간과 구간별 비중을 반원 게이지로 표시합니다. */
 export default function AverageWatchTimeCard({
   averageSeconds,
   buckets,
+  cutoffLabel,
 }: AverageWatchTimeCardProps) {
   return (
     <DashboardPanel className="flex h-[328px] flex-col gap-x10 py-x5">
       <DashboardSectionHeader
         title="평균 시청시간"
         description="시청이 감지된 이용자의 체류 시간을 구간별로 집계한 값입니다."
+        cutoffLabel={cutoffLabel}
       />
       <div className="flex min-h-0 flex-1 flex-col items-center gap-x5">
         <div

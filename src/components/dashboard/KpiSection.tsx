@@ -7,7 +7,8 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import kpiObject from '@/assets/dashboard/kpi-object.png'
-import { Icon } from '@/components/ui'
+import { Icon, Tooltip } from '@/components/ui'
+import { formatCutoffLabel } from '@/lib/dashboardTime'
 
 export interface KpiMetric {
   key: string
@@ -21,6 +22,8 @@ export interface KpiSectionProps {
   metrics: KpiMetric[]
   toolbar?: ReactNode
   estimatedDowntime?: boolean
+  /** 집계 기준 시각 라벨(예: "14:37 기준") — 지표 아이콘 호버 툴팁 */
+  cutoffLabel?: string
 }
 
 export const DEFAULT_KPI_ICONS = {
@@ -35,10 +38,11 @@ export default function KpiSection({
   metrics,
   toolbar,
   estimatedDowntime = false,
+  cutoffLabel,
 }: KpiSectionProps) {
   return (
     <section aria-label="캠페인 핵심 지표" className="relative min-w-0 p-x5">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[20px] bg-[linear-gradient(107deg,var(--blue-50),var(--blue-100))]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-x5 bg-[linear-gradient(107deg,var(--blue-50),var(--blue-100))]">
         <div className="absolute inset-y-[-5%] right-0 aspect-[960/224] opacity-50">
           <img
             src={kpiObject}
@@ -65,7 +69,9 @@ export default function KpiSection({
                   {metric.guide && <span>{metric.guide}</span>}
                 </strong>
               </div>
-              <Icon icon={metric.icon} size="medium" color="caption" />
+              <Tooltip content={cutoffLabel ?? formatCutoffLabel()}>
+                <Icon icon={metric.icon} size="medium" color="caption" />
+              </Tooltip>
             </article>
           ))}
         </div>

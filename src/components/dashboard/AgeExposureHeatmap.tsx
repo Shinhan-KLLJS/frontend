@@ -18,6 +18,8 @@ export interface AgeExposureHeatmapProps {
   cells: ExposureCell[]
   filter: GenderFilter
   onFilterChange: (value: GenderFilter) => void
+  /** 집계 기준 시각 라벨(예: "14시 기준") — 헤더 (i) 툴팁 */
+  cutoffLabel?: string
 }
 
 const LEVEL_STYLE: Record<ExposureLevel, string> = {
@@ -35,19 +37,18 @@ export default function AgeExposureHeatmap({
   cells,
   filter,
   onFilterChange,
+  cutoffLabel,
 }: AgeExposureHeatmapProps) {
   const cellMap = new Map(
     cells.map((cell) => [`${cell.ageGroup}-${cell.hour}`, cell]),
   )
 
   return (
-    <DashboardPanel
-      radius="medium"
-      className="flex h-[472px] flex-col gap-x4 py-x5"
-    >
+    <DashboardPanel className="flex h-[472px] flex-col gap-x4 py-x5">
       <DashboardSectionHeader
         title="시간・연령별 노출도"
         description="시간대와 연령대별 상대적인 캠페인 노출 강도를 보여줍니다."
+        cutoffLabel={cutoffLabel}
       />
       <div className="flex h-[32px] items-center justify-between gap-x4">
         <GenderFilterChips

@@ -54,6 +54,12 @@ export interface HomePageProps {
   demographics?: DemographicRatio[]
   /** 실 시간·연령별 노출도(미제공 시 fixture) */
   exposure?: { hours: string[]; ageGroups: string[]; cells: ExposureCell[] }
+  /** 각 섹션 (i) 툴팁의 집계 기준 시각 라벨(예: "14:37 기준"/"14시 기준") */
+  kpiCutoffLabel?: string
+  realtimeCutoffLabel?: string
+  averageCutoffLabel?: string
+  demographicCutoffLabel?: string
+  exposureCutoffLabel?: string
 }
 
 /**
@@ -79,6 +85,11 @@ export default function HomePage({
   watchBuckets,
   demographics,
   exposure,
+  kpiCutoffLabel,
+  realtimeCutoffLabel,
+  averageCutoffLabel,
+  demographicCutoffLabel,
+  exposureCutoffLabel,
 }: HomePageProps) {
   const firstCampaign = campaigns[0]
   const [innerId, setInnerId] = useState(
@@ -107,6 +118,7 @@ export default function HomePage({
         <KpiSection
           metrics={kpiMetrics ?? campaign.kpi}
           estimatedDowntime={estimatedDowntime}
+          cutoffLabel={kpiCutoffLabel}
           toolbar={
             <DashboardToolbar
               campaigns={campaigns}
@@ -123,11 +135,16 @@ export default function HomePage({
           metrics={tolaMetrics ?? campaign.tola}
           cutoffLabel={tolaCutoffLabel}
         />
-        <div className="grid min-w-0 grid-cols-[3fr_2fr] gap-x5">
-          <RealtimeViewerChart data={realtimeData ?? campaign.viewers} />
+        {/* 실시간 시청수(좌)는 가변, 평균 시청시간(우)은 376px 고정 */}
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_376px] gap-x5">
+          <RealtimeViewerChart
+            data={realtimeData ?? campaign.viewers}
+            cutoffLabel={realtimeCutoffLabel}
+          />
           <AverageWatchTimeCard
             averageSeconds={averageSeconds ?? campaign.averageSeconds}
             buckets={watchBuckets ?? campaign.watchBuckets}
+            cutoffLabel={averageCutoffLabel}
           />
         </div>
         {/* 동선 카드는 고정하고 성별·연령 카드만 남는 가로 폭을 채웁니다. */}
@@ -137,6 +154,7 @@ export default function HomePage({
             data={demographics ?? campaign.demographics}
             filter={demographicFilter}
             onFilterChange={setDemographicFilter}
+            cutoffLabel={demographicCutoffLabel}
           />
         </div>
         <AgeExposureHeatmap
@@ -145,6 +163,7 @@ export default function HomePage({
           cells={exposure?.cells ?? campaign.exposureCells}
           filter={heatmapFilter}
           onFilterChange={setHeatmapFilter}
+          cutoffLabel={exposureCutoffLabel}
         />
       </div>
     </section>

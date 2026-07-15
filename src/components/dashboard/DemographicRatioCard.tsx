@@ -13,6 +13,8 @@ export interface DemographicRatioCardProps {
   data: DemographicRatio[]
   filter: GenderFilter
   onFilterChange: (value: GenderFilter) => void
+  /** 집계 기준 시각 라벨(예: "14시 기준") — 헤더 (i) 툴팁 */
+  cutoffLabel?: string
 }
 
 const formatRatio = (value: number) => `${value.toFixed(1)}%`
@@ -22,6 +24,7 @@ export default function DemographicRatioCard({
   data,
   filter,
   onFilterChange,
+  cutoffLabel,
 }: DemographicRatioCardProps) {
   const values = data.map(({ total, male, female }) =>
     filter === 'all' ? total : filter === 'male' ? male : female,
@@ -33,6 +36,7 @@ export default function DemographicRatioCard({
       <DashboardSectionHeader
         title="성별・연령 시청 비율"
         description="선택한 성별 기준으로 연령대별 시청 비중을 비교합니다."
+        cutoffLabel={cutoffLabel}
       />
       <div className="flex h-[32px] items-center justify-between gap-x4">
         <GenderFilterChips
@@ -41,12 +45,9 @@ export default function DemographicRatioCard({
           label="시청 비율 성별 필터"
         />
         <div className="flex items-center gap-x2 text-label-1-normal-medium text-text-caption">
-          {filter !== 'female' && (
-            <Legend color="bg-chart-categorical-1" label="남성" />
-          )}
-          {filter !== 'male' && (
-            <Legend color="bg-chart-sequential-1" label="여성" />
-          )}
+          {/* 칩 선택과 무관하게 남성·여성 범례를 항상 함께 노출 */}
+          <Legend color="bg-chart-categorical-1" label="남성" />
+          <Legend color="bg-chart-sequential-1" label="여성" />
         </div>
       </div>
       <div className="flex flex-col gap-x2">

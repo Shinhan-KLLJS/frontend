@@ -17,11 +17,14 @@ export interface ViewerPoint {
 
 export interface RealtimeViewerChartProps {
   data: ViewerPoint[]
+  /** 집계 기준 시각 라벨(예: "14:37 기준") — 헤더 (i) 툴팁 */
+  cutoffLabel?: string
 }
 
 /** 시간대별 실시간 시청 수를 반응형 영역 차트로 표현합니다. */
 export default function RealtimeViewerChart({
   data,
+  cutoffLabel,
 }: RealtimeViewerChartProps) {
   const gradientId = useId().replace(/:/g, '')
   const latest = data.at(-1)
@@ -38,6 +41,7 @@ export default function RealtimeViewerChart({
       <DashboardSectionHeader
         title="실시간 시청 수"
         description="선택한 캠페인의 시간대별 시청 추이를 보여줍니다."
+        cutoffLabel={cutoffLabel}
       />
       <div className="min-h-0 min-w-0 flex-1" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">

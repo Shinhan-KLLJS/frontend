@@ -31,6 +31,7 @@ import type {
   CampaignFunnel,
   CampaignRealtimeHourly,
 } from '@/lib/dashboard'
+import { formatCutoffLabel } from '@/lib/dashboardTime'
 import {
   DASHBOARD_CAMPAIGNS,
   type DashboardCampaignFixture,
@@ -133,6 +134,7 @@ function formatKstTime(iso: string): string {
     return ''
   }
 }
+
 
 // 평균 시청시간 구간 색(fixture와 동일 시퀀셜 팔레트)
 const WATCH_COLORS = [
@@ -261,6 +263,24 @@ export default function DashboardHome() {
   const { data: exposureData } = useExposure(selected?.campaignId, dateRange)
   const exposure = exposureData ? toExposure(exposureData) : undefined
 
+  // 섹션별 (i) 툴팁 집계 기준 시각(모두 "HH:mm 기준"). 데이터 없으면 컴포넌트가 현재 시각으로 대체.
+  // KPI(delivery)는 cutoff 필드가 없어 serverTime 사용. 성별연령·노출도는 정시 집계라 "HH:00 기준"으로 표기됨.
+  const kpiCutoffLabel = delivery
+    ? formatCutoffLabel(delivery.serverTime)
+    : undefined
+  const realtimeCutoffLabel = realtime
+    ? formatCutoffLabel(realtime.aggregationCutoffTime)
+    : undefined
+  const averageCutoffLabel = average
+    ? formatCutoffLabel(average.aggregationCutoffTime)
+    : undefined
+  const demographicCutoffLabel = demographic
+    ? formatCutoffLabel(demographic.aggregationCutoffTime)
+    : undefined
+  const exposureCutoffLabel = exposureData
+    ? formatCutoffLabel(exposureData.aggregationCutoffTime)
+    : undefined
+
   if (isPending) {
     return (
       <div className="flex min-h-[240px] items-center justify-center p-x5">
@@ -315,6 +335,11 @@ export default function DashboardHome() {
       watchBuckets={watchTime?.buckets}
       demographics={demographics}
       exposure={exposure}
+      kpiCutoffLabel={kpiCutoffLabel}
+      realtimeCutoffLabel={realtimeCutoffLabel}
+      averageCutoffLabel={averageCutoffLabel}
+      demographicCutoffLabel={demographicCutoffLabel}
+      exposureCutoffLabel={exposureCutoffLabel}
     />
   )
 }
