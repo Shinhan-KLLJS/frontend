@@ -12,8 +12,8 @@ export default function DashboardSectionHeader({
   description,
 }: DashboardSectionHeaderProps) {
   return (
-    <header className="flex items-center gap-x2">
-      <h2 className="text-headline-1-bold text-text-primary">{title}</h2>
+    <header className="flex w-full items-center justify-between gap-x4">
+      <h2 className="text-heading-2-bold text-text-primary">{title}</h2>
       <span title={description}>
         <Icon icon={Info} size={16} color="secondary" label="지표 설명" />
       </span>

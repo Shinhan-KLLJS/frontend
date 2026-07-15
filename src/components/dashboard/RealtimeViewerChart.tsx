@@ -2,7 +2,7 @@ import { useId } from 'react'
 import {
   Area,
   AreaChart,
-  CartesianGrid,
+  ReferenceDot,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -36,7 +36,7 @@ export default function RealtimeViewerChart({
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
-            margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
+            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
           >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -52,18 +52,20 @@ export default function RealtimeViewerChart({
                 />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="var(--color-chart-grid)" />
             <XAxis
               dataKey="time"
-              axisLine={false}
+              axisLine={{ stroke: 'var(--color-line-tertiary)' }}
               tickLine={false}
-              tick={{ fill: 'var(--color-chart-axis-label)', fontSize: 12 }}
+              tick={{ fill: 'var(--color-chart-axis-label)', fontSize: 14 }}
+              height={28}
               interval="preserveStartEnd"
             />
             <YAxis
-              axisLine={false}
+              axisLine={{ stroke: 'var(--color-line-tertiary)' }}
               tickLine={false}
-              tick={{ fill: 'var(--color-chart-axis-label)', fontSize: 12 }}
+              tick={{ fill: 'var(--color-chart-axis-label)', fontSize: 14 }}
+              ticks={[100, 200, 300, 400, 500]}
+              domain={[100, 500]}
               width={48}
             />
             <Area
@@ -72,10 +74,20 @@ export default function RealtimeViewerChart({
               stroke="var(--color-chart-categorical-1)"
               strokeWidth={2}
               fill={`url(#${gradientId})`}
+              baseValue={100}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 2 }}
               isAnimationActive={false}
             />
+            {latest && (
+              <ReferenceDot
+                x={latest.time}
+                y={latest.viewers}
+                r={3}
+                fill="var(--color-chart-categorical-1)"
+                stroke="none"
+              />
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>

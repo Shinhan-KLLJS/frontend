@@ -6,7 +6,7 @@ import {
   PlayOff,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
-import kpiBackground from '@/assets/dashboard/kpi-background.svg'
+import kpiObject from '@/assets/dashboard/kpi-object.png'
 import { Icon } from '@/components/ui'
 
 export interface KpiMetric {
@@ -39,12 +39,14 @@ export default function KpiSection({
   return (
     <section aria-label="캠페인 핵심 지표" className="relative min-w-0 p-x5">
       <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[20px] bg-[linear-gradient(107deg,var(--blue-50),var(--blue-100))]">
-        <img
-          src={kpiBackground}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-full w-full object-cover opacity-80"
-        />
+        <div className="absolute inset-y-[-5%] right-0 aspect-[960/224] opacity-50">
+          <img
+            src={kpiObject}
+            alt=""
+            aria-hidden="true"
+            className="absolute left-[11%] top-[-8%] h-[189%] w-[132%] max-w-none"
+          />
+        </div>
       </div>
       <div className="relative flex min-w-0 flex-col gap-x5">
         {toolbar}
@@ -60,9 +62,7 @@ export default function KpiSection({
                 </span>
                 <strong className="truncate text-title-3-medium text-text-primary">
                   {metric.value}
-                  {metric.guide && (
-                    <span className="font-normal">{metric.guide}</span>
-                  )}
+                  {metric.guide && <span>{metric.guide}</span>}
                 </strong>
               </div>
               <Icon icon={metric.icon} size="medium" color="caption" />

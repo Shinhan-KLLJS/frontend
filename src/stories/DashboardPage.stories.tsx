@@ -12,14 +12,7 @@ const zeroCampaign: DashboardCampaignFixture = {
   name: '집계 시작 전 신규 캠페인 · 모든 지표 0 상태',
   kpi: baseCampaign.kpi.map((metric) => ({
     ...metric,
-    value:
-      metric.key === 'progress'
-        ? '0%'
-        : metric.key === 'play-time'
-          ? '0분'
-          : metric.key === 'downtime'
-            ? '0건 · 0초'
-            : '0회',
+    value: metric.key === 'downtime' ? '0건' : '0',
   })),
   tola: baseCampaign.tola.map((metric) => ({
     ...metric,
@@ -34,6 +27,7 @@ const zeroCampaign: DashboardCampaignFixture = {
   })),
   demographics: baseCampaign.demographics.map((item) => ({
     ...item,
+    total: 0,
     male: 0,
     female: 0,
   })),

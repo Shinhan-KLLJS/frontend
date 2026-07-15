@@ -22,7 +22,7 @@ export default function GenderFilterChips({
   label,
 }: GenderFilterChipsProps) {
   return (
-    <div className="flex items-center gap-x2" role="group" aria-label={label}>
+    <div className="flex items-center gap-x1" role="group" aria-label={label}>
       {GENDER_FILTERS.map((filter) => (
         <Chip
           key={filter}

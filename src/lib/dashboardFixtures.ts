@@ -1,6 +1,6 @@
 import {
   ChartNoAxesColumnIncreasing,
-  Clock3,
+  ClockCheck,
   Play,
   PlayOff,
 } from 'lucide-react'
@@ -32,94 +32,111 @@ const WATCH_COLORS = [
 ]
 
 const createKpi = (
-  count: number,
-  progress: number,
-  playTime: string,
+  count: string,
+  progress: string,
+  playMinutes: string,
 ): KpiMetric[] => [
   {
     key: 'play-count',
-    label: '현재 송출 횟수',
-    value: `${count}회`,
+    label: '현재 송출 회수',
+    value: count,
+    guide: '/500',
     icon: Play,
   },
   {
     key: 'progress',
     label: '오늘 진행률',
-    value: `${progress}%`,
+    value: progress,
+    guide: '%',
     icon: ChartNoAxesColumnIncreasing,
   },
-  { key: 'play-time', label: '총 플레이 타임', value: playTime, icon: Clock3 },
-  { key: 'downtime', label: '다운타임', value: '0건 · 0초', icon: PlayOff },
+  {
+    key: 'play-time',
+    label: '총 플레이 타임',
+    value: playMinutes,
+    guide: '분',
+    icon: ClockCheck,
+  },
+  {
+    key: 'downtime',
+    label: '다운 타임',
+    value: '0건',
+    guide: '·0초',
+    icon: PlayOff,
+  },
 ]
 
 const createBuckets = (values: number[]): WatchTimeBucket[] =>
-  ['1~2초', '2~3초', '3~4초', '4초 이상'].map((label, index) => ({
+  ['1-2초', '2-3초', '3-4초', '4초 이상'].map((label, index) => ({
     label,
     value: values[index],
     color: WATCH_COLORS[index],
   }))
 
 const createViewers = (values: number[]): ViewerPoint[] =>
-  values.map((viewers, index) => ({
-    time: `${String(index + 9).padStart(2, '0')}:00`,
-    viewers,
-  }))
+  values.map((viewers, index) => {
+    const minutes = 7 * 60 + index * 15
+    return {
+      time: `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`,
+      viewers,
+    }
+  })
 
 export const DASHBOARD_CAMPAIGNS: DashboardCampaignFixture[] = [
   {
     id: 'campaign-summer-brand',
-    name: '2026 여름 브랜드 캠페인 · 강남 미디어월',
-    kpi: createKpi(18, 75, '24분'),
+    name: '나이키 썸머 프로모션 명동 전광판 옥외광고',
+    kpi: createKpi('285', '99.9', '52'),
     tola: [
       {
         key: 'traffic',
         label: '전체 유동인구',
-        value: '12,459명',
-        comparison: 3.2,
+        value: '58,123명',
+        comparison: 15,
         description: '매체 주변을 통과한 전체 인원입니다.',
       },
       {
         key: 'attention',
         label: '주목인구',
-        value: '7,284명',
-        comparison: 5.1,
+        value: '123명',
+        comparison: 0.1,
         description: '광고 화면을 바라본 것으로 감지된 인원입니다.',
       },
       {
         key: 'conversion',
         label: '주목 전환률',
-        value: '58.5%',
-        comparison: 1.8,
+        value: '3.5%',
+        comparison: 0,
         description: '전체 유동인구 중 주목인구의 비율입니다.',
       },
       {
         key: 'exposure',
         label: '노출인구',
-        value: '4,892명',
-        comparison: -2.4,
+        value: '8,123명',
+        comparison: -0.5,
         description: '유효 시청 조건을 충족한 추정 인원입니다.',
       },
     ],
     viewers: createViewers([
-      92, 118, 109, 153, 176, 158, 214, 249, 228, 276, 305, 287, 324,
+      160, 158, 155, 150, 145, 180, 210, 480, 225, 350, 235, 220, 280,
     ]),
-    averageSeconds: 3.2,
-    watchBuckets: createBuckets([18, 34, 29, 19]),
+    averageSeconds: 1.6,
+    watchBuckets: createBuckets([20, 20, 45, 15]),
     demographics: [
-      { ageGroup: '10대', male: 3.1, female: 4.2 },
-      { ageGroup: '20대', male: 11.8, female: 13.4 },
-      { ageGroup: '30대', male: 12.6, female: 11.2 },
-      { ageGroup: '40대', male: 10.4, female: 9.1 },
-      { ageGroup: '50대', male: 7.8, female: 6.5 },
-      { ageGroup: '60대', male: 4.5, female: 3.2 },
-      { ageGroup: '70대+', male: 1.2, female: 1.0 },
+      { ageGroup: '0-9세', total: 1.2, male: 0, female: 0 },
+      { ageGroup: '10-19세', total: 2.1, male: 0, female: 0 },
+      { ageGroup: '20-29세', total: 30.2, male: 12.2, female: 30.2 },
+      { ageGroup: '30-39세', total: 22.4, male: 8.1, female: 23.5 },
+      { ageGroup: '40-49세', total: 8.6, male: 0.86, female: 1.2 },
+      { ageGroup: '50-59세', total: 12.4, male: 1, female: 1.9 },
+      { ageGroup: '60세 이상', total: 5.5, male: 0, female: 0 },
     ],
-    exposureCells: createExposureCells(1),
+    exposureCells: createExposureCells(0),
   },
   {
     id: 'campaign-long-name',
     name: '신제품 론칭 프로모션 캠페인 · 수도권 주요 거점 통합 운영 장기 캠페인',
-    kpi: createKpi(12, 50, '16분'),
+    kpi: createKpi('210', '76.5', '44'),
     tola: [
       {
         key: 'traffic',
@@ -156,13 +173,13 @@ export const DASHBOARD_CAMPAIGNS: DashboardCampaignFixture[] = [
     averageSeconds: 2.8,
     watchBuckets: createBuckets([25, 38, 22, 15]),
     demographics: [
-      { ageGroup: '10대', male: 5.4, female: 6.2 },
-      { ageGroup: '20대', male: 14.8, female: 15.5 },
-      { ageGroup: '30대', male: 10.2, female: 12.4 },
-      { ageGroup: '40대', male: 8.7, female: 7.8 },
-      { ageGroup: '50대', male: 6.1, female: 5.3 },
-      { ageGroup: '60대', male: 3.8, female: 2.9 },
-      { ageGroup: '70대+', male: 0.5, female: 0.4 },
+      { ageGroup: '0-9세', total: 2.4, male: 1.1, female: 1.3 },
+      { ageGroup: '10-19세', total: 5.2, male: 2.2, female: 3 },
+      { ageGroup: '20-29세', total: 28.3, male: 13.1, female: 15.2 },
+      { ageGroup: '30-39세', total: 25.6, male: 11.8, female: 13.8 },
+      { ageGroup: '40-49세', total: 16.5, male: 8.7, female: 7.8 },
+      { ageGroup: '50-59세', total: 11.4, male: 6.1, female: 5.3 },
+      { ageGroup: '60세 이상', total: 10.6, male: 5.7, female: 4.9 },
     ],
     exposureCells: createExposureCells(4),
   },

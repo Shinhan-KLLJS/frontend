@@ -28,7 +28,7 @@ const LEVEL_STYLE: Record<ExposureLevel, string> = {
   4: 'bg-chart-sequential-4',
 }
 
-/** 시간과 연령대 교차 구간의 노출 강도를 히트맵으로 표현합니다. */
+/** 피그마의 36px 셀 규격으로 시간·연령대별 노출 강도를 표시합니다. */
 export default function AgeExposureHeatmap({
   hours,
   ageGroups,
@@ -39,68 +39,87 @@ export default function AgeExposureHeatmap({
   const cellMap = new Map(
     cells.map((cell) => [`${cell.ageGroup}-${cell.hour}`, cell]),
   )
-  const columns = `64px repeat(${hours.length}, minmax(28px, 1fr))`
 
   return (
-    <DashboardPanel className="flex h-[472px] flex-col gap-x5 py-x5">
-      <div className="flex items-center justify-between gap-x4">
-        <DashboardSectionHeader
-          title="시간·연령별 노출도"
-          description="시간대와 연령대별 상대적인 캠페인 노출 강도를 보여줍니다."
-        />
+    <DashboardPanel
+      radius="medium"
+      className="flex h-[472px] flex-col gap-x4 py-x5"
+    >
+      <DashboardSectionHeader
+        title="시간・연령별 노출도"
+        description="시간대와 연령대별 상대적인 캠페인 노출 강도를 보여줍니다."
+      />
+      <div className="flex h-[32px] items-center justify-between gap-x4">
         <GenderFilterChips
           value={filter}
           onChange={onFilterChange}
           label="노출도 성별 필터"
         />
+        <HeatmapScale />
       </div>
-      <div className="min-w-0 flex-1 overflow-x-auto">
+      <div className="min-w-0 overflow-x-auto">
         <div
           role="img"
           aria-label={`${filter} 기준 시간·연령별 노출도 히트맵`}
-          className="grid min-w-[780px] items-center gap-x2 gap-y-x3"
-          style={{ gridTemplateColumns: columns }}
+          className="flex min-w-[920px] flex-col gap-x2"
         >
-          <span />
-          {hours.map((hour) => (
-            <span
-              key={hour}
-              className="text-center text-caption-2-regular text-text-caption"
-            >
-              {hour}
-            </span>
+          <HeatmapTimeAxis hours={hours} />
+          {ageGroups.map((ageGroup) => (
+            <div key={ageGroup} className="flex h-[36px] items-center gap-x7">
+              <span className="w-[66px] shrink-0 text-right text-body-1-normal-regular text-text-primary">
+                {ageGroup}
+              </span>
+              <div className="flex min-w-0 flex-1 items-center justify-between">
+                {hours.map((hour) => {
+                  const level =
+                    cellMap.get(`${ageGroup}-${hour}`)?.[filter] ?? 0
+                  return (
+                    <span
+                      key={`${ageGroup}-${hour}`}
+                      title={`${hour}시 ${ageGroup} 노출 강도 ${level}`}
+                      aria-label={`${hour}시 ${ageGroup} 노출 강도 ${level}`}
+                      className={`size-[36px] shrink-0 rounded-x1 ${LEVEL_STYLE[level]}`}
+                    />
+                  )
+                })}
+              </div>
+            </div>
           ))}
-          {ageGroups.flatMap((ageGroup) => [
-            <span
-              key={`${ageGroup}-label`}
-              className="text-label-2-regular text-text-secondary"
-            >
-              {ageGroup}
-            </span>,
-            ...hours.map((hour) => {
-              const level = cellMap.get(`${ageGroup}-${hour}`)?.[filter] ?? 0
-              return (
-                <span
-                  key={`${ageGroup}-${hour}`}
-                  title={`${hour} ${ageGroup} 노출 강도 ${level}`}
-                  aria-label={`${hour} ${ageGroup} 노출 강도 ${level}`}
-                  className={`h-[28px] rounded-[4px] ${LEVEL_STYLE[level]}`}
-                />
-              )
-            }),
-          ])}
         </div>
       </div>
-      <div className="flex items-center justify-end gap-x2 text-caption-1-regular text-text-tertiary">
-        <span>낮음</span>
-        {([0, 1, 2, 3, 4] as ExposureLevel[]).map((level) => (
-          <i
-            key={level}
-            className={`h-[10px] w-[28px] rounded-[2px] ${LEVEL_STYLE[level]}`}
-          />
-        ))}
-        <span>높음</span>
-      </div>
     </DashboardPanel>
+  )
+}
+
+function HeatmapScale() {
+  return (
+    <div className="flex items-center gap-x1 text-label-1-normal-medium text-text-caption">
+      <span>Less</span>
+      {([1, 2, 3, 4] as ExposureLevel[]).map((level) => (
+        <i
+          key={level}
+          className={`size-[12px] rounded-[2px] ${LEVEL_STYLE[level]}`}
+        />
+      ))}
+      <span>More</span>
+    </div>
+  )
+}
+
+function HeatmapTimeAxis({ hours }: { hours: string[] }) {
+  return (
+    <div className="flex h-[32px] items-center gap-x7">
+      <span className="w-[66px] shrink-0" />
+      <div className="flex min-w-0 flex-1 items-center justify-between">
+        {hours.map((hour) => (
+          <span
+            key={hour}
+            className="w-[36px] text-center text-body-1-normal-regular text-text-primary"
+          >
+            {hour}시
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }

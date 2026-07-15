@@ -45,16 +45,16 @@ export default function DashboardToolbar({
         align="start"
         menuAriaLabel="캠페인 목록"
         triggerAriaLabel="캠페인 선택"
-        className="min-w-0 flex-1"
-        triggerClassName="flex w-full min-w-0 items-center gap-x2 text-left"
+        className="w-[462px] min-w-0"
+        triggerClassName="flex w-[462px] min-w-0 items-center text-left"
         renderTrigger={(open) => (
           <>
-            <span className="truncate text-title-3-bold text-text-primary">
+            <span className="w-[430px] truncate text-title-1-medium text-text-primary">
               {selected?.name ?? '캠페인을 선택해 주세요'}
             </span>
             <Icon
               icon={open ? ChevronUp : ChevronDown}
-              size="large"
+              size={32}
               color="secondary"
             />
           </>
@@ -63,7 +63,7 @@ export default function DashboardToolbar({
       <DateTrigger
         value={dateRange}
         open={dateOpen}
-        className="h-[48px] shrink-0"
+        className="h-[48px] min-w-[164px] shrink-0 justify-center px-x4 py-x3"
         onClick={() => (dateOpen ? setDateOpen(false) : openDatePicker())}
       />
       {dateOpen && (

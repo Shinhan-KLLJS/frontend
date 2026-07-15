@@ -3,38 +3,46 @@ import type {
   ExposureLevel,
 } from '@/components/dashboard/AgeExposureHeatmap'
 
-export const DASHBOARD_HOURS = Array.from({ length: 18 }, (_, index) =>
+export const DASHBOARD_HOURS = Array.from({ length: 19 }, (_, index) =>
   String(index + 6).padStart(2, '0'),
 )
 
 export const DASHBOARD_AGE_GROUPS = [
-  '10대',
-  '20대',
-  '30대',
-  '40대',
-  '50대',
-  '60대',
-  '70대+',
+  '0-9세',
+  '10-19세',
+  '20-29세',
+  '30-39세',
+  '40-49세',
+  '50-59세',
+  '60세 이상',
+]
+
+// 피그마 기본 상태의 셀 강도를 행 단위로 그대로 옮긴 값입니다.
+const BASE_LEVELS: ExposureLevel[][] = [
+  [1, 1, 2, 3, 3, 4, 1, 2, 2, 1, 1, 1, 2, 1, 0, 0, 0, 0, 0],
+  [1, 1, 1, 1, 4, 2, 3, 3, 1, 4, 2, 1, 1, 1, 0, 0, 0, 0, 0],
+  [1, 1, 1, 1, 2, 4, 2, 4, 1, 2, 1, 1, 1, 2, 0, 0, 0, 0, 0],
+  [1, 2, 4, 1, 3, 3, 4, 1, 2, 1, 1, 2, 2, 1, 0, 0, 0, 0, 0],
+  [1, 1, 1, 1, 2, 1, 2, 3, 1, 4, 1, 2, 1, 1, 0, 0, 0, 0, 0],
+  [1, 1, 4, 2, 1, 2, 2, 4, 1, 2, 3, 1, 1, 2, 0, 0, 0, 0, 0],
+  [1, 1, 1, 2, 2, 3, 4, 2, 2, 2, 1, 2, 2, 1, 0, 0, 0, 0, 0],
 ]
 
 const toLevel = (value: number): ExposureLevel =>
   Math.min(4, Math.max(0, value)) as ExposureLevel
 
-/** 캠페인별로 재현 가능한 히트맵용 로컬 fixture를 생성합니다. */
+/** 기본 디자인 패턴을 유지하면서 캠페인별 성별 fixture를 만듭니다. */
 export function createExposureCells(seed: number): ExposureCell[] {
   return DASHBOARD_AGE_GROUPS.flatMap((ageGroup, ageIndex) =>
     DASHBOARD_HOURS.map((hour, hourIndex) => {
-      const peak = hourIndex >= 6 && hourIndex <= 13 ? 2 : 1
-      const ageWeight = ageIndex >= 1 && ageIndex <= 4 ? 1 : 0
-      const variation = (hourIndex + ageIndex + seed) % 3
-      const all = toLevel(peak + ageWeight + variation - 1)
-
+      const base = BASE_LEVELS[ageIndex]?.[hourIndex] ?? 0
+      const all = base === 0 ? 0 : toLevel(base + (seed % 2))
       return {
         ageGroup,
         hour,
         all,
-        male: toLevel(all + ((hourIndex + seed) % 3) - 1),
-        female: toLevel(all + ((ageIndex + seed) % 3) - 1),
+        male: base === 0 ? 0 : toLevel(base + ((hourIndex + seed) % 3) - 1),
+        female: base === 0 ? 0 : toLevel(base + ((ageIndex + seed) % 3) - 1),
       }
     }),
   )
