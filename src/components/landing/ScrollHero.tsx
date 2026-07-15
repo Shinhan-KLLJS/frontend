@@ -46,10 +46,7 @@ function HeroCopy({ className = '' }: { className?: string }) {
  */
 function HeroDashboardImage() {
   return (
-    <div
-      className="relative overflow-hidden rounded-t-[16px]"
-      style={{ aspectRatio: '876 / 487' }}
-    >
+    <div className="relative size-full overflow-hidden rounded-t-[16px]">
       <img
         src={heroContent}
         alt="Loovi 대시보드"
@@ -160,8 +157,13 @@ function DesktopScrollHero() {
             style={{ opacity: bgExitOpacity }}
           />
           <motion.div
-            className="absolute inset-x-[7%] bottom-0 w-[86%]"
-            style={{ opacity: dashboardFinalOpacity, y: dashboardY }}
+            className="absolute bottom-0 left-1/2 h-[86%]"
+            style={{
+              aspectRatio: '876 / 487',
+              x: '-50%',
+              opacity: dashboardFinalOpacity,
+              y: dashboardY,
+            }}
           >
             <HeroDashboardImage />
           </motion.div>
