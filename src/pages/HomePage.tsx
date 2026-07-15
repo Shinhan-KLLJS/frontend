@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AgeExposureHeatmap from '@/components/dashboard/AgeExposureHeatmap'
+import type { ExposureCell } from '@/components/dashboard/AgeExposureHeatmap'
 import AverageWatchTimeCard from '@/components/dashboard/AverageWatchTimeCard'
 import DashboardToolbar from '@/components/dashboard/DashboardToolbar'
 import DemographicRatioCard from '@/components/dashboard/DemographicRatioCard'
@@ -51,6 +52,8 @@ export interface HomePageProps {
   watchBuckets?: WatchTimeBucket[]
   /** 실 성별·연령 시청 비율(미제공 시 fixture) */
   demographics?: DemographicRatio[]
+  /** 실 시간·연령별 노출도(미제공 시 fixture) */
+  exposure?: { hours: string[]; ageGroups: string[]; cells: ExposureCell[] }
 }
 
 /**
@@ -75,6 +78,7 @@ export default function HomePage({
   averageSeconds,
   watchBuckets,
   demographics,
+  exposure,
 }: HomePageProps) {
   const firstCampaign = campaigns[0]
   const [innerId, setInnerId] = useState(
@@ -136,9 +140,9 @@ export default function HomePage({
           />
         </div>
         <AgeExposureHeatmap
-          hours={DASHBOARD_HOURS}
-          ageGroups={DASHBOARD_AGE_GROUPS}
-          cells={campaign.exposureCells}
+          hours={exposure?.hours ?? DASHBOARD_HOURS}
+          ageGroups={exposure?.ageGroups ?? DASHBOARD_AGE_GROUPS}
+          cells={exposure?.cells ?? campaign.exposureCells}
           filter={heatmapFilter}
           onFilterChange={setHeatmapFilter}
         />

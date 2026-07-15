@@ -7,6 +7,10 @@ import type { TolaMetric } from '@/components/dashboard/TolaSection'
 import type { ViewerPoint } from '@/components/dashboard/RealtimeViewerChart'
 import type { WatchTimeBucket } from '@/components/dashboard/AverageWatchTimeCard'
 import type { DemographicRatio } from '@/components/dashboard/DemographicRatioCard'
+import type {
+  ExposureCell,
+  ExposureLevel,
+} from '@/components/dashboard/AgeExposureHeatmap'
 import HomePage from '@/pages/HomePage'
 import {
   fromApiDate,
@@ -16,12 +20,14 @@ import {
   useCampaignFunnel,
   useCampaigns,
   useDemographic,
+  useExposure,
   useRealtimeHourly,
 } from '@/lib/dashboard'
 import type {
   CampaignAverageWatchTime,
   CampaignDelivery,
   CampaignDemographic,
+  CampaignExposure,
   CampaignFunnel,
   CampaignRealtimeHourly,
 } from '@/lib/dashboard'
@@ -172,6 +178,29 @@ function toDemographics(d: CampaignDemographic): DemographicRatio[] {
   }))
 }
 
+const clampLevel = (n: number): ExposureLevel =>
+  Math.min(4, Math.max(0, Math.round(n))) as ExposureLevel
+
+/** 시간·연령별 노출도 → 히트맵 props(연령대 코드→라벨 변환, 강도 0~4 클램프). */
+function toExposure(e: CampaignExposure): {
+  hours: string[]
+  ageGroups: string[]
+  cells: ExposureCell[]
+} {
+  const labelByCode = new Map(e.ageGroups.map((g) => [g.ageGroup, g.label]))
+  return {
+    hours: e.hours,
+    ageGroups: e.ageGroups.map((g) => g.label),
+    cells: e.cells.map((c) => ({
+      ageGroup: labelByCode.get(c.ageGroup) ?? c.ageGroup,
+      hour: c.hour,
+      all: clampLevel(c.intensityLevel),
+      male: clampLevel(c.maleIntensityLevel),
+      female: clampLevel(c.femaleIntensityLevel),
+    })),
+  }
+}
+
 /** 오늘 하루(시작=종료)를 기본 조회 기간으로. */
 function todayRange(): DateRange {
   const now = new Date()
@@ -228,6 +257,10 @@ export default function DashboardHome() {
   const { data: demographic } = useDemographic(selected?.campaignId, dateRange)
   const demographics = demographic ? toDemographics(demographic) : undefined
 
+  // 시간·연령별 노출도
+  const { data: exposureData } = useExposure(selected?.campaignId, dateRange)
+  const exposure = exposureData ? toExposure(exposureData) : undefined
+
   if (isPending) {
     return (
       <div className="flex min-h-[240px] items-center justify-center p-x5">
@@ -281,6 +314,7 @@ export default function DashboardHome() {
       averageSeconds={watchTime?.averageSeconds}
       watchBuckets={watchTime?.buckets}
       demographics={demographics}
+      exposure={exposure}
     />
   )
 }
