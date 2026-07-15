@@ -101,7 +101,7 @@ export default function TeamInvitePanel({
             iconOnly
             leadingIcon={Copy}
             aria-label="팀 코드 복사"
-            variant="line"
+            variant="ghost"
             color="secondary"
             size="small"
             onClick={copyTeamCode}
