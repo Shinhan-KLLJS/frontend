@@ -12,14 +12,15 @@ export const BUTTON_SIZE = ['large', 'medium', 'small'] as const
 export type ButtonSize = (typeof BUTTON_SIZE)[number]
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
-  large: 'h-[48px] gap-[6px] rounded-x3 px-x6 text-body-1-normal-bold',
-  medium: 'h-[40px] gap-[5px] rounded-x2-5 px-x6 text-label-1-normal-bold',
-  small: 'h-[32px] gap-x1 rounded-x2 px-x6 text-caption-1-bold',
+  large: 'h-[48px] gap-[6px] rounded-x3 px-x4 py-x3 text-body-1-normal-bold',
+  medium:
+    'h-[40px] gap-[5px] rounded-x2-5 px-x4 py-[10px] text-label-1-normal-bold',
+  small: 'h-[32px] gap-x1 rounded-x2 px-x4 py-x2 text-caption-1-bold',
 }
 
 const ICON_ONLY_SIZE_CLASS: Record<ButtonSize, string> = {
   large: 'size-[48px] rounded-x3',
-  medium: 'size-[40px] rounded-x2-5',
+  medium: 'size-[40px] rounded-[10px]',
   small: 'size-[32px] rounded-x2',
 }
 

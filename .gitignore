@@ -14,6 +14,7 @@ dist-ssr
 
 # Env files (실제 값/키 커밋 금지 — .env.example 만 추적)
 .env
+.env.local
 .env.development
 .env.production
 .env.*.local
