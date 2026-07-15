@@ -21,4 +21,12 @@ export const API_ENDPOINTS = {
     `/api/v1/dashboard/campaigns/${campaignId}/delivery`, // GET 송출정보 (KPI, selected_start_date·selected_end_date 쿼리)
   dashboardCampaignFunnel: (campaignId: number) =>
     `/api/v1/dashboard/campaigns/${campaignId}/funnel`, // GET 깔때기(TOLA) 지표 (selected_start_date·selected_end_date 쿼리)
+  dashboardCampaignRealtimeHourly: (campaignId: number) =>
+    `/api/v1/dashboard/campaigns/${campaignId}/realtime-graph/hourly`, // GET 실시간 시청수(시간별 집계)
+  dashboardCampaignAverageWatchTime: (campaignId: number) =>
+    `/api/v1/dashboard/campaigns/${campaignId}/average-watch-time`, // GET 평균 시청시간
+  dashboardCampaignDemographic: (campaignId: number) =>
+    `/api/v1/dashboard/campaigns/${campaignId}/demographic-view-ratio`, // GET 성별·연령 시청 비율
+  dashboardCampaignExposure: (campaignId: number) =>
+    `/api/v1/dashboard/campaigns/${campaignId}/hourly-age-exposure`, // GET 시간·연령별 노출도
 } as const

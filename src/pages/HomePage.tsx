@@ -8,6 +8,8 @@ import KpiSection from '@/components/dashboard/KpiSection'
 import type { KpiMetric } from '@/components/dashboard/KpiSection'
 import MovementFlowCard from '@/components/dashboard/MovementFlowCard'
 import RealtimeViewerChart from '@/components/dashboard/RealtimeViewerChart'
+import type { ViewerPoint } from '@/components/dashboard/RealtimeViewerChart'
+import type { WatchTimeBucket } from '@/components/dashboard/AverageWatchTimeCard'
 import TolaSection from '@/components/dashboard/TolaSection'
 import type { TolaMetric } from '@/components/dashboard/TolaSection'
 import type { DateRange } from '@/components/ui'
@@ -41,6 +43,11 @@ export interface HomePageProps {
   tolaMetrics?: TolaMetric[]
   /** TOLA 툴팁의 데이터 집계 기준 시각 "HH:mm" */
   tolaCutoffLabel?: string
+  /** 실 실시간 시청수 시계열(미제공 시 fixture) */
+  realtimeData?: ViewerPoint[]
+  /** 실 평균 시청시간(초)·구간 비중(미제공 시 fixture) */
+  averageSeconds?: number
+  watchBuckets?: WatchTimeBucket[]
 }
 
 /**
@@ -61,6 +68,9 @@ export default function HomePage({
   estimatedDowntime = true,
   tolaMetrics,
   tolaCutoffLabel,
+  realtimeData,
+  averageSeconds,
+  watchBuckets,
 }: HomePageProps) {
   const firstCampaign = campaigns[0]
   const [innerId, setInnerId] = useState(
@@ -106,10 +116,10 @@ export default function HomePage({
           cutoffLabel={tolaCutoffLabel}
         />
         <div className="grid min-w-0 grid-cols-[3fr_2fr] gap-x5">
-          <RealtimeViewerChart data={campaign.viewers} />
+          <RealtimeViewerChart data={realtimeData ?? campaign.viewers} />
           <AverageWatchTimeCard
-            averageSeconds={campaign.averageSeconds}
-            buckets={campaign.watchBuckets}
+            averageSeconds={averageSeconds ?? campaign.averageSeconds}
+            buckets={watchBuckets ?? campaign.watchBuckets}
           />
         </div>
         {/* 동선 카드는 고정하고 성별·연령 카드만 남는 가로 폭을 채웁니다. */}

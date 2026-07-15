@@ -4,15 +4,24 @@ import type { DateRange } from '@/components/ui'
 import { DEFAULT_KPI_ICONS } from '@/components/dashboard/KpiSection'
 import type { KpiMetric } from '@/components/dashboard/KpiSection'
 import type { TolaMetric } from '@/components/dashboard/TolaSection'
+import type { ViewerPoint } from '@/components/dashboard/RealtimeViewerChart'
+import type { WatchTimeBucket } from '@/components/dashboard/AverageWatchTimeCard'
 import HomePage from '@/pages/HomePage'
 import {
   fromApiDate,
   pickDefaultCampaign,
+  useAverageWatchTime,
   useCampaignDelivery,
   useCampaignFunnel,
   useCampaigns,
+  useRealtimeHourly,
 } from '@/lib/dashboard'
-import type { CampaignDelivery, CampaignFunnel } from '@/lib/dashboard'
+import type {
+  CampaignAverageWatchTime,
+  CampaignDelivery,
+  CampaignFunnel,
+  CampaignRealtimeHourly,
+} from '@/lib/dashboard'
 import {
   DASHBOARD_CAMPAIGNS,
   type DashboardCampaignFixture,
@@ -116,6 +125,40 @@ function formatKstTime(iso: string): string {
   }
 }
 
+// 평균 시청시간 구간 색(fixture와 동일 시퀀셜 팔레트)
+const WATCH_COLORS = [
+  'var(--color-chart-sequential-1)',
+  'var(--color-chart-sequential-2)',
+  'var(--color-chart-sequential-3)',
+  'var(--color-chart-sequential-4)',
+]
+
+/**
+ * 실시간 시청수 → 차트 시계열.
+ * viewers = attentionPopulationCount(주목=실제 시청). 노출수로 바꾸려면 여기만 수정.
+ */
+function toRealtimeData(r: CampaignRealtimeHourly): ViewerPoint[] {
+  return r.points.map((p) => ({
+    time: formatKstTime(p.eventTime),
+    viewers: p.attentionPopulationCount,
+  }))
+}
+
+/** 평균 시청시간 → 카드 props(초 + 구간 비중%). */
+function toWatchTime(a: CampaignAverageWatchTime): {
+  averageSeconds: number
+  buckets: WatchTimeBucket[]
+} {
+  return {
+    averageSeconds: a.averageWatchTimeSec ?? 0,
+    buckets: a.watchTimeBuckets.map((b, i) => ({
+      label: b.label,
+      value: Math.round(b.ratio * 1000) / 10, // 0~1 → %(소수 1자리)
+      color: WATCH_COLORS[i % WATCH_COLORS.length],
+    })),
+  }
+}
+
 /** 오늘 하루(시작=종료)를 기본 조회 기간으로. */
 function todayRange(): DateRange {
   const now = new Date()
@@ -161,6 +204,12 @@ export default function DashboardHome() {
   const tolaCutoffLabel = funnel
     ? formatKstTime(funnel.aggregationCutoffTime)
     : undefined
+
+  // 실시간 시청수 / 평균 시청시간 조회
+  const { data: realtime } = useRealtimeHourly(selected?.campaignId, dateRange)
+  const realtimeData = realtime ? toRealtimeData(realtime) : undefined
+  const { data: average } = useAverageWatchTime(selected?.campaignId, dateRange)
+  const watchTime = average ? toWatchTime(average) : undefined
 
   if (isPending) {
     return (
@@ -211,6 +260,9 @@ export default function DashboardHome() {
       estimatedDowntime={delivery?.isEstimated ?? true}
       tolaMetrics={tolaMetrics}
       tolaCutoffLabel={tolaCutoffLabel}
+      realtimeData={realtimeData}
+      averageSeconds={watchTime?.averageSeconds}
+      watchBuckets={watchTime?.buckets}
     />
   )
 }

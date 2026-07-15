@@ -113,6 +113,105 @@ export interface CampaignFunnel {
   }
 }
 
+/** 기간형 대시보드 리소스 공통 필드 */
+interface PeriodResource {
+  refreshIntervalSec: number
+}
+
+/** 실시간 시청수(시간별 집계) — GET .../realtime-graph/hourly */
+export interface RealtimeHourlyPoint {
+  eventTime: string // ISO date-time
+  exposedPopulationCount: number
+  attentionPopulationCount: number
+}
+export interface CampaignRealtimeHourly extends PeriodResource {
+  campaignId: number
+  selectedPeriod: Period
+  effectivePeriod: Period
+  periodStatus: PeriodStatus
+  serverTime: string
+  aggregationUnit: string
+  aggregationCutoffTime: string
+  points: RealtimeHourlyPoint[]
+}
+
+/** 평균 시청시간 — GET .../average-watch-time */
+export interface WatchTimeBucketData {
+  bucket: string
+  label: string
+  count: number
+  ratio: number // 0~1 비율
+}
+export interface CampaignAverageWatchTime extends PeriodResource {
+  campaignId: number
+  selectedPeriod: Period
+  effectivePeriod: Period
+  periodStatus: PeriodStatus
+  serverTime: string
+  aggregationUnit: string
+  aggregationCutoffTime: string
+  averageWatchTimeSec: number | null
+  watchTimeBuckets: WatchTimeBucketData[]
+}
+
+/** 성별·연령 시청 비율 — GET .../demographic-view-ratio */
+export type AgeGroupCode =
+  | 'UNDER_10'
+  | '10S'
+  | '20S'
+  | '30S'
+  | '40S'
+  | '50S'
+  | '60_PLUS'
+export interface DemographicAgeGroup {
+  ageGroup: AgeGroupCode
+  label: string
+  maleRatio: number
+  femaleRatio: number
+  totalRatio: number
+  maleShareRatio: number
+  femaleShareRatio: number
+}
+export interface CampaignDemographic extends PeriodResource {
+  campaignId: number
+  selectedPeriod: Period
+  effectivePeriod: Period
+  periodStatus: PeriodStatus
+  serverTime: string
+  aggregationUnit: string
+  aggregationCutoffTime: string
+  genderSummary: { maleRatio: number | null; femaleRatio: number | null }
+  ageGroups: DemographicAgeGroup[]
+}
+
+/** 시간·연령별 노출도 — GET .../hourly-age-exposure */
+export interface ExposureAgeGroup {
+  ageGroup: AgeGroupCode
+  label: string
+}
+export interface ExposureCellData {
+  hour: string
+  ageGroup: AgeGroupCode
+  exposureCount: number
+  intensityLevel: number // 0~4
+  maleExposureCount: number
+  maleIntensityLevel: number
+  femaleExposureCount: number
+  femaleIntensityLevel: number
+}
+export interface CampaignExposure extends PeriodResource {
+  campaignId: number
+  selectedPeriod: Period
+  effectivePeriod: Period
+  periodStatus: PeriodStatus
+  serverTime: string
+  aggregationUnit: string
+  aggregationCutoffTime: string
+  hours: string[]
+  ageGroups: ExposureAgeGroup[]
+  cells: ExposureCellData[]
+}
+
 export interface CampaignQuery {
   keyword?: string
   status?: CampaignStatus
@@ -307,4 +406,97 @@ export function useCampaignFunnel(
       return sec && sec > 0 ? sec * 1000 : false
     },
   })
+}
+
+// ── 기간형 리소스 공통 (선택 기간 쿼리 + refreshIntervalSec 폴링) ─────────────
+
+async function fetchPeriodResource<T>(
+  endpoint: string,
+  period: { start: Date; end: Date },
+): Promise<T> {
+  const { data } = await api.get<ApiResponse<T>>(endpoint, {
+    params: {
+      selected_start_date: toApiDate(period.start),
+      selected_end_date: toApiDate(period.end),
+    },
+  })
+  return data.result
+}
+
+/** campaignId + 조회 기간으로 기간형 리소스를 조회하는 공통 훅. */
+function usePeriodResource<T extends PeriodResource>(
+  keyBase: string,
+  endpoint: (campaignId: number) => string,
+  campaignId: number | undefined,
+  period: { start?: Date; end?: Date },
+) {
+  const enabled = Boolean(campaignId && period.start && period.end)
+  return useQuery({
+    queryKey:
+      enabled && campaignId && period.start && period.end
+        ? [keyBase, campaignId, toApiDate(period.start), toApiDate(period.end)]
+        : [keyBase, 'disabled'],
+    queryFn: () =>
+      fetchPeriodResource<T>(endpoint(campaignId as number), {
+        start: period.start as Date,
+        end: period.end as Date,
+      }),
+    enabled,
+    refetchInterval: (query) => {
+      const sec = query.state.data?.refreshIntervalSec
+      return sec && sec > 0 ? sec * 1000 : false
+    },
+  })
+}
+
+/** 실시간 시청수(시간별) 훅 */
+export function useRealtimeHourly(
+  campaignId: number | undefined,
+  period: { start?: Date; end?: Date },
+) {
+  return usePeriodResource<CampaignRealtimeHourly>(
+    'realtime-hourly',
+    API_ENDPOINTS.dashboardCampaignRealtimeHourly,
+    campaignId,
+    period,
+  )
+}
+
+/** 평균 시청시간 훅 */
+export function useAverageWatchTime(
+  campaignId: number | undefined,
+  period: { start?: Date; end?: Date },
+) {
+  return usePeriodResource<CampaignAverageWatchTime>(
+    'average-watch-time',
+    API_ENDPOINTS.dashboardCampaignAverageWatchTime,
+    campaignId,
+    period,
+  )
+}
+
+/** 성별·연령 시청 비율 훅 */
+export function useDemographic(
+  campaignId: number | undefined,
+  period: { start?: Date; end?: Date },
+) {
+  return usePeriodResource<CampaignDemographic>(
+    'demographic',
+    API_ENDPOINTS.dashboardCampaignDemographic,
+    campaignId,
+    period,
+  )
+}
+
+/** 시간·연령별 노출도 훅 */
+export function useExposure(
+  campaignId: number | undefined,
+  period: { start?: Date; end?: Date },
+) {
+  return usePeriodResource<CampaignExposure>(
+    'exposure',
+    API_ENDPOINTS.dashboardCampaignExposure,
+    campaignId,
+    period,
+  )
 }

@@ -26,6 +26,13 @@ export default function RealtimeViewerChart({
   const gradientId = useId().replace(/:/g, '')
   const latest = data.at(-1)
 
+  // Y축은 실 데이터 범위에 맞춰 동적으로(값 크기가 캠페인마다 달라 하드코딩 불가)
+  const values = data.map((point) => point.viewers)
+  const dataMin = values.length ? Math.min(...values) : 0
+  const dataMax = values.length ? Math.max(...values) : 0
+  const axisMin = Math.max(0, Math.floor((dataMin * 0.9) / 10) * 10)
+  const axisMax = Math.ceil((dataMax * 1.1) / 10) * 10 || 100
+
   return (
     <DashboardPanel className="flex h-[328px] flex-col gap-x5 py-x5">
       <DashboardSectionHeader
@@ -64,8 +71,7 @@ export default function RealtimeViewerChart({
               axisLine={{ stroke: 'var(--color-line-tertiary)' }}
               tickLine={false}
               tick={{ fill: 'var(--color-chart-axis-label)', fontSize: 14 }}
-              ticks={[100, 200, 300, 400, 500]}
-              domain={[100, 500]}
+              domain={[axisMin, axisMax]}
               width={48}
             />
             <Area
@@ -74,7 +80,7 @@ export default function RealtimeViewerChart({
               stroke="var(--color-chart-categorical-1)"
               strokeWidth={2}
               fill={`url(#${gradientId})`}
-              baseValue={100}
+              baseValue={axisMin}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 2 }}
               isAnimationActive={false}
