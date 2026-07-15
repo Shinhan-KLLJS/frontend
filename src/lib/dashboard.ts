@@ -34,10 +34,7 @@ export interface CampaignSummary {
   executionStartDate: string // yyyy-MM-dd
   executionEndDate: string // yyyy-MM-dd
   status: CampaignStatus
-  /**
-   * 기본 선택 캠페인 여부. 필터 적용 전 전체 목록 기준으로 백엔드가 하나만 지정한다.
-   * keyword/status 필터로 해당 캠페인이 빠지면 목록에 true가 아예 없을 수 있다.
-   */
+  /** 기본 선택 캠페인 여부(백엔드가 하나 지정). 필터로 빠지면 목록에 true가 없을 수도 있다. */
   isDefaultSelected: boolean
 }
 
@@ -255,10 +252,7 @@ export function fromApiDate(text: string): Date {
   return new Date(y, m - 1, d)
 }
 
-/**
- * 캠페인 목록 조회 — 사용자가 ACTIVE로 속한 모든 팀의 캠페인 합집합.
- * 소속 팀이 없거나 필터에 맞는 캠페인이 없으면 빈 배열. 항상 생성일 최신순.
- */
+/** 캠페인 목록 조회. 소속 팀/필터 결과가 없으면 빈 배열, 항상 생성일 최신순. */
 export async function fetchCampaigns(
   query: CampaignQuery = {},
 ): Promise<CampaignSummary[]> {
@@ -346,10 +340,7 @@ export function useCampaigns(query: CampaignQuery = {}) {
   })
 }
 
-/**
- * 캠페인 상세 react-query 훅.
- * campaignId·시작·종료가 모두 있을 때만 조회(enabled). 날짜가 바뀌면 자동 재조회.
- */
+/** 캠페인 상세 훅. campaignId·기간이 모두 있을 때만 조회(enabled). */
 export function useCampaignDetail(
   campaignId: number | undefined,
   period: { start?: Date; end?: Date },
@@ -373,10 +364,7 @@ export function useCampaignDetail(
   })
 }
 
-/**
- * 송출정보(KPI) react-query 훅.
- * 응답의 refreshIntervalSec 주기로 자동 재조회해 현재 송출 회수를 실시간 갱신한다.
- */
+/** 송출정보(KPI) 훅. refreshIntervalSec 주기로 자동 재조회. */
 export function useCampaignDelivery(
   campaignId: number | undefined,
   period: { start?: Date; end?: Date },
@@ -570,10 +558,7 @@ function realtimePollDelay(result: CampaignRealtimeGraph): number {
   return Math.max(1000, sec * 1000)
 }
 
-/**
- * 실시간 그래프(오늘) 폴링 훅. enabled 동안 5초 주기로 커서 폴링하며 포인트를 누적한다.
- * 반환 points는 시각 오름차순·중복 제거·최근 1시간 창.
- */
+/** 실시간 그래프(오늘) 폴링 훅. enabled 동안 커서 폴링·누적(오름차순·중복제거·최근 1시간). */
 export function useRealtimeGraph(
   campaignId: number | undefined,
   enabled: boolean,

@@ -55,11 +55,7 @@ function AxisTick({ x = 0, y = 0, index, payload }: AxisTickProps) {
 
 /**
  * 실시간 시청 수 — 증권 차트 스타일 영역 차트.
- *
- * - x축: 1분 단위(컨테이너가 5초 데이터를 분 단위로 묶어 전달)
- * - y축: 실 데이터 범위에 맞춰 동적
- * - 왼쪽: 영역/라인이 플롯 왼쪽 끝까지, 첫 라벨만 20px 안쪽
- * - 오른쪽: 최신 데이터 뒤에 빈 1칸(최신 = 오른쪽에서 두번째)
+ * y축은 데이터 범위로 동적, 왼쪽은 플롯 끝까지·첫 라벨만 20px 인셋, 오른쪽엔 빈 1칸(최신=오른쪽 두번째).
  */
 export default function RealtimeViewerChart({
   data,
@@ -68,7 +64,7 @@ export default function RealtimeViewerChart({
   const gradientId = useId().replace(/:/g, '')
   const latest = data.at(-1)
 
-  // y축은 실 데이터 범위 기준(값 크기가 캠페인마다 달라 하드코딩 불가)
+  // y축 동적(캠페인마다 값 크기가 달라 하드코딩 불가)
   const values = data.map((point) => point.viewers)
   const dataMin = values.length ? Math.min(...values) : 0
   const dataMax = values.length ? Math.max(...values) : 0
@@ -76,13 +72,12 @@ export default function RealtimeViewerChart({
   const axisMin = Math.max(0, Math.floor((dataMin - pad) / 10) * 10)
   const axisMax = Math.ceil((dataMax + pad) / 10) * 10 || 100
 
-  // 오른쪽 빈 1칸: 라벨 없는 트레일링 슬롯(라인/영역은 마지막 실데이터에서 끝남)
+  // 오른쪽 빈 1칸(라벨 없는 트레일링 슬롯) → 라인/영역은 마지막 실데이터에서 끝남
   const series: { time: string; viewers: number | null }[] = [
     ...data,
     { time: '', viewers: null },
   ]
 
-  // 라벨 과밀 방지 — 최대 MAX_LABELS개만 노출(첫 라벨은 항상 index 0)
   const labelInterval = Math.max(0, Math.ceil(series.length / MAX_LABELS) - 1)
 
   return (
