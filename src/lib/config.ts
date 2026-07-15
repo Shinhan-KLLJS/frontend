@@ -8,4 +8,9 @@ export const API_ENDPOINTS = {
   tokenRefresh: '/api/v1/auth/token/refresh',
   logout: '/api/v1/auth/logout',
   me: '/api/v1/users/me',
+  // 팀 온보딩
+  teams: '/api/v1/teams', // POST 팀 생성
+  businessRegistration: '/api/v1/teams/business-registration', // POST 사업자등록증 업로드(OCR)
+  teamJoin: '/api/v1/teams/join', // POST 팀 합류
+  teamInviteCode: (teamId: number) => `/api/v1/teams/${teamId}/invite-code`, // POST 초대 코드 발급
 } as const

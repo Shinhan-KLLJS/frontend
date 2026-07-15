@@ -7,8 +7,8 @@ import type { UploadStatus } from '@/components/team/LicenseDropzone'
 import TeamInvitePanel from '@/components/team/TeamInvitePanel'
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
-import { createTeam, uploadBusinessLicense } from '@/lib/team'
-import type { Team } from '@/lib/team'
+import { createTeam, TeamApiError, uploadBusinessLicense } from '@/lib/team'
+import type { CreatedTeam } from '@/lib/team'
 import { createTeamSchema } from '@/lib/team-schema'
 import type { CreateTeamFormValues } from '@/lib/team-schema'
 
@@ -22,7 +22,8 @@ export default function CreateTeamPage() {
 
   const [phase, setPhase] = useState<'form' | 'invite'>('form')
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle')
-  const [createdTeam, setCreatedTeam] = useState<Team | null>(null)
+  const [documentStorageKey, setDocumentStorageKey] = useState('')
+  const [createdTeam, setCreatedTeam] = useState<CreatedTeam | null>(null)
 
   const {
     register,
@@ -30,6 +31,7 @@ export default function CreateTeamPage() {
     handleSubmit,
     reset,
     watch,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<CreateTeamFormValues>({
     resolver: zodResolver(createTeamSchema),
@@ -51,8 +53,10 @@ export default function CreateTeamPage() {
   const handleFileSelect = async (file: File) => {
     setUploadStatus('uploading')
     try {
-      const ocr = await uploadBusinessLicense(file)
-      reset(ocr) // OCR 결과가 새 기준값
+      const { documentStorageKey: key, ocr } = await uploadBusinessLicense(file)
+      setDocumentStorageKey(key)
+      // OCR 값으로 채우되 사용자가 입력한 팀명은 유지 (OCR 결과엔 팀명이 없다)
+      reset({ ...ocr, teamName: getValues('teamName') })
       setUploadStatus('success')
     } catch {
       setUploadStatus('error')
@@ -61,13 +65,16 @@ export default function CreateTeamPage() {
 
   const onSubmit = async (values: CreateTeamFormValues) => {
     try {
-      const team = await createTeam(values)
+      const team = await createTeam(values, documentStorageKey)
       setCreatedTeam(team)
       setPhase('invite')
-    } catch {
-      toast('팀 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.', {
-        status: 'error',
-      })
+    } catch (err) {
+      toast(
+        err instanceof TeamApiError
+          ? err.message
+          : '팀 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+        { status: 'error' },
+      )
     }
   }
 

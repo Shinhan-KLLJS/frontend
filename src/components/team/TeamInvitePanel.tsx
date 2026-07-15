@@ -1,16 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Copy, Link, X } from 'lucide-react'
 import { z } from 'zod'
 import { Button, Icon, InputField, useToast } from '@/components/ui'
 import OnboardingCard from '@/components/team/OnboardingCard'
-import { sendTeamInvites } from '@/lib/team'
-import type { Team } from '@/lib/team'
+import { issueInviteCode, sendTeamInvites } from '@/lib/team'
+import type { CreatedTeam } from '@/lib/team'
 
 const emailSchema = z.string().email('이메일 형식이 올바르지 않습니다.')
 
 export interface TeamInvitePanelProps {
-  team: Team
+  team: CreatedTeam
   onGoHome: () => void // updateUser(hasTeam) + 홈 이동은 부모 소유
 }
 
@@ -23,14 +23,37 @@ export default function TeamInvitePanel({
 }: TeamInvitePanelProps) {
   const { toast } = useToast()
 
+  const [inviteCode, setInviteCode] = useState('')
+  const [codeStatus, setCodeStatus] = useState<'loading' | 'ready' | 'error'>(
+    'loading',
+  )
   const [emails, setEmails] = useState<string[]>([])
   const [emailInput, setEmailInput] = useState('')
   const [inputError, setInputError] = useState('')
   const [sending, setSending] = useState(false)
 
+  // 생성 완료 직후 초대 코드 발급 (생성 응답엔 코드가 없다)
+  useEffect(() => {
+    let active = true
+    setCodeStatus('loading')
+    issueInviteCode(team.id)
+      .then((res) => {
+        if (!active) return
+        setInviteCode(res.code)
+        setCodeStatus('ready')
+      })
+      .catch(() => {
+        if (active) setCodeStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [team.id])
+
   const copyTeamCode = async () => {
+    if (codeStatus !== 'ready') return
     try {
-      await navigator.clipboard.writeText(team.code)
+      await navigator.clipboard.writeText(inviteCode)
       toast('팀 코드가 복사되었습니다.', { status: 'success' })
     } catch {
       toast('복사에 실패했습니다. 팀 코드를 직접 선택해 주세요.', {
@@ -94,8 +117,17 @@ export default function TeamInvitePanel({
         </span>
         <div className="flex items-center gap-x3 rounded-x2 border border-line-secondary bg-bg-secondary px-x4 py-x3">
           <Icon icon={Link} size="medium" color="tertiary" />
-          <span className="flex-1 text-body-1-normal-regular text-text-primary">
-            {team.code}
+          <span
+            className={[
+              'flex-1 text-body-1-normal-regular',
+              codeStatus === 'ready' ? 'text-text-primary' : 'text-text-tertiary',
+            ].join(' ')}
+          >
+            {codeStatus === 'ready'
+              ? inviteCode
+              : codeStatus === 'loading'
+                ? '코드 발급 중...'
+                : '코드 발급에 실패했습니다.'}
           </span>
           <Button
             iconOnly
@@ -104,6 +136,7 @@ export default function TeamInvitePanel({
             variant="ghost"
             color="secondary"
             size="small"
+            disabled={codeStatus !== 'ready'}
             onClick={copyTeamCode}
           />
         </div>

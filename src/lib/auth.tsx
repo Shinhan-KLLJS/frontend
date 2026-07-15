@@ -30,6 +30,16 @@ export interface AuthUser {
 
 export type AuthStatus = 'loading' | 'authenticated' | 'guest'
 
+// 로컬 개발용 목 사용자 — VITE_MOCK_AUTH=true 일 때만 사용 (백엔드 없이 온보딩 화면 확인용).
+// hasTeam:false 라 팀 온보딩(/welcome)이 노출된다.
+const MOCK_USER: AuthUser = {
+  id: 0,
+  displayName: '테스트 사용자',
+  email: 'dev@loovi.my',
+  status: 'ACTIVE',
+  hasTeam: false,
+}
+
 interface AuthContextValue {
   status: AuthStatus
   user: AuthUser | null
@@ -66,6 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 앱 진입 시 refresh_token 쿠키로 세션 복원 시도
   useEffect(() => {
+    // 로컬 개발용 목 인증 — 백엔드 없이 로그인 상태로 진입 (DEV 가드로 프로덕션엔 미포함)
+    if (import.meta.env.DEV && import.meta.env.VITE_MOCK_AUTH === 'true') {
+      setUser(MOCK_USER)
+      setStatus('authenticated')
+      return
+    }
+
     let cancelled = false
     ;(async () => {
       const token = await refreshAccessToken()
