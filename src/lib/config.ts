@@ -13,4 +13,10 @@ export const API_ENDPOINTS = {
   businessRegistration: '/api/v1/teams/business-registration', // POST 사업자등록증 업로드(OCR)
   teamJoin: '/api/v1/teams/join', // POST 팀 합류
   teamInviteCode: (teamId: number) => `/api/v1/teams/${teamId}/invite-code`, // POST 초대 코드 발급
+  // 대시보드
+  dashboardCampaigns: '/api/v1/dashboard/campaigns', // GET 캠페인 목록
+  dashboardCampaignDetail: (campaignId: number) =>
+    `/api/v1/dashboard/campaigns/${campaignId}`, // GET 캠페인 상세 (selected_start_date·selected_end_date 쿼리 필수)
+  dashboardCampaignDelivery: (campaignId: number) =>
+    `/api/v1/dashboard/campaigns/${campaignId}/delivery`, // GET 송출정보 (KPI, selected_start_date·selected_end_date 쿼리)
 } as const

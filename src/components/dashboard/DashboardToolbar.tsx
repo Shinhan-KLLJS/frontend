@@ -14,15 +14,20 @@ export interface DashboardToolbarProps {
   onCampaignChange: (id: string) => void
   dateRange: DateRange
   onDateRangeChange: (range: DateRange) => void
+  /** 선택 가능 날짜 범위(캠페인 집행기간). 벗어난 날짜는 DatePicker에서 비활성. */
+  minDate?: Date
+  maxDate?: Date
 }
 
-/** 캠페인과 조회 기간을 로컬 상태로 선택하는 대시보드 도구 모음입니다. */
+/** 캠페인과 조회 기간을 선택하는 대시보드 도구 모음입니다. */
 export default function DashboardToolbar({
   campaigns,
   selectedId,
   onCampaignChange,
   dateRange,
   onDateRangeChange,
+  minDate,
+  maxDate,
 }: DashboardToolbarProps) {
   const [dateOpen, setDateOpen] = useState(false)
   const [draftRange, setDraftRange] = useState<DateRange>(dateRange)
@@ -70,6 +75,8 @@ export default function DashboardToolbar({
         <DatePicker
           key={`${dateRange.start?.getTime()}-${dateRange.end?.getTime()}`}
           value={draftRange}
+          minDate={minDate}
+          maxDate={maxDate}
           onChange={setDraftRange}
           onClose={() => setDateOpen(false)}
           onApply={(range) => {

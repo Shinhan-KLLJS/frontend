@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import AppLayout from '@/components/layout/AppLayout'
 import OnboardingLayout from '@/components/layout/OnboardingLayout'
 import CreateTeamPage from '@/pages/CreateTeamPage'
-import HomePage from '@/pages/HomePage'
+import DashboardHome from '@/pages/DashboardHome'
 import ComingSoonPage from '@/pages/ComingSoonPage'
 import JoinTeamPage from '@/pages/JoinTeamPage'
 import LoginPage from '@/pages/LoginPage'
@@ -39,7 +39,7 @@ const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { path: '/', element: <HomePage /> },
+      { path: '/', element: <DashboardHome /> },
       { path: '/campaigns', element: <ComingSoonPage title="캠페인" /> },
       { path: '/team', element: <ComingSoonPage title="팀 관리" /> },
       { path: '/calendar', element: <ComingSoonPage title="캘린더" /> },
