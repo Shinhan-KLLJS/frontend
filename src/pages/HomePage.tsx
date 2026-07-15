@@ -68,7 +68,8 @@ export default function HomePage({
             buckets={campaign.watchBuckets}
           />
         </div>
-        <div className="grid min-w-0 grid-cols-[2fr_3fr] gap-x5">
+        {/* 동선 카드는 고정하고 성별·연령 카드만 남는 가로 폭을 채웁니다. */}
+        <div className="flex h-[348px] min-w-0 gap-x5">
           <MovementFlowCard />
           <DemographicRatioCard
             data={campaign.demographics}

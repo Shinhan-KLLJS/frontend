@@ -29,7 +29,7 @@ export default function DemographicRatioCard({
   const maximum = Math.max(...values, 33.5)
 
   return (
-    <DashboardPanel className="flex aspect-[564/348] h-auto flex-col gap-x4 py-x5">
+    <DashboardPanel className="flex h-full min-w-[564px] flex-1 flex-col gap-x4 py-x5">
       <DashboardSectionHeader
         title="성별・연령 시청 비율"
         description="선택한 성별 기준으로 연령대별 시청 비중을 비교합니다."
