@@ -161,44 +161,63 @@ function DesktopSection3() {
   const reduceMotion = useReducedMotion()
   const [activeIndex, setActiveIndex] = useState(0)
 
-  const { scrollYProgress: entranceProgress } = useScroll({
+  // Hero(DesktopScrollHero)와 동일한 sticky-pin 구조: 진입 후에는 스크롤해도
+  // 화면에 고정되어 있다가, Section4(캠페인 리스트)가 -mt-[150dvh]로 겹쳐
+  // 올라와 이 섹션을 덮는다.
+  //
+  // sticky 요소가 실제로 고정되어 있는 스크롤 거리는 (wrapper 높이 - 100dvh)
+  // 다 — 'start start'~'end end' progress 0→1이 바로 이 구간에 대응한다.
+  // 이 wrapper는 h-[260dvh]이므로 pin 구간은 160dvh(entrance 이후 홀드
+  // 구간을 늘려 리스트가 올라오기 시작하는 타이밍을 뒤로 미뤘다).
+  //
+  // 스냅 지점(0.855)은 ScrollDebugOverlay로 실측한 값 — 이 시점에 Section4
+  // progress가 0.223으로, 리스트 이미지가 다 덮은 상태다.
+  const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ['start end', 'start start'],
+    offset: ['start start', 'end end'],
   })
-  const entranceOpacity = useTransform(entranceProgress, [0.5, 1], [0, 1])
-  const entranceY = useTransform(entranceProgress, [0.5, 1], [40, 0])
+  const entranceOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.2, 0.84, 0.855],
+    [0, 1, 1, 0],
+  )
+  const entranceY = useTransform(scrollYProgress, [0, 0.2], [40, 0])
 
   return (
-    <section ref={sectionRef} className="px-x10 pt-[300px] pb-[200px]">
-      <motion.div
-        className="mx-auto flex w-full max-w-[1200px] items-start gap-x5"
-        style={reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }}
-      >
-        <div className="flex flex-1 flex-col items-start gap-x10">
-          <div className="flex flex-col items-start gap-x3">
-            <h2 className="text-display-3-medium text-text-primary">
-              캠페인 등록
-            </h2>
-            <p className="text-heading-1-regular text-text-primary">
-              광고 영상을 업로드하고 송출할 지역과
-              <br />
-              매체를 선택해 캠페인을 등록할 수 있어요
-            </p>
+    <section ref={sectionRef} className="relative h-[260dvh]">
+      <div className="sticky top-0 flex h-dvh items-center overflow-hidden px-x10">
+        <motion.div
+          className="mx-auto flex w-full max-w-[1200px] items-start gap-x5"
+          style={
+            reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }
+          }
+        >
+          <div className="flex flex-1 flex-col items-start gap-x10">
+            <div className="flex flex-col items-start gap-x3">
+              <h2 className="text-display-3-medium text-text-primary">
+                캠페인 등록
+              </h2>
+              <p className="text-heading-1-regular text-text-primary">
+                광고 영상을 업로드하고 송출할 지역과
+                <br />
+                매체를 선택해 캠페인을 등록할 수 있어요
+              </p>
+            </div>
+
+            <FlowTabs
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+              size="medium"
+            />
           </div>
 
-          <FlowTabs
+          <FlowImageTrack
             activeIndex={activeIndex}
-            onSelect={setActiveIndex}
-            size="medium"
+            onChangeIndex={setActiveIndex}
+            className="w-[793px] aspect-[793/514] shrink-0"
           />
-        </div>
-
-        <FlowImageTrack
-          activeIndex={activeIndex}
-          onChangeIndex={setActiveIndex}
-          className="w-[793px] aspect-[793/514] shrink-0"
-        />
-      </motion.div>
+        </motion.div>
+      </div>
     </section>
   )
 }
