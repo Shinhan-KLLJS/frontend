@@ -35,6 +35,8 @@ interface AuthContextValue {
   user: AuthUser | null
   loginWithKakao: () => void // 카카오 인가 페이지로 이동 — code 교환·쿠키 발급은 백엔드가 전담
   logout: () => Promise<void>
+  // 팀 합류/생성 직후 user를 낙관적으로 갱신 (mock 단계에선 /me 재조회 시 hasTeam이 되돌아가므로 로컬 패치)
+  updateUser: (patch: Partial<AuthUser>) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // 앱 진입 시 refresh_token 쿠키로 세션 복원 시도
   useEffect(() => {
+
     let cancelled = false
     ;(async () => {
       const token = await refreshAccessToken()
@@ -103,9 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('guest')
   }, [])
 
+  const updateUser = useCallback((patch: Partial<AuthUser>) => {
+    setUser((prev) => (prev ? { ...prev, ...patch } : prev))
+  }, [])
+
   const value = useMemo(
-    () => ({ status, user, loginWithKakao, logout }),
-    [status, user, loginWithKakao, logout],
+    () => ({ status, user, loginWithKakao, logout, updateUser }),
+    [status, user, loginWithKakao, logout, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

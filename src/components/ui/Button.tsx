@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import Icon from './Icon'
 
-export const BUTTON_VARIANT = ['default', 'line'] as const
+export const BUTTON_VARIANT = ['default', 'line', 'ghost'] as const
 export type ButtonVariant = (typeof BUTTON_VARIANT)[number]
 
 export const BUTTON_COLOR = ['primary', 'secondary'] as const
@@ -41,6 +41,13 @@ const COLOR_CLASS: Record<ButtonVariant, Record<ButtonColor, string>> = {
       'border border-line-secondary bg-transparent text-text-brand interaction-light disabled:border-line-disabled disabled:text-text-disabled',
     secondary:
       'border border-line-secondary bg-transparent text-text-primary interaction-light disabled:border-line-disabled disabled:text-text-disabled',
+  },
+  // ghost: 테두리·배경 없는 아이콘/텍스트 버튼 (hover 시 옅은 오버레이만)
+  ghost: {
+    primary:
+      'bg-transparent text-text-brand interaction-light disabled:text-text-disabled',
+    secondary:
+      'bg-transparent text-text-secondary interaction-light disabled:text-text-disabled',
   },
 }
 
