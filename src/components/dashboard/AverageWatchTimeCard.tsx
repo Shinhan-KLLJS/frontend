@@ -29,28 +29,31 @@ export default function AverageWatchTimeCard({
           className="relative h-[168px] w-full shrink-0 overflow-hidden"
           aria-hidden="true"
         >
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={buckets}
-                dataKey="value"
-                nameKey="label"
-                cx="50%"
-                cy="100%"
-                startAngle={180}
-                endAngle={0}
-                innerRadius={107}
-                outerRadius={168}
-                paddingAngle={0}
-                stroke="none"
-                isAnimationActive={false}
-              >
-                {buckets.map((bucket) => (
-                  <Cell key={bucket.label} fill={bucket.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+          {/* SVG 상단에 8px 여유를 두되 게이지 중심은 그래프 하단에 고정합니다. */}
+          <div className="absolute inset-x-0 top-[-8px] h-[176px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={buckets}
+                  dataKey="value"
+                  nameKey="label"
+                  cx="50%"
+                  cy="100%"
+                  startAngle={180}
+                  endAngle={0}
+                  innerRadius={107}
+                  outerRadius={168}
+                  paddingAngle={0}
+                  stroke="none"
+                  isAnimationActive={false}
+                >
+                  {buckets.map((bucket) => (
+                    <Cell key={bucket.label} fill={bucket.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
           <svg
             className="pointer-events-none absolute bottom-0 left-1/2 h-[107px] w-[214px] -translate-x-1/2"
             viewBox="0 0 214 107"
