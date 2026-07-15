@@ -21,6 +21,7 @@ import {
   useCampaigns,
   useDemographic,
   useExposure,
+  useRealtimeGraph,
   useRealtimeHourly,
 } from '@/lib/dashboard'
 import type {
@@ -30,6 +31,7 @@ import type {
   CampaignExposure,
   CampaignFunnel,
   CampaignRealtimeHourly,
+  RealtimeGraphPoint,
 } from '@/lib/dashboard'
 import { formatCutoffLabel } from '@/lib/dashboardTime'
 import {
@@ -145,7 +147,7 @@ const WATCH_COLORS = [
 ]
 
 /**
- * 실시간 시청수 → 차트 시계열.
+ * 실시간 시청수(시간별 누적) → 차트 시계열.
  * viewers = attentionPopulationCount(주목=실제 시청). 노출수로 바꾸려면 여기만 수정.
  */
 function toRealtimeData(r: CampaignRealtimeHourly): ViewerPoint[] {
@@ -153,6 +155,44 @@ function toRealtimeData(r: CampaignRealtimeHourly): ViewerPoint[] {
     time: formatKstTime(p.eventTime),
     viewers: p.attentionPopulationCount,
   }))
+}
+
+/**
+ * 5초 실시간 포인트 → 1분 슬롯 시계열.
+ * 분 단위로 묶어 각 분의 마지막(최신) 값을 대표값으로 사용한다.
+ * → 현재 분 슬롯은 5초 갱신 때마다 제자리에서 위아래로 움직이고, 분이 넘어가면 왼쪽으로 밀린다.
+ */
+function bucketRealtimeToMinutes(
+  points: RealtimeGraphPoint[],
+  windowMinutes = 30,
+): ViewerPoint[] {
+  if (!points.length) return []
+  const byMinute = new Map<number, number>()
+  const sorted = [...points].sort((a, b) =>
+    a.eventTime.localeCompare(b.eventTime),
+  )
+  for (const p of sorted) {
+    const minuteEpoch = Math.floor(new Date(p.eventTime).getTime() / 60000) * 60000
+    byMinute.set(minuteEpoch, p.attentionPopulationCount) // 정렬돼 있어 마지막이 최신
+  }
+  return [...byMinute.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .slice(-windowMinutes)
+    .map(([epoch, viewers]) => ({
+      time: formatKstTime(new Date(epoch).toISOString()),
+      viewers,
+    }))
+}
+
+/** 날짜가 오늘(로컬 기준)인지 — 오늘이면 실시간(5초), 아니면 시간별 누적. */
+function isToday(d?: Date): boolean {
+  if (!d) return false
+  const now = new Date()
+  return (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  )
 }
 
 /** 평균 시청시간 → 카드 props(초 + 구간 비중%). */
@@ -249,9 +289,22 @@ export default function DashboardHome() {
     ? formatKstTime(funnel.aggregationCutoffTime)
     : undefined
 
-  // 실시간 시청수 / 평균 시청시간 조회
-  const { data: realtime } = useRealtimeHourly(selected?.campaignId, dateRange)
-  const realtimeData = realtime ? toRealtimeData(realtime) : undefined
+  // 실시간 시청수: 오늘=5초 라이브(1분 슬롯), 과거 날짜=시간별 누적
+  const live = isToday(dateRange.end)
+  const { points: realtimePoints } = useRealtimeGraph(selected?.campaignId, live)
+  const { data: hourly } = useRealtimeHourly(
+    live ? undefined : selected?.campaignId,
+    dateRange,
+  )
+  const realtimeData = live
+    ? realtimePoints.length
+      ? bucketRealtimeToMinutes(realtimePoints)
+      : undefined
+    : hourly
+      ? toRealtimeData(hourly)
+      : undefined
+
+  // 평균 시청시간
   const { data: average } = useAverageWatchTime(selected?.campaignId, dateRange)
   const watchTime = average ? toWatchTime(average) : undefined
 
@@ -268,9 +321,13 @@ export default function DashboardHome() {
   const kpiCutoffLabel = delivery
     ? formatCutoffLabel(delivery.serverTime)
     : undefined
-  const realtimeCutoffLabel = realtime
-    ? formatCutoffLabel(realtime.aggregationCutoffTime)
-    : undefined
+  const realtimeCutoffLabel = live
+    ? realtimePoints.length
+      ? formatCutoffLabel(realtimePoints[realtimePoints.length - 1].eventTime)
+      : undefined
+    : hourly
+      ? formatCutoffLabel(hourly.aggregationCutoffTime)
+      : undefined
   const averageCutoffLabel = average
     ? formatCutoffLabel(average.aggregationCutoffTime)
     : undefined

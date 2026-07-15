@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from './api'
 import type { ApiResponse } from './api'
@@ -133,6 +134,29 @@ export interface CampaignRealtimeHourly extends PeriodResource {
   aggregationUnit: string
   aggregationCutoffTime: string
   points: RealtimeHourlyPoint[]
+}
+
+/** 실시간 시청수(오늘·5초·커서 폴링) — GET .../realtime-graph */
+export interface RealtimeGraphPoint {
+  eventTime: string // ISO date-time
+  intervalSec: number
+  exposedPopulationCount: number
+  attentionPopulationCount: number
+  source: string
+}
+export interface CampaignRealtimeGraph {
+  campaignId: number
+  selectedDate: string
+  effectivePeriod: { startDate: string; endDate: string }
+  periodStatus: PeriodStatus
+  serverTime: string
+  pollIntervalSec: number
+  overlapSec: number
+  lastEventTime: string // 다음 폴링 커서(after_event_time)
+  nextPollAfter: string
+  dataDelaySec: number
+  hasMore: boolean
+  points: RealtimeGraphPoint[]
 }
 
 /** 평균 시청시간 — GET .../average-watch-time */
@@ -499,4 +523,95 @@ export function useExposure(
     campaignId,
     period,
   )
+}
+
+// ── 실시간 그래프(5초·커서 폴링) ─────────────────────────────────────────────
+
+/** 실시간 그래프 1회 조회. afterEventTime 커서 이후의 신규 포인트만 반환. */
+async function fetchRealtimeGraph(
+  campaignId: number,
+  afterEventTime?: string,
+): Promise<CampaignRealtimeGraph> {
+  const { data } = await api.get<ApiResponse<CampaignRealtimeGraph>>(
+    API_ENDPOINTS.dashboardCampaignRealtime(campaignId),
+    { params: afterEventTime ? { after_event_time: afterEventTime } : {} },
+  )
+  return data.result
+}
+
+/** 폴링 누적 보관 창(분). 이보다 오래된 포인트는 버린다. */
+const REALTIME_WINDOW_MS = 60 * 60 * 1000
+
+/** 기존 + 신규 포인트를 eventTime 기준 중복 제거·정렬하고 보관 창으로 제한. */
+function mergeRealtimePoints(
+  prev: RealtimeGraphPoint[],
+  incoming: RealtimeGraphPoint[],
+): RealtimeGraphPoint[] {
+  if (!incoming.length) return prev
+  const byTime = new Map<string, RealtimeGraphPoint>()
+  for (const p of prev) byTime.set(p.eventTime, p)
+  for (const p of incoming) byTime.set(p.eventTime, p) // overlapSec 겹침은 최신으로 덮음
+  const merged = [...byTime.values()].sort((a, b) =>
+    a.eventTime.localeCompare(b.eventTime),
+  )
+  const latestMs = new Date(merged[merged.length - 1].eventTime).getTime()
+  return merged.filter(
+    (p) => latestMs - new Date(p.eventTime).getTime() <= REALTIME_WINDOW_MS,
+  )
+}
+
+/** 다음 폴링까지 지연(ms). nextPollAfter 우선, 없으면 pollIntervalSec, 최소 1초. */
+function realtimePollDelay(result: CampaignRealtimeGraph): number {
+  if (result.nextPollAfter) {
+    const ms = new Date(result.nextPollAfter).getTime() - Date.now()
+    if (ms > 0) return Math.min(ms, 30000)
+  }
+  const sec = result.pollIntervalSec > 0 ? result.pollIntervalSec : 5
+  return Math.max(1000, sec * 1000)
+}
+
+/**
+ * 실시간 그래프(오늘) 폴링 훅. enabled 동안 5초 주기로 커서 폴링하며 포인트를 누적한다.
+ * 반환 points는 시각 오름차순·중복 제거·최근 1시간 창.
+ */
+export function useRealtimeGraph(
+  campaignId: number | undefined,
+  enabled: boolean,
+): { points: RealtimeGraphPoint[] } {
+  const [points, setPoints] = useState<RealtimeGraphPoint[]>([])
+  const cursorRef = useRef<string | undefined>(undefined)
+
+  useEffect(() => {
+    if (!enabled || !campaignId) {
+      setPoints([])
+      cursorRef.current = undefined
+      return
+    }
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    const poll = async () => {
+      try {
+        const result = await fetchRealtimeGraph(campaignId, cursorRef.current)
+        if (cancelled) return
+        if (result.points.length) {
+          cursorRef.current =
+            result.lastEventTime ?? result.points[result.points.length - 1].eventTime
+          setPoints((prev) => mergeRealtimePoints(prev, result.points))
+        }
+        timer = setTimeout(poll, realtimePollDelay(result))
+      } catch {
+        if (cancelled) return
+        timer = setTimeout(poll, 5000) // 실패 시 5초 후 재시도
+      }
+    }
+    poll()
+
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [campaignId, enabled])
+
+  return { points }
 }
