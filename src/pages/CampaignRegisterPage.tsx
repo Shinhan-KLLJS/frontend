@@ -337,7 +337,7 @@ export default function CampaignRegisterPage() {
               keyword={keyword}
               onKeywordChange={setKeyword}
               selectedMediaId={selectedMediaId}
-              onSelectMedia={setSelectedMedia}
+              onSelectMedia={handleSelectMedia}
               onPrev={handleBack}
               onNext={() => setStep(3)}
             />
