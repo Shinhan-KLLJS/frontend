@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ImageOff } from 'lucide-react'
 import type { CampaignMedia } from '@/lib/campaign'
 
@@ -15,6 +15,8 @@ export default function MediaCard({
   onSelect,
 }: MediaCardProps) {
   const [imgError, setImgError] = useState(false)
+  // 썸네일 URL이 바뀌면(같은 카드 인스턴스 재사용) 이전 에러 상태를 리셋
+  useEffect(() => setImgError(false), [media.thumbnail])
 
   return (
     <button

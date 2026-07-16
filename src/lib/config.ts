@@ -17,7 +17,7 @@ export const API_ENDPOINTS = {
   teamJoin: '/api/v1/teams/join', // POST 팀 합류
   teamInviteCode: (teamId: number) => `/api/v1/teams/${teamId}/invite-code`, // POST 초대 코드 발급
   // 캠페인 등록
-  mediaUnits: '/api/v1/media-units', // GET 송출 매체 목록·검색 (keyword·sido·sigungu 쿼리)
+  mediaUnits: '/api/v1/media-units', // GET 송출 매체 목록·검색 (keyword·sido·sigungu·executionStartDate·executionEndDate 쿼리)
   mediaUnitRegions: '/api/v1/media-units/regions', // GET 매체 서비스 지역 목록
   campaignCreativeUploadUrl: '/api/v1/campaign-creatives/upload-url', // POST 광고 영상 presigned 업로드 URL 발급
   teamCampaigns: (teamId: number) => `/api/v1/teams/${teamId}/campaigns`, // POST 캠페인 등록

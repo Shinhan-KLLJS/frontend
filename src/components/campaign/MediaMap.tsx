@@ -64,11 +64,14 @@ export default function MediaMap({
   )
   const [status, setStatus] = useState<MapStatus>('loading')
 
-  // 핀 클릭 리스너가 항상 최신 값을 부르도록 ref 경유 (오버레이 DOM은 재생성하지 않으므로)
+  // 핀 클릭 리스너가 항상 최신 값을 부르도록 ref 경유 (오버레이 DOM은 재생성하지 않으므로).
+  // 렌더 중 mutate 대신 커밋 후 useEffect에서 갱신 (중단된 렌더의 값 누수 방지)
   const onSelectMediaRef = useRef(onSelectMedia)
-  onSelectMediaRef.current = onSelectMedia
   const mediaListRef = useRef(mediaList)
-  mediaListRef.current = mediaList
+  useEffect(() => {
+    onSelectMediaRef.current = onSelectMedia
+    mediaListRef.current = mediaList
+  })
 
   const currentRegion = regions.find((r) => r.sido === sido)
   const sigunguOptions = [ALL_SIGUNGU, ...(currentRegion?.sigungu ?? [])]
@@ -125,7 +128,12 @@ export default function MediaMap({
         img.style.display = 'none'
       }
       el.appendChild(img)
-      el.addEventListener('click', () => onSelectMediaRef.current(media))
+      // 오버레이는 재생성되지 않으므로, 클릭 시점에 최신 매체(available 등)를 id로 조회해 전달
+      el.addEventListener('click', () => {
+        const latest =
+          mediaListRef.current.find((m) => m.id === media.id) ?? media
+        onSelectMediaRef.current(latest)
+      })
 
       const overlay = new sdk.maps.CustomOverlay({
         position: new sdk.maps.LatLng(media.lat, media.lng),

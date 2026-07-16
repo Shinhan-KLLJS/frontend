@@ -77,6 +77,8 @@ export default function VideoUploadCard({
         ref={inputRef}
         type="file"
         accept="video/*"
+        // 버튼으로만 여는 숨은 입력 — 탭 순서에서 제외 (sr-only는 포커스가 잡힘)
+        tabIndex={-1}
         className="sr-only"
         aria-label="광고 영상 파일 선택"
         onChange={(e) => {

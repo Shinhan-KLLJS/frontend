@@ -23,9 +23,14 @@ export const campaignInfoSchema = z.object({
   dailyPlayCount: z
     .string()
     .regex(/^\d+$/, '하루 송출 횟수를 숫자로 입력해 주세요.')
-    .refine((value) => Number(value) > 0, {
-      message: '1 이상의 숫자를 입력해 주세요.',
-    }),
+    .refine(
+      (value) => {
+        const count = Number(value)
+        // 매우 긴 숫자열은 Number가 Infinity/불안전 정수가 되어 요청 JSON이 null로 나가므로 차단
+        return Number.isSafeInteger(count) && count > 0
+      },
+      { message: '1 이상의 올바른 숫자를 입력해 주세요.' },
+    ),
   memo: z.string().max(500, '메모는 최대 500자까지 입력할 수 있습니다.'),
 })
 

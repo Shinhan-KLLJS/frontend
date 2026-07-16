@@ -29,8 +29,8 @@ function InfoForm({
     mode: 'onTouched',
     defaultValues: defaults,
   })
-  // 실제 step1처럼 폼이 self-stretch로 높이를 채우도록 넉넉한 min-height 부여
-  // (고정 height면 콘텐츠가 넘쳐 카드 하단 패딩이 잘림)
+  // 카드를 자연 높이로 렌더 (하단 패딩 유지) + 과도한 세로 확장만 막도록 max-height 상한.
+  // 고정/min-height를 주면 콘텐츠가 넘쳐 카드 하단 패딩이 잘리므로 상한만 둔다
   return (
     <div className="flex max-h-[720px] w-[470px]">
       <CampaignInfoForm form={form} uploadReady={uploadReady} onNext={noop} />

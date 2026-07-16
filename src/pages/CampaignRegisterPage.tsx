@@ -195,8 +195,9 @@ export default function CampaignRegisterPage() {
     return () => clearTimeout(t)
   }, [keyword])
 
-  // 매체 available은 캠페인 송출기간 기준으로 계산되므로 기간을 함께 조회 파라미터로 보낸다
-  const period = form.getValues('period')
+  // 매체 available은 캠페인 송출기간 기준으로 계산되므로 기간을 함께 조회 파라미터로 보낸다.
+  // watch로 구독해 기간이 바뀌면 목록·가용성이 즉시 갱신되도록 한다
+  const period = form.watch('period')
   // 검색어가 있으면 지역보다 우선(검색 결과 우선), 없으면 지역(시/도·시/군/구) 필터
   const mediaQuery: MediaUnitsQuery = {
     ...(debouncedKeyword
@@ -223,6 +224,19 @@ export default function CampaignRegisterPage() {
     }
     setSelectedMedia(media)
   }
+
+  // 송출기간이 바뀌면 매체 가용성(available)이 달라지므로 기존 선택을 무효화한다
+  const periodKey =
+    period.start && period.end
+      ? `${toApiDate(period.start)}~${toApiDate(period.end)}`
+      : ''
+  const prevPeriodKeyRef = useRef(periodKey)
+  useEffect(() => {
+    if (prevPeriodKeyRef.current !== periodKey) {
+      prevPeriodKeyRef.current = periodKey
+      setSelectedMedia(null)
+    }
+  }, [periodKey])
 
   const handleSidoChange = (next: string) => {
     setSido(next)

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import type { UseFormReturn } from 'react-hook-form'
 import {
@@ -33,6 +33,9 @@ export default function CampaignInfoForm({
   } = form
 
   const [pickerOpen, setPickerOpen] = useState(false)
+  // 송출기간 트리거(버튼)에 라벨·오류를 연결하기 위한 id (스크린리더 접근성)
+  const periodLabelId = useId()
+  const periodErrorId = useId()
   const periodRef = useRef<HTMLDivElement>(null)
 
   // DatePicker 오버레이 외부 클릭 닫기 (Dropdown 패턴)
@@ -79,7 +82,10 @@ export default function CampaignInfoForm({
               ref={periodRef}
               className="relative flex w-full flex-col gap-x2"
             >
-              <span className="flex items-center gap-xs text-label-1-normal-bold text-text-secondary">
+              <span
+                id={periodLabelId}
+                className="flex items-center gap-xs text-label-1-normal-bold text-text-secondary"
+              >
                 송출기간
                 <span aria-hidden="true" className="text-text-negative">
                   *
@@ -90,6 +96,9 @@ export default function CampaignInfoForm({
                 open={pickerOpen}
                 onClick={() => setPickerOpen((prev) => !prev)}
                 onBlur={field.onBlur}
+                aria-labelledby={periodLabelId}
+                aria-describedby={fieldState.error ? periodErrorId : undefined}
+                aria-invalid={fieldState.error ? true : undefined}
                 className={[
                   'w-full justify-between border',
                   fieldState.error
@@ -98,7 +107,10 @@ export default function CampaignInfoForm({
                 ].join(' ')}
               />
               {fieldState.error && (
-                <p className="text-caption-1-regular text-text-negative">
+                <p
+                  id={periodErrorId}
+                  className="text-caption-1-regular text-text-negative"
+                >
                   {fieldState.error.message}
                 </p>
               )}
