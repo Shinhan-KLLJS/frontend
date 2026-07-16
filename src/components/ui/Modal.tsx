@@ -20,6 +20,8 @@ export interface ModalProps extends Omit<
   confirmText?: string
   onClose?: () => void
   onConfirm?: () => void
+  /** true면 딤머가 앱 콘텐츠 영역(사이드바 제외)만 덮는다. 앱 셸 내부 모달용. */
+  scoped?: boolean
 }
 
 // 열린 모달 스택 — 최상단 모달만 ESC를 처리하고, 마지막 모달이 닫힐 때만 스크롤 잠금을 해제
@@ -41,6 +43,7 @@ export default function Modal({
   onClose,
   onConfirm,
   className,
+  scoped = false,
   ...props
 }: ModalProps) {
   const titleId = useId()
@@ -108,9 +111,16 @@ export default function Modal({
     }
   }
 
+  // scoped면 앱 콘텐츠 영역(사이드바 오른쪽 컬럼)에 포털해 그 영역만 덮는다(LNB 접힘 폭에 자동 대응).
+  const scopedRoot = scoped ? document.getElementById('app-content-area') : null
+  const portalTarget = scopedRoot ?? document.body
+
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--cool-neutral-1000)]/40"
+      className={[
+        scopedRoot ? 'absolute' : 'fixed',
+        'inset-0 z-50 flex items-center justify-center bg-[var(--Dimer_Black)]',
+      ].join(' ')}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose?.()
       }}
@@ -140,7 +150,10 @@ export default function Modal({
         ) : (
           <div className="flex w-full flex-col gap-x1 text-center">
             {title && (
-              <h2 id={titleId} className="text-headline-1-bold text-text-primary">
+              <h2
+                id={titleId}
+                className="text-headline-1-bold text-text-primary"
+              >
                 {title}
               </h2>
             )}
@@ -172,6 +185,6 @@ export default function Modal({
         )}
       </div>
     </div>,
-    document.body,
+    portalTarget,
   )
 }
