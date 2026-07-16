@@ -39,7 +39,8 @@ export default function VideoUploadCard({
   const [isDragging, setIsDragging] = useState(false)
 
   // 썸네일이 준비되면 업로드 진행/완료와 무관하게 배경 미리보기를 노출 (에러 상태는 재업로드 안내를 위해 제외)
-  const hasPreview = Boolean(thumbnailUrl) && status !== 'idle' && status !== 'error'
+  const hasPreview =
+    Boolean(thumbnailUrl) && status !== 'idle' && status !== 'error'
 
   const openFileDialog = () => inputRef.current?.click()
 
@@ -127,7 +128,10 @@ export default function VideoUploadCard({
         {status === 'uploading' && (
           <>
             <div className="flex h-[108px] flex-col items-center justify-center gap-x1">
-              <div className="flex items-center gap-x3 py-x2" aria-hidden="true">
+              <div
+                className="flex items-center gap-x3 py-x2"
+                aria-hidden="true"
+              >
                 <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid" />
                 <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid [animation-delay:150ms]" />
                 <span className="size-x3 animate-bounce rounded-full bg-primary-brand-solid [animation-delay:300ms]" />
@@ -142,7 +146,7 @@ export default function VideoUploadCard({
                 <p
                   className={`text-label-1-normal-regular ${hasPreview ? 'text-text-primary-inverse' : 'text-text-caption'}`}
                 >
-                  업로드는 계속 진행됩니다. 다음 단계로 이동하세요.
+                  업로드가 완료되면 알려드리겠습니다. 다음 단계로 이동하세요.
                 </p>
               </div>
             </div>
@@ -197,7 +201,10 @@ export default function VideoUploadCard({
                 color="var(--color-text-primary-inverse)"
                 fill="var(--color-line-negative)"
               />
-              <p role="alert" className="text-body-1-normal-bold text-text-primary">
+              <p
+                role="alert"
+                className="text-body-1-normal-bold text-text-primary"
+              >
                 파일 업로드 실패
               </p>
               <p className="text-label-1-normal-regular text-text-primary">
