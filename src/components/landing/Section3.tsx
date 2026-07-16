@@ -257,7 +257,67 @@ function DesktopSection3() {
   )
 }
 
-/** lg 미만(태블릿·모바일): 세로 중앙 정렬 스택, 이미지는 반응형 너비. */
+/**
+ * md~lg 미만(태블릿) 전용. 데스크탑과 같은 sticky-pin 커버 인터랙션을
+ * 쓰되, 793px 고정폭 2단 레이아웃 대신 세로 스택(StaticSection3과 같은
+ * 구성)으로 태블릿 폭에 맞춘다.
+ *
+ * 아래 수치(wrapper 높이, 스냅 지점)는 데스크탑 값을 그대로 옮긴 게 아니라
+ * 처음 잡아본 추정치다 — 데스크탑도 여러 번 실측하며 맞춘 값들이라, 실제
+ * 태블릿 화면으로 겹침 타이밍을 보면서 조정이 필요할 가능성이 높다.
+ */
+function TabletSection3() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  // pin 구간 = wrapper 높이(200dvh) - 100dvh = 100dvh. TabletSection4의
+  // -mt 값을 이 100dvh에 맞춰야 겹침 타이밍이 깨지지 않는다.
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end end'],
+  })
+  const entranceOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.2, 0.75, 0.98],
+    [0, 1, 1, 0],
+  )
+  const entranceY = useTransform(scrollYProgress, [0, 0.2], [40, 0])
+
+  return (
+    <section ref={sectionRef} className="relative h-[200dvh]">
+      <div className="sticky top-0 flex h-dvh flex-col items-center justify-center overflow-hidden px-x5">
+        <motion.div
+          className="flex w-full max-w-[600px] flex-col items-center gap-x8"
+          style={{ opacity: entranceOpacity, y: entranceY }}
+        >
+          <div className="flex flex-col items-center gap-x3 text-center">
+            <h2 className="text-title-1-medium text-text-primary">
+              캠페인 등록
+            </h2>
+            <p className="text-heading-2-regular text-text-primary">
+              광고 영상을 업로드하고 송출할 지역과 매체를 선택해 캠페인을 등록할 수
+              있어요.
+            </p>
+          </div>
+
+          <FlowTabs
+            steps={STEPS}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            size="medium"
+          />
+          <FlowImageTrack
+            activeIndex={activeIndex}
+            onChangeIndex={setActiveIndex}
+            className="w-full aspect-[793/514]"
+          />
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+/** md 미만(모바일): 세로 중앙 정렬 스택, 스크롤 인터랙션 없이 fade-up만. */
 function StaticSection3() {
   const sectionRef = useRef<HTMLElement>(null)
   const reduceMotion = useReducedMotion()
@@ -284,8 +344,9 @@ function StaticSection3() {
             캠페인 등록
           </h2>
           <p className="text-headline-1-regular text-text-primary md:text-heading-2-regular">
-            광고 영상을 업로드하고 송출할 지역과 매체를 선택해 캠페인을 등록할 수
-            있어요.
+            광고 영상을 업로드하고 송출할 지역과
+            <br />
+            매체를 선택해 캠페인을 등록할 수 있어요.
           </p>
         </div>
 
@@ -309,10 +370,15 @@ function StaticSection3() {
 
 export default function Section3() {
   const isDesktop = useMediaQuery('(min-width: 1280px)') // tokens.css --breakpoint-lg
+  const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
 
-  if (!isDesktop) {
-    return <StaticSection3 />
+  if (isDesktop) {
+    return <DesktopSection3 />
   }
 
-  return <DesktopSection3 />
+  if (isTabletUp) {
+    return <TabletSection3 />
+  }
+
+  return <StaticSection3 />
 }

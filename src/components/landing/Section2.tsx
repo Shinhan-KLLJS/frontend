@@ -21,6 +21,7 @@ import bestFlowImage from '@/assets/landing/Best-Flow.png'
 import averageViewTimeImage from '@/assets/landing/Average-View-Time-2.png'
 import GenderYearsView from './GenderYearsView'
 import TimeYearsHeatMap from './TimeYearsHeatMap'
+import timeYearsHeatMapImage from '@/assets/landing/Time-Years-Heat-Map.png'
 import section2Image1 from '@/assets/landing/section2-image1.png'
 import section2Image2 from '@/assets/landing/section2-image2.png'
 import section2Image3 from '@/assets/landing/section2-image3.png'
@@ -472,13 +473,54 @@ function FadeInCard({
 // 정해지는 카드 컴포넌트라, Section3의 드래그 캐러셀(고정 비율 슬라이드
 // 전제)을 그대로 재사용할 수 없다 — 탭으로 하나씩 전환해 보여주는 방식으로
 // 단순화했다.
+//
+// live-viewer-graph·average-view-time는 원본 이미지 비율이 제각각(1.15~1.72)
+// 이라 높이를 자체 비율에 맡기면 서로 크기 차이가 심하게 났다 — 둘 다
+// aspect-[3/2]로 통일해 GenderYearsView·TimeYearsHeatMap 카드의 자연 높이와
+// 비슷한 크기가 되도록 맞췄다.
+//
+// best-flow는 원본이 거의 정사각형(1504×1392)이라 3:2 박스를 쓰면 크롭되고,
+// object-contain으로 바꾸면 레터박스가 생긴다 — 박스 비율 자체를 원본
+// 이미지 비율(aspect-[1504/1392])에 맞춰서 크롭도 레터박스도 없앴다. 그만큼
+// 다른 위젯보다 박스가 세로로 좀 더 길다.
+// 모바일 폭에서는 TimeYearsHeatMap 컴포넌트 내부 라벨·칸이 너무 좁아져
+// 깨져 보인다 — 모바일만 정적 이미지로 대체하고, 태블릿 이상은 그대로
+// 실제 컴포넌트(필터 등 인터랙션 유지)를 쓴다.
+function TimeYearsHeatMapWidget({ className = '' }: { className?: string }) {
+  const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
+
+  if (isTabletUp) {
+    return <TimeYearsHeatMap className={className} />
+  }
+
+  return (
+    <img
+      src={timeYearsHeatMapImage}
+      alt="Time Years Heat Map"
+      className={`rounded-x2 object-contain shadow-normal-large ${className}`}
+    />
+  )
+}
+
 const WIDGET_STEPS = [
   { key: 'tola-data', label: 'Funnel Data', render: () => <TolaDataImage className="w-full" /> },
   { key: 'gender-years-view', label: '성별·연령 분석', render: () => <GenderYearsView className="w-full" /> },
-  { key: 'best-flow', label: '인기 동선', render: () => <BestFlowImage className="w-full" /> },
-  { key: 'time-years-heat-map', label: '시간대별 분석', render: () => <TimeYearsHeatMap className="w-full" /> },
-  { key: 'live-viewer-graph', label: '실시간 시청 수', render: () => <LiveViewerGraphImage className="w-full" /> },
-  { key: 'average-view-time', label: '평균 시청 시간', render: () => <AverageViewTimeImage className="w-full" /> },
+  {
+    key: 'best-flow',
+    label: '인기 동선',
+    render: () => (
+      <div className="aspect-[1504/1392] w-full scale-[0.75] overflow-hidden rounded-[20px] bg-bg-secondary shadow-normal-large">
+        <img
+          src={bestFlowImage}
+          alt="Best Flow"
+          className="size-full rounded-[20px] object-contain object-center"
+        />
+      </div>
+    ),
+  },
+  { key: 'time-years-heat-map', label: '시간대별 분석', render: () => <TimeYearsHeatMapWidget className="w-full" /> },
+  { key: 'live-viewer-graph', label: '실시간 시청 수', render: () => <LiveViewerGraphImage className="w-full aspect-[3/2]" /> },
+  { key: 'average-view-time', label: '평균 시청 시간', render: () => <AverageViewTimeImage className="w-full aspect-[1504/1312] scale-[0.75]" /> },
 ] as const
 
 // 위젯 6개를 전부 마운트한 채 grid의 같은 셀(col-start-1 row-start-1)에

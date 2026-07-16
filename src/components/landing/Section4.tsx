@@ -11,8 +11,12 @@ import { useMediaQuery } from '@/lib/useMediaQuery'
 import campaignListImage from '@/assets/landing/Campaign-List.png'
 
 const TITLE = '캠페인 리스트'
-const BODY =
-  '집행 상태, 기간, 매치 위치, 금일 송출 횟수 등 캠페인별 정보를 확인하고 관리하세요.'
+const BODY = (
+  <>
+    집행 상태, 기간, 매체 위치, 금일 송출 횟수 등
+    <br className="md:hidden" /> 캠페인별 정보를 확인하고 관리하세요.
+  </>
+)
 
 /**
  * 데스크탑(lg 이상) 전용. sectionRef·useScroll을 이 컴포넌트 안에 둬야 한다 —
@@ -98,7 +102,67 @@ function DesktopSection4() {
   )
 }
 
-/** lg 미만(태블릿·모바일): 세로 스택 정적 레이아웃, 진입 시 fade-up만 적용. */
+/**
+ * md~lg 미만(태블릿) 전용. 데스크탑처럼 TabletSection3 위로 올라와 덮는
+ * sticky-pin 커버 인터랙션이지만, 좌우 배치 대신 세로 스택(텍스트 위,
+ * 이미지 아래)으로 구성한다.
+ *
+ * `-mt-[120dvh]`는 TabletSection3의 pin 구간(wrapper 200dvh - 100dvh =
+ * 100dvh)보다 20dvh 여유를 더 둔 추정치다 — 겹침 타이밍은 실제 화면으로
+ * 재확인 후 조정이 필요하다.
+ */
+function TabletSection4() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const textRef = useRef<HTMLDivElement>(null)
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end end'],
+  })
+
+  const imageEntranceY = useTransform(scrollYProgress, [0, 0.3], [400, 0])
+  const imageWidth = useTransform(scrollYProgress, [0.3, 0.9], ['100%', '85%'])
+  const textOpacity = useTransform(scrollYProgress, [0.3, 0.9], [0, 1])
+  const textY = useTransform(scrollYProgress, [0.3, 0.9], [24, 0])
+
+  // style={{opacity: textOpacity}} 반응형 바인딩이 이 코드베이스에서 간헐적으로
+  // 멈추는 문제가 있어(DesktopSection4·Section2 TOLA와 동일 원인) ref로 우회한다.
+  useMotionValueEvent(textOpacity, 'change', (v) => {
+    if (textRef.current) textRef.current.style.opacity = String(v)
+  })
+
+  return (
+    <section ref={sectionRef} className="relative -mt-[120dvh] h-[180dvh]">
+      <div className="pointer-events-none sticky top-0 flex h-dvh flex-col items-center justify-center gap-x6 overflow-hidden px-x5">
+        <motion.div
+          ref={textRef}
+          className="pointer-events-auto flex flex-col items-center gap-x3 text-center"
+          style={{ opacity: textOpacity.get(), y: textY }}
+        >
+          <h2 className="text-title-1-medium text-text-primary">{TITLE}</h2>
+          <p className="text-heading-2-regular text-text-primary">{BODY}</p>
+          <Button
+            variant="default"
+            color="primary"
+            size="large"
+            className="mt-x5"
+          >
+            캠페인 등록하러 가기
+          </Button>
+        </motion.div>
+
+        <motion.img
+          src={campaignListImage}
+          alt={TITLE}
+          className="pointer-events-auto aspect-[793/551] rounded-[16px] object-cover shadow-normal-large"
+          style={{ width: imageWidth, y: imageEntranceY }}
+        />
+      </div>
+    </section>
+  )
+}
+
+/** md 미만(모바일): 세로 스택 정적 레이아웃, 스크롤 인터랙션 없이 fade-up만. */
 function StaticSection4() {
   const sectionRef = useRef<HTMLElement>(null)
   const reduceMotion = useReducedMotion()
@@ -138,10 +202,15 @@ function StaticSection4() {
 
 export default function Section4() {
   const isDesktop = useMediaQuery('(min-width: 1280px)') // tokens.css --breakpoint-lg
+  const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
 
-  if (!isDesktop) {
-    return <StaticSection4 />
+  if (isDesktop) {
+    return <DesktopSection4 />
   }
 
-  return <DesktopSection4 />
+  if (isTabletUp) {
+    return <TabletSection4 />
+  }
+
+  return <StaticSection4 />
 }

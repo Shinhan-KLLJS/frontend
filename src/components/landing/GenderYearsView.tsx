@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Chip } from '@/components/ui'
+import { useMediaQuery } from '@/lib/useMediaQuery'
 
 const AGE_GROUPS = [
   '0-9세',
@@ -107,6 +108,9 @@ export default function GenderYearsView({
   const [filter, setFilter] = useState<Filter>('all')
   const [inViewRevealed, setInViewRevealed] = useState(false)
   const revealed = active ?? inViewRevealed
+  // 모바일에서는 칩이 한 단계 작은 사이즈(medium→small)를 쓴다.
+  const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
+  const chipSize = isTabletUp ? 'medium' : 'small'
 
   // 데이터 값이 100 기준으로는 다 작아서(최댓값 20% 안팎) 막대가 짧아 보이므로,
   // 실제 최댓값(100)보다 작은 30을 스케일 기준으로 써서 막대가 더 길어 보이게 한다.
@@ -133,7 +137,7 @@ export default function GenderYearsView({
               <Chip
                 key={key}
                 selected={filter === key}
-                size="medium"
+                size={chipSize}
                 onClick={() => setFilter(key)}
               >
                 {label}

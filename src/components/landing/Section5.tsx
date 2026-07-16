@@ -26,19 +26,19 @@ const CARDS: {
     bullets: [
       '팀원을 초대해 함께 협업할 수 있어요.',
       '광고 캠페인을 등록하고 운영할 수 있어요.',
-      '광고 성과를 한 곳에서 함께 관리할 수 있어요.',
+      '팀 전체의 광고 성과를 한눈에 모아볼 수 있어요.',
     ],
     buttonLabel: '팀 생성하러 가기',
   },
   {
     key: 'join',
     title: '초대받은 팀에 참여하세요',
-    body: '초대 코드를 입력해 진행 중인 팀에 바로 합류할 수 있어요.',
+    body: '팀 코드를 입력해 팀에 바로 합류할 수 있어요.',
     image: teamCodeFillImage,
     bullets: [
       '초대 코드로 간편하게 팀에 합류할 수 있어요.',
-      '진행중인 캠페인과 광고 데이터를 확인할 수 있어요.',
-      '팀원과 함께 광고 성과를 분석하고 관리할 수 있어요.',
+      '진행중인 캠페인과 광고 성과를 확인할 수 있어요.',
+      '팀원들과 소통하며 광고 성과를 분석할 수 있어요.',
     ],
     buttonLabel: '팀 합류하러 가기',
   },
@@ -119,10 +119,10 @@ function TeamCard({
       >
         <div className="flex w-full flex-col items-center gap-x5">
           <div className="flex w-full flex-col items-start gap-x1">
-            <h3 className="w-full text-heading-2-bold text-text-primary">
+            <h3 className="w-full text-headline-1-bold text-text-primary md:text-heading-2-bold">
               {card.title}
             </h3>
-            <p className="w-full text-headline-2-regular text-text-tertiary">
+            <p className="w-full text-body-1-normal-regular text-text-tertiary md:text-headline-2-regular">
               {card.body}
             </p>
           </div>
@@ -140,7 +140,7 @@ function TeamCard({
               {card.bullets.map((bullet) => (
                 <div key={bullet} className="flex w-full items-center gap-x2">
                   <Icon icon={Check} size="medium" color="primary" />
-                  <p className="text-headline-2-regular text-text-primary">
+                  <p className="text-label-1-normal-regular text-text-primary">
                     {bullet}
                   </p>
                 </div>
@@ -197,8 +197,8 @@ function TeamCards({
 const TITLE = (
   <>
     원하는 방법으로
-    <br />
-    팀원들과 함께 Loovi를 사용해 보세요
+    <br className="hidden md:block" /> 팀원들과 함께
+    <br className="md:hidden" /> Loovi를 사용해 보세요
   </>
 )
 

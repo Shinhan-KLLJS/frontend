@@ -25,7 +25,7 @@ function HeroCopy({ className = '' }: { className?: string }) {
       <h1 className="text-[32px] font-medium leading-[1.3] tracking-[-0.03em] text-text-primary md:text-[40px] lg:text-[48px]">
         {TITLE}
       </h1>
-      <p className="mt-x2 text-headline-1-regular text-text-primary md:text-heading-2-regular lg:text-heading-1-regular">
+      <p className="mt-x2 text-body-1-reading-regular text-text-primary md:text-heading-2-regular lg:text-heading-1-regular">
         {BODY_LINE_1}
         <br />
         {BODY_LINE_2}
@@ -202,9 +202,12 @@ function DesktopScrollHero() {
 }
 
 export default function ScrollHero() {
-  const isDesktop = useMediaQuery('(min-width: 1280px)') // tokens.css --breakpoint-lg
+  // 다른 섹션과 달리 Hero는 vh/%/min() 등 유동 단위로만 짜여 있어(고정 픽셀
+  // 캔버스나 마우스 호버 의존 없음) 태블릿에서도 큰 재설계 없이 스크롤
+  // 인터랙션을 그대로 켤 수 있다 — lg(1280) 대신 md(768)부터 활성화.
+  const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
   const reduceMotion = useReducedMotion()
-  const showScrollInteraction = isDesktop && !reduceMotion
+  const showScrollInteraction = isTabletUp && !reduceMotion
 
   if (!showScrollInteraction) {
     return <StaticHero />
