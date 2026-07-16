@@ -43,11 +43,12 @@ const COLOR_CLASS: Record<ButtonVariant, Record<ButtonColor, string>> = {
     secondary:
       'border border-line-secondary bg-transparent text-text-primary interaction-light disabled:border-line-disabled disabled:text-text-disabled',
   },
+  // ghost: 테두리·배경 없는 아이콘/텍스트 버튼 (hover 시 옅은 오버레이만)
   ghost: {
     primary:
-      'bg-transparent text-text-brand interaction-normal disabled:text-text-disabled',
+      'bg-transparent text-text-brand interaction-light disabled:text-text-disabled',
     secondary:
-      'bg-transparent text-text-primary interaction-normal disabled:text-text-disabled',
+      'bg-transparent text-text-secondary interaction-light disabled:text-text-disabled',
   },
 }
 

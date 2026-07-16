@@ -1,9 +1,13 @@
 import { Navigate, createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import AppLayout from '@/components/layout/AppLayout'
+import OnboardingLayout from '@/components/layout/OnboardingLayout'
 import CampaignListPage from '@/pages/CampaignListPage'
-import HomePage from '@/pages/HomePage'
+import CampaignRegisterPage from '@/pages/CampaignRegisterPage'
 import ComingSoonPage from '@/pages/ComingSoonPage'
+import CreateTeamPage from '@/pages/CreateTeamPage'
+import DashboardHome from '@/pages/DashboardHome'
+import JoinTeamPage from '@/pages/JoinTeamPage'
 import LoginPage from '@/pages/LoginPage'
 import WelcomePage from '@/pages/WelcomePage'
 import { ToastProvider } from '@/components/ui'
@@ -16,14 +20,19 @@ const router = createBrowserRouter([
   // LoginPage가 세션 복원 결과로 분기: 성공→팀 유무 따라 /·/welcome, 실패→로그인 폼
   { path: '/login/success', element: <LoginPage /> },
   { path: '/login/failure', element: <LoginPage /> },
-  // 로그인 O + 소속 팀 X 사용자의 팀 생성/합류 분기점
+  // 로그인 O + 소속 팀 X 사용자의 팀 온보딩 (이미 팀이 있으면 레이아웃에서 홈으로 리다이렉트)
   {
     path: '/welcome',
     element: (
       <RequireAuth>
-        <WelcomePage />
+        <OnboardingLayout />
       </RequireAuth>
     ),
+    children: [
+      { index: true, element: <WelcomePage /> }, // 팀 생성/합류 분기점 (Choose Plan)
+      { path: 'join', element: <JoinTeamPage /> },
+      { path: 'create', element: <CreateTeamPage /> },
+    ],
   },
   {
     element: (
@@ -32,10 +41,12 @@ const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { path: '/', element: <HomePage /> },
+      { path: '/', element: <DashboardHome /> },
       // 기존 단수형 주소로 접근해도 캠페인 목록으로 자연스럽게 이동합니다.
       { path: '/campaign', element: <Navigate to="/campaigns" replace /> },
       { path: '/campaigns', element: <CampaignListPage /> },
+      // 캠페인 등록 3단계 위저드 (기본 정보 → 매체 선택 → 최종 확인)
+      { path: '/campaigns/new', element: <CampaignRegisterPage /> },
       { path: '/team', element: <ComingSoonPage title="팀 관리" /> },
       { path: '/calendar', element: <ComingSoonPage title="캘린더" /> },
       { path: '/service-intro', element: <ComingSoonPage title="서비스 소개" /> },
