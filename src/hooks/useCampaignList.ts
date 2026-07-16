@@ -37,7 +37,8 @@ export function useCampaignList(
         if (sort === 'name') {
           return left.name.localeCompare(right.name, 'ko-KR')
         }
-        const dateOrder = toTime(left.createdAt) - toTime(right.createdAt)
+        // 목록 API에 등록일이 없어 집행 시작일 기준으로 최신/오래된순 정렬
+        const dateOrder = toTime(left.startDate) - toTime(right.startDate)
         return sort === 'latest' ? -dateOrder : dateOrder
       })
   }, [campaigns, filter, keyword, sort])

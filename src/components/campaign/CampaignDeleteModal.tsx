@@ -3,6 +3,8 @@ import type { Campaign } from '@/lib/campaigns'
 
 interface CampaignDeleteModalProps {
   campaign: Campaign | null
+  /** 삭제 요청 진행 중 — 버튼 비활성화 */
+  pending?: boolean
   onClose: () => void
   onConfirm: () => void
 }
@@ -10,6 +12,7 @@ interface CampaignDeleteModalProps {
 /** 삭제 영향을 안내하고 사용자의 명시적인 확인 후에만 삭제를 진행합니다. */
 export default function CampaignDeleteModal({
   campaign,
+  pending = false,
   onClose,
   onConfirm,
 }: CampaignDeleteModalProps) {
@@ -26,11 +29,12 @@ export default function CampaignDeleteModal({
             variant="line"
             color="secondary"
             className="w-[143px]"
+            disabled={pending}
             onClick={onClose}
           >
             아니요
           </Button>
-          <Button className="w-[143px]" onClick={onConfirm}>
+          <Button className="w-[143px]" disabled={pending} onClick={onConfirm}>
             네
           </Button>
         </div>
