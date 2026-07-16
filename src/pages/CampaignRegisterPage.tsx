@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
@@ -12,13 +12,20 @@ import type { UploadStatus } from '@/components/campaign/VideoUploadCard'
 import { Icon, ProgressBar, useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
 import {
+  ALL_SIGUNGU,
   campaignInfoSchema,
   CampaignApiError,
   createCampaign,
+  toApiDate,
   uploadCampaignVideo,
+  useMediaRegions,
   useMediaUnits,
 } from '@/lib/campaign'
-import type { CampaignInfoValues } from '@/lib/campaign'
+import type {
+  CampaignInfoValues,
+  CampaignMedia,
+  MediaUnitsQuery,
+} from '@/lib/campaign'
 
 const REGISTER_STEPS = ['기본 정보', '매체 선택', '최종 확인']
 
@@ -42,7 +49,10 @@ function extractVideoThumbnail(file: File, maxWidth = 640): Promise<string> {
     video.muted = true
     video.preload = 'metadata'
 
-    const timer = setTimeout(() => fail('썸네일 생성 시간이 초과되었습니다.'), 10000)
+    const timer = setTimeout(
+      () => fail('썸네일 생성 시간이 초과되었습니다.'),
+      10000,
+    )
     function cleanup() {
       clearTimeout(timer)
       URL.revokeObjectURL(url)
@@ -130,7 +140,12 @@ export default function CampaignRegisterPage() {
       return
     }
     const seq = ++uploadSeqRef.current
-    setUpload({ status: 'uploading', file, thumbnailUrl: null, creativeToken: null })
+    setUpload({
+      status: 'uploading',
+      file,
+      thumbnailUrl: null,
+      creativeToken: null,
+    })
 
     // 썸네일 추출 — 업로드 완료와 무관하게 즉시 미리보기 생성 (다음 단계 진행 판단 기준)
     extractVideoThumbnail(file)
@@ -164,16 +179,55 @@ export default function CampaignRegisterPage() {
     setUpload(INITIAL_UPLOAD)
   }
 
-  // 매체 선택 — 카드·지도 핀이 하나의 선택 상태를 공유하도록 페이지가 소유.
-  // 목록 조회는 대시보드와 동일하게 react-query(useMediaUnits)로 캐싱·loading 처리.
-  // 매체 선택 단계(step 2) 진입 시에만 조회 — 기본 정보 입력 중 불필요한 호출 방지
-  const { data: mediaList = [], isPending: mediaLoading } = useMediaUnits(
-    step >= 2,
-  )
-  const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null)
+  // 매체 선택 — 지역/검색 필터를 페이지가 소유해 서버사이드 조회를 구동한다.
+  // step 2 진입 시에만 지역/목록을 조회 (기본 정보 입력 중 불필요한 호출 방지)
+  const onStep2 = step >= 2
+  const { data: regions = [] } = useMediaRegions(onStep2)
+  const [sido, setSido] = useState('서울특별시')
+  // 진입 기본: 서울특별시 전체 매체 (지도는 중구 부근에서 시작해 결과로 맞춰짐)
+  const [sigungu, setSigungu] = useState(ALL_SIGUNGU)
+  const [keyword, setKeyword] = useState('')
 
-  const selectedMedia =
-    mediaList.find((media) => media.id === selectedMediaId) ?? null
+  // 검색어 디바운스 — 키 입력마다 재조회하지 않도록
+  const [debouncedKeyword, setDebouncedKeyword] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300)
+    return () => clearTimeout(t)
+  }, [keyword])
+
+  // 매체 available은 캠페인 송출기간 기준으로 계산되므로 기간을 함께 조회 파라미터로 보낸다
+  const period = form.getValues('period')
+  // 검색어가 있으면 지역보다 우선(검색 결과 우선), 없으면 지역(시/도·시/군/구) 필터
+  const mediaQuery: MediaUnitsQuery = {
+    ...(debouncedKeyword
+      ? { keyword: debouncedKeyword }
+      : { sido, sigungu: sigungu === ALL_SIGUNGU ? undefined : sigungu }),
+    executionStartDate: period.start ? toApiDate(period.start) : undefined,
+    executionEndDate: period.end ? toApiDate(period.end) : undefined,
+  }
+
+  const { data: mediaList = [], isPending: mediaLoading } = useMediaUnits(
+    onStep2,
+    mediaQuery,
+  )
+
+  // 선택 매체는 객체로 보관 — 지역/검색 필터로 목록이 바뀌어도 선택이 유지되도록
+  const [selectedMedia, setSelectedMedia] = useState<CampaignMedia | null>(null)
+  const selectedMediaId = selectedMedia?.id ?? null
+
+  // available=false 매체는 선택 불가 — 안내 토스트만 띄우고 선택하지 않는다
+  const handleSelectMedia = (media: CampaignMedia) => {
+    if (!media.available) {
+      toast('선택한 송출기간에 등록할 수 없는 매체입니다.', { status: 'error' })
+      return
+    }
+    setSelectedMedia(media)
+  }
+
+  const handleSidoChange = (next: string) => {
+    setSido(next)
+    setSigungu(ALL_SIGUNGU) // 시/도 변경 시 전체(해당 시/도 전체 매체)로
+  }
 
   // 캠페인 등록 제출
   const [submitting, setSubmitting] = useState(false)
@@ -260,23 +314,30 @@ export default function CampaignRegisterPage() {
           </>
         )}
         {step === 2 && (
-          <div className="relative min-h-[640px] w-full overflow-hidden rounded-x4 border border-line-secondary">
-            {/* 리스트 패널이 불투명하므로 지도는 패널 오른쪽 영역만 차지 (지역 드롭다운이 지도 좌상단에 오도록).
-                MediaMap 루트가 relative라 포지셔닝은 래퍼가 담당 */}
-            <div className="absolute inset-y-0 left-[372px] right-0">
+          <div className="relative min-h-[640px] w-full overflow-hidden rounded-x3 border border-line-secondary">
+            {/* 지도는 전체를 채우고, 리스트는 좌측에 rounded-x3 카드로 떠 있음 (Figma 구조).
+                MediaMap 루트가 relative라 위치 충돌 방지 위해 래퍼가 absolute를 담당 */}
+            <div className="absolute inset-0">
               <MediaMap
                 className="size-full"
                 mediaList={mediaList}
+                regions={regions}
+                sido={sido}
+                sigungu={sigungu}
+                onSidoChange={handleSidoChange}
+                onSigunguChange={setSigungu}
                 selectedMediaId={selectedMediaId}
-                onSelectMedia={setSelectedMediaId}
+                onSelectMedia={handleSelectMedia}
               />
             </div>
             <MediaListPanel
-              className="absolute inset-y-0 left-0 z-10 w-[372px] border-r border-line-secondary"
+              className="absolute inset-y-0 left-0 z-10 w-[372px] overflow-hidden rounded-x3 border border-line-secondary"
               mediaList={mediaList}
               loading={mediaLoading}
+              keyword={keyword}
+              onKeywordChange={setKeyword}
               selectedMediaId={selectedMediaId}
-              onSelectMedia={setSelectedMediaId}
+              onSelectMedia={setSelectedMedia}
               onPrev={handleBack}
               onNext={() => setStep(3)}
             />

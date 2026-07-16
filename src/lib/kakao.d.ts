@@ -10,6 +10,12 @@ declare namespace kakao.maps {
     constructor(lat: number, lng: number)
   }
 
+  /** 여러 좌표를 감싸는 영역 — 매체 필터 결과에 맞춰 지도 범위를 조정할 때 사용 */
+  class LatLngBounds {
+    constructor()
+    extend(latlng: LatLng): void
+  }
+
   interface MapOptions {
     center: LatLng
     /** 확대 레벨 — 숫자가 클수록 넓은 영역 */
@@ -20,7 +26,11 @@ declare namespace kakao.maps {
     constructor(container: HTMLElement, options: MapOptions)
     setCenter(latlng: LatLng): void
     setLevel(level: number): void
+    /** 현재 확대 레벨 (확대/축소 버튼에서 ±1 조정용) */
+    getLevel(): number
     panTo(latlng: LatLng): void
+    /** 주어진 영역이 모두 보이도록 중심·레벨을 자동 조정 */
+    setBounds(bounds: LatLngBounds): void
   }
 
   interface CustomOverlayOptions {

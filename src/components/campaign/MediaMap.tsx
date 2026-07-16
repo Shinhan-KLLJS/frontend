@@ -1,13 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { Dropdown } from '@/components/ui'
-import type { CampaignMedia } from '@/lib/campaign'
+import { Minus, Plus } from 'lucide-react'
+import { Button, Dropdown } from '@/components/ui'
+import { ALL_SIGUNGU } from '@/lib/campaign'
+import type { CampaignMedia, MediaRegion } from '@/lib/campaign'
 import { loadKakaoMaps } from '@/lib/kakaoMap'
-import { REGIONS } from '@/lib/regions'
+import { DEFAULT_MAP_CENTER, findRegionCoords } from '@/lib/regions'
 
 export interface MediaMapProps {
   mediaList: CampaignMedia[]
+  /** 시/도·시/군/구 옵션 (API). 시/군/구는 앞에 '전체'를 덧붙여 노출 */
+  regions: MediaRegion[]
+  sido: string
+  sigungu: string
+  onSidoChange: (sido: string) => void
+  onSigunguChange: (sigungu: string) => void
   selectedMediaId: string | null
-  onSelectMedia: (id: string) => void
+  onSelectMedia: (media: CampaignMedia) => void
   className?: string
 }
 
@@ -15,11 +23,19 @@ export interface MediaMapProps {
 const SIDO_LEVEL = 8
 const SIGUNGU_LEVEL = 5
 
-/** 핀 스타일 — CustomOverlay content는 React 밖 DOM이라 클래스 문자열로 관리 */
-function pinClass(selected: boolean): string {
+/**
+ * 핀 스타일 — CustomOverlay content는 React 밖 DOM이라 클래스 문자열로 관리.
+ * 24px 이미지 + border-4(기본 cool-neutral-700, 선택 line-brand, 미가용 line-disabled).
+ * size-[32px] + border-4(border-box) → 이미지 영역 24px. bg는 이미지 깨질 때 fallback.
+ */
+function pinClass(selected: boolean, available: boolean): string {
   return [
-    'flex cursor-pointer items-center rounded-full p-x1 shadow-normal-small transition-colors',
-    selected ? 'bg-line-brand' : 'bg-[var(--cool-neutral-700)]',
+    'block size-[32px] shrink-0 cursor-pointer overflow-hidden rounded-full border-4 bg-[var(--cool-neutral-500)] shadow-normal-small transition-colors',
+    selected
+      ? 'border-line-brand'
+      : available
+        ? 'border-[var(--cool-neutral-700)]'
+        : 'border-line-disabled',
   ].join(' ')
 }
 
@@ -27,10 +43,16 @@ type MapStatus = 'loading' | 'ready' | 'unavailable'
 
 /**
  * 매체 선택 지도 — 카카오맵 + 매체 썸네일 핀(CustomOverlay) + 지역 이동 드롭다운.
- * SDK 키가 없거나 로드에 실패하면 지도 대신 안내 placeholder를 보여준다 (개발 환경 fallback)
+ * 필터(지역/검색)는 부모가 소유하고, 여기선 전달받은 mediaList를 핀으로 그린다.
+ * 목록이 바뀌면 핀을 갱신하고 결과 범위로 지도를 맞춘다. SDK 키가 없으면 안내 placeholder.
  */
 export default function MediaMap({
   mediaList,
+  regions,
+  sido,
+  sigungu,
+  onSidoChange,
+  onSigunguChange,
   selectedMediaId,
   onSelectMedia,
   className,
@@ -42,15 +64,16 @@ export default function MediaMap({
   )
   const [status, setStatus] = useState<MapStatus>('loading')
 
-  // 핀 클릭 리스너가 항상 최신 콜백을 부르도록 ref 경유 (오버레이 DOM은 재생성하지 않으므로)
+  // 핀 클릭 리스너가 항상 최신 값을 부르도록 ref 경유 (오버레이 DOM은 재생성하지 않으므로)
   const onSelectMediaRef = useRef(onSelectMedia)
   onSelectMediaRef.current = onSelectMedia
+  const mediaListRef = useRef(mediaList)
+  mediaListRef.current = mediaList
 
-  const [sido, setSido] = useState(REGIONS[0].name)
-  const region = REGIONS.find((r) => r.name === sido) ?? REGIONS[0]
-  const [sigungu, setSigungu] = useState(region.districts[0].name)
+  const currentRegion = regions.find((r) => r.sido === sido)
+  const sigunguOptions = [ALL_SIGUNGU, ...(currentRegion?.sigungu ?? [])]
 
-  // 지도 생성 (mount 1회) — 초기 위치는 첫 지역의 첫 시/군/구
+  // 지도 생성 (mount 1회) — 초기 위치는 기본 중심
   useEffect(() => {
     let cancelled = false
     loadKakaoMaps().then((sdk) => {
@@ -59,9 +82,11 @@ export default function MediaMap({
         setStatus('unavailable')
         return
       }
-      const initial = REGIONS[0].districts[0]
       mapRef.current = new sdk.maps.Map(containerRef.current, {
-        center: new sdk.maps.LatLng(initial.lat, initial.lng),
+        center: new sdk.maps.LatLng(
+          DEFAULT_MAP_CENTER.lat,
+          DEFAULT_MAP_CENTER.lng,
+        ),
         level: SIGUNGU_LEVEL,
       })
       setStatus('ready')
@@ -71,26 +96,36 @@ export default function MediaMap({
     }
   }, [])
 
-  // 매체 → 핀 오버레이 생성 (이미 만든 핀은 재사용 — 선택 변경 시 클래스만 토글)
+  // 매체 → 핀 오버레이 동기화 (목록에 없어진 핀 제거 + 새 핀 추가)
   useEffect(() => {
     const map = mapRef.current
     const sdk = window.kakao
     if (status !== 'ready' || !map || !sdk?.maps) return
 
     const overlays = overlaysRef.current
+    const nextIds = new Set(mediaList.map((m) => m.id))
+    overlays.forEach((entry, id) => {
+      if (!nextIds.has(id)) {
+        entry.overlay.setMap(null)
+        overlays.delete(id)
+      }
+    })
     mediaList.forEach((media) => {
       if (overlays.has(media.id)) return
-
       const el = document.createElement('button')
       el.type = 'button'
-      el.className = pinClass(false)
+      el.className = pinClass(media.id === selectedMediaId, media.available)
       el.setAttribute('aria-label', `${media.name} 선택`)
+      // 깨지거나 없는 photoUrl이면 이미지를 숨겨 중립 배경(fallback)만 남긴다
       const img = document.createElement('img')
       img.src = media.thumbnail
       img.alt = ''
-      img.className = 'size-[24px] rounded-full object-cover'
+      img.className = 'size-full object-cover'
+      img.onerror = () => {
+        img.style.display = 'none'
+      }
       el.appendChild(img)
-      el.addEventListener('click', () => onSelectMediaRef.current(media.id))
+      el.addEventListener('click', () => onSelectMediaRef.current(media))
 
       const overlay = new sdk.maps.CustomOverlay({
         position: new sdk.maps.LatLng(media.lat, media.lng),
@@ -100,6 +135,16 @@ export default function MediaMap({
       overlay.setMap(map)
       overlays.set(media.id, { overlay, el })
     })
+  }, [status, mediaList, selectedMediaId])
+
+  // 목록(필터 결과)이 바뀌면 결과 매체가 모두 보이도록 지도 범위를 맞춘다
+  useEffect(() => {
+    const map = mapRef.current
+    const sdk = window.kakao
+    if (status !== 'ready' || !map || !sdk?.maps || mediaList.length === 0) return
+    const bounds = new sdk.maps.LatLngBounds()
+    mediaList.forEach((m) => bounds.extend(new sdk.maps.LatLng(m.lat, m.lng)))
+    map.setBounds(bounds)
   }, [status, mediaList])
 
   // unmount 시 오버레이 정리
@@ -111,20 +156,27 @@ export default function MediaMap({
     }
   }, [])
 
-  // 선택 동기화 — 핀 링 색 토글 + 선택 매체로 지도 이동
+  // 선택 핀 강조 (핀 재생성 대비 mediaList도 의존)
   useEffect(() => {
     if (status !== 'ready') return
     overlaysRef.current.forEach(({ overlay, el }, id) => {
       const selected = id === selectedMediaId
-      el.className = pinClass(selected)
+      const available =
+        mediaListRef.current.find((m) => m.id === id)?.available ?? true
+      el.className = pinClass(selected, available)
       overlay.setZIndex(selected ? 10 : 1)
     })
-    const selected = mediaList.find((media) => media.id === selectedMediaId)
+  }, [status, selectedMediaId, mediaList])
+
+  // 선택 변경 시(리스트 카드 클릭 포함) 해당 매체로 지도 이동
+  useEffect(() => {
+    if (status !== 'ready' || !selectedMediaId) return
+    const selected = mediaListRef.current.find((m) => m.id === selectedMediaId)
     const sdk = window.kakao
     if (selected && mapRef.current && sdk?.maps) {
       mapRef.current.panTo(new sdk.maps.LatLng(selected.lat, selected.lng))
     }
-  }, [status, selectedMediaId, mediaList])
+  }, [status, selectedMediaId])
 
   const moveTo = (lat: number, lng: number, level: number) => {
     const map = mapRef.current
@@ -134,19 +186,26 @@ export default function MediaMap({
     map.setCenter(new sdk.maps.LatLng(lat, lng))
   }
 
+  // 확대(-1)·축소(+1) — 카카오는 레벨이 작을수록 확대
+  const handleZoom = (delta: number) => {
+    const map = mapRef.current
+    if (!map) return
+    map.setLevel(map.getLevel() + delta)
+  }
+
   const handleSidoChange = (name: string) => {
-    const next = REGIONS.find((r) => r.name === name)
-    if (!next) return
-    setSido(name)
-    setSigungu(next.districts[0].name)
-    moveTo(next.lat, next.lng, SIDO_LEVEL)
+    onSidoChange(name)
+    const coords = findRegionCoords(name)
+    if (coords) moveTo(coords.lat, coords.lng, SIDO_LEVEL)
   }
 
   const handleSigunguChange = (name: string) => {
-    const district = region.districts.find((d) => d.name === name)
-    if (!district) return
-    setSigungu(name)
-    moveTo(district.lat, district.lng, SIGUNGU_LEVEL)
+    onSigunguChange(name)
+    const coords =
+      name === ALL_SIGUNGU
+        ? findRegionCoords(sido)
+        : findRegionCoords(sido, name)
+    if (coords) moveTo(coords.lat, coords.lng, SIGUNGU_LEVEL)
   }
 
   return (
@@ -169,13 +228,13 @@ export default function MediaMap({
         </div>
       )}
 
-      {/* 지역 이동 드롭다운 — 지도 좌상단 (리스트 패널 오른쪽) */}
-      <div className="absolute left-x3 top-x3 z-10 flex gap-x2">
+      {/* 지역 이동 드롭다운 — 리스트 패널(372px) 오른쪽 상단 */}
+      <div className="absolute left-[384px] top-x3 z-10 flex gap-x2">
         <div className="w-[120px]">
           <Dropdown
             size="medium"
             aria-label="시/도 선택"
-            options={REGIONS.map((r) => ({ value: r.name, label: r.name }))}
+            options={regions.map((r) => ({ value: r.sido, label: r.sido }))}
             value={sido}
             onChange={handleSidoChange}
             disabled={status !== 'ready'}
@@ -185,16 +244,39 @@ export default function MediaMap({
           <Dropdown
             size="medium"
             aria-label="시/군/구 선택"
-            options={region.districts.map((d) => ({
-              value: d.name,
-              label: d.name,
-            }))}
+            options={sigunguOptions.map((s) => ({ value: s, label: s }))}
             value={sigungu}
             onChange={handleSigunguChange}
             disabled={status !== 'ready'}
           />
         </div>
       </div>
+
+      {/* 확대/축소 버튼 — 지도 우하단 (아이콘 온리 Button, Figma: 흰 배경·line-primary·그림자) */}
+      {status === 'ready' && (
+        <div className="absolute bottom-[19px] right-[19px] z-10 flex w-[32px] flex-col gap-x1">
+          <Button
+            iconOnly
+            variant="ghost"
+            color="secondary"
+            size="small"
+            leadingIcon={Plus}
+            aria-label="지도 확대"
+            onClick={() => handleZoom(-1)}
+            className="border border-line-primary bg-[var(--cool-neutral-0)] shadow-normal-small"
+          />
+          <Button
+            iconOnly
+            variant="ghost"
+            color="secondary"
+            size="small"
+            leadingIcon={Minus}
+            aria-label="지도 축소"
+            onClick={() => handleZoom(1)}
+            className="border border-line-primary bg-[var(--cool-neutral-0)] shadow-normal-small"
+          />
+        </div>
+      )}
     </div>
   )
 }

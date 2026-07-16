@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { ImageOff } from 'lucide-react'
 import type { CampaignMedia } from '@/lib/campaign'
 
 export interface MediaCardProps {
@@ -6,12 +8,14 @@ export interface MediaCardProps {
   onSelect: () => void
 }
 
-/** 매체 카드 — 썸네일/매체명/주소/해상도/형태 태그, 선택 시 회색 하이라이트 */
+/** 매체 카드 — 썸네일/매체명/주소/해상도/형태 태그. 호버·선택 스타일은 카드 자체에만 */
 export default function MediaCard({
   media,
   selected,
   onSelect,
 }: MediaCardProps) {
+  const [imgError, setImgError] = useState(false)
+
   return (
     <button
       type="button"
@@ -19,14 +23,21 @@ export default function MediaCard({
       onClick={onSelect}
       className={[
         'flex w-full cursor-pointer items-center gap-x2 rounded-x2 p-x2 text-left transition-colors',
-        selected ? 'bg-bg-primary' : 'bg-bg-secondary interaction-light',
+        selected ? 'bg-bg-primary interaction-light' : 'bg-bg-secondary',
       ].join(' ')}
     >
-      <img
-        src={media.thumbnail}
-        alt=""
-        className="h-[92px] w-[70px] shrink-0 rounded-x1 object-cover"
-      />
+      {imgError || !media.thumbnail ? (
+        <div className="flex h-[92px] w-[70px] shrink-0 items-center justify-center rounded-x1 bg-bg-tertiary">
+          <ImageOff size={20} className="text-text-caption" />
+        </div>
+      ) : (
+        <img
+          src={media.thumbnail}
+          alt=""
+          onError={() => setImgError(true)}
+          className="h-[92px] w-[70px] shrink-0 rounded-x1 object-cover"
+        />
+      )}
       <span className="flex min-w-0 flex-1 flex-col gap-x1">
         <span className="flex flex-col">
           <span className="truncate text-body-1-normal-bold text-text-primary">
@@ -49,11 +60,9 @@ export default function MediaCard({
             {media.types.map((type) => (
               <span
                 key={type}
-                className={[
-                  'rounded-x1 px-[6px] py-xs text-caption-1-medium text-text-secondary',
-                  // 선택 하이라이트(bg-primary)와 겹치지 않게 태그 배경을 반전
-                  selected ? 'bg-bg-secondary' : 'bg-bg-primary',
-                ].join(' ')}
+                className={
+                  'rounded-x1 px-[6px] py-xs text-caption-1-medium text-text-secondary bg-bg-primary'
+                }
               >
                 {type}
               </span>

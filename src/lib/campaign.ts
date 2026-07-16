@@ -151,26 +151,85 @@ function toCampaignMedia(dto: MediaUnitDto): CampaignMedia {
   }
 }
 
-/** 송출 매체 리스트 조회 — 검색·지역 필터는 현재 클라이언트에서 처리하므로 전체 목록을 받는다 */
-export async function fetchCampaignMedia(): Promise<CampaignMedia[]> {
+/** 매체 목록 조회 필터 — 서버사이드(GET /media-units 쿼리 파라미터) */
+export interface MediaUnitsQuery {
+  /** 지역 검색어 (매체명·주소 등) — 있으면 지역 필터보다 우선 */
+  keyword?: string
+  sido?: string
+  sigungu?: string
+  /** 캠페인 송출기간 (yyyy-MM-dd) — 이 기간 기준으로 available(등록 가능 여부) 계산 */
+  executionStartDate?: string
+  executionEndDate?: string
+}
+
+/** 송출 매체 리스트 조회 — keyword/sido/sigungu 필터 + 송출기간별 available 계산 */
+export async function fetchCampaignMedia(
+  query: MediaUnitsQuery = {},
+): Promise<CampaignMedia[]> {
   const result = await unwrap(
-    api.get<ApiResponse<MediaUnitsResult>>(API_ENDPOINTS.mediaUnits),
+    api.get<ApiResponse<MediaUnitsResult>>(API_ENDPOINTS.mediaUnits, {
+      params: {
+        keyword: query.keyword || undefined,
+        sido: query.sido || undefined,
+        sigungu: query.sigungu || undefined,
+        executionStartDate: query.executionStartDate || undefined,
+        executionEndDate: query.executionEndDate || undefined,
+      },
+    }),
   )
   return result.mediaUnits.map(toCampaignMedia)
 }
 
 export const mediaUnitKeys = {
   all: ['media-units'] as const,
+  list: (query: MediaUnitsQuery) => ['media-units', 'list', query] as const,
 }
 
 /**
  * 매체 목록 react-query 훅 — 대시보드(useCampaigns)와 동일 패턴 (캐싱·loading/error).
  * enabled=false면 조회를 미룬다 (매체 선택 단계 진입 전 불필요한 호출 방지).
+ * query가 바뀌면 자동 재조회한다.
  */
-export function useMediaUnits(enabled = true) {
+export function useMediaUnits(enabled = true, query: MediaUnitsQuery = {}) {
   return useQuery({
-    queryKey: mediaUnitKeys.all,
-    queryFn: fetchCampaignMedia,
+    queryKey: mediaUnitKeys.list(query),
+    queryFn: () => fetchCampaignMedia(query),
+    enabled,
+  })
+}
+
+// ── 매체 지역 목록 ─────────────────────────────────────────
+
+/** 시/군/구 드롭다운의 '전체'(시/도 전체) 옵션 값 — 선택 시 sigungu 필터를 생략한다 */
+export const ALL_SIGUNGU = '전체'
+
+/** 시/도 + 하위 시/군/구 목록 (지역 드롭다운 옵션 소스) */
+export interface MediaRegion {
+  sido: string
+  sigungu: string[]
+}
+
+interface MediaRegionsResult {
+  regions: MediaRegion[]
+}
+
+/** 매체가 존재하는 지역 목록 조회 — 드롭다운 옵션 채움. 지도 이동 좌표는 별도(정적) */
+export async function fetchMediaRegions(): Promise<MediaRegion[]> {
+  const result = await unwrap(
+    api.get<ApiResponse<MediaRegionsResult>>(API_ENDPOINTS.mediaUnitRegions),
+  )
+  return result.regions
+}
+
+export const mediaRegionKeys = {
+  all: ['media-unit-regions'] as const,
+}
+
+/** 매체 지역 목록 react-query 훅 */
+export function useMediaRegions(enabled = true) {
+  return useQuery({
+    queryKey: mediaRegionKeys.all,
+    queryFn: fetchMediaRegions,
     enabled,
   })
 }
@@ -243,7 +302,7 @@ interface CreateCampaignResult {
 }
 
 /** Date → 'YYYY-MM-DD' (로컬 기준 — toISOString의 UTC 변환으로 날짜가 하루 밀리는 것 방지) */
-function toApiDate(date: Date): string {
+export function toApiDate(date: Date): string {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')

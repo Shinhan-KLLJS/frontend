@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import MediaCard from '@/components/campaign/MediaCard'
 import { Button, ScrollArea, SearchBar } from '@/components/ui'
 import type { CampaignMedia } from '@/lib/campaign'
@@ -6,44 +5,38 @@ import type { CampaignMedia } from '@/lib/campaign'
 export interface MediaListPanelProps {
   mediaList: CampaignMedia[]
   loading?: boolean
+  /** 지역 검색어 — 서버사이드 필터 (부모가 소유) */
+  keyword: string
+  onKeywordChange: (value: string) => void
   selectedMediaId: string | null
-  onSelectMedia: (id: string) => void
+  onSelectMedia: (media: CampaignMedia) => void
   onPrev: () => void
   onNext: () => void
   className?: string
 }
 
-/** 매체 선택 좌측 패널 — 지역 검색 필터 + 매체 카드 리스트 + 이전/다음 */
+/** 매체 선택 좌측 패널 — 지역 검색 + 매체 카드 리스트 + 이전/다음. 목록은 이미 서버에서 필터됨 */
 export default function MediaListPanel({
   mediaList,
   loading = false,
+  keyword,
+  onKeywordChange,
   selectedMediaId,
   onSelectMedia,
   onPrev,
   onNext,
   className,
 }: MediaListPanelProps) {
-  const [query, setQuery] = useState('')
-
-  const keyword = query.trim()
-  const filtered = keyword
-    ? mediaList.filter((media) =>
-        [media.name, media.address, media.sido, media.sigungu].some((text) =>
-          text.includes(keyword),
-        ),
-      )
-    : mediaList
-
   return (
     <div
       className={['flex flex-col bg-bg-secondary', className]
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="flex min-h-0 flex-1 flex-col gap-x4 p-x5 pb-0">
+      <div className="flex min-h-0 flex-1 flex-col gap-x4 rounded-x3 p-x5 pb-0">
         <SearchBar
-          value={query}
-          onChange={setQuery}
+          value={keyword}
+          onChange={onKeywordChange}
           placeholder="원하는 지역을 검색하세요"
           aria-label="매체 검색"
         />
@@ -61,15 +54,15 @@ export default function MediaListPanel({
         ) : (
           <ScrollArea size="small" className="min-h-0 flex-1">
             <div className="flex flex-col gap-x2">
-              {filtered.map((media) => (
+              {mediaList.map((media) => (
                 <MediaCard
                   key={media.id}
                   media={media}
                   selected={media.id === selectedMediaId}
-                  onSelect={() => onSelectMedia(media.id)}
+                  onSelect={() => onSelectMedia(media)}
                 />
               ))}
-              {filtered.length === 0 && (
+              {mediaList.length === 0 && (
                 <p className="p-x2 text-label-1-normal-regular text-text-caption">
                   검색 결과가 없습니다.
                 </p>
