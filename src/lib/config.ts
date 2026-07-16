@@ -2,6 +2,9 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'https://api.loovi.my'
 
+/** 카카오맵 JS SDK 앱 키 — 없으면 지도 대신 안내 placeholder 표시 (키 값은 .env에만, 저장소 미포함) */
+export const KAKAO_MAP_APP_KEY = import.meta.env.VITE_KAKAO_MAP_APP_KEY ?? ''
+
 /** 백엔드 엔드포인트 모음 — 경로 변경 시 여기만 수정 */
 export const API_ENDPOINTS = {
   kakaoAuthorize: `${API_BASE_URL}/oauth2/authorization/kakao`, // 카카오 인가 시작 (전체 페이지 이동용 절대 URL)
@@ -13,6 +16,11 @@ export const API_ENDPOINTS = {
   businessRegistration: '/api/v1/teams/business-registration', // POST 사업자등록증 업로드(OCR)
   teamJoin: '/api/v1/teams/join', // POST 팀 합류
   teamInviteCode: (teamId: number) => `/api/v1/teams/${teamId}/invite-code`, // POST 초대 코드 발급
+  // 캠페인 등록
+  mediaUnits: '/api/v1/media-units', // GET 송출 매체 목록·검색 (keyword·sido·sigungu·executionStartDate·executionEndDate 쿼리)
+  mediaUnitRegions: '/api/v1/media-units/regions', // GET 매체 서비스 지역 목록
+  campaignCreativeUploadUrl: '/api/v1/campaign-creatives/upload-url', // POST 광고 영상 presigned 업로드 URL 발급
+  teamCampaigns: (teamId: number) => `/api/v1/teams/${teamId}/campaigns`, // POST 캠페인 등록
   // 대시보드
   dashboardCampaigns: '/api/v1/dashboard/campaigns', // GET 캠페인 목록
   dashboardCampaignDetail: (campaignId: number) =>
