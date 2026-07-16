@@ -6,6 +6,7 @@ import {
   useScroll,
   useTransform,
 } from 'motion/react'
+import Button from '@/components/ui/Button'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 import campaignListImage from '@/assets/landing/Campaign-List.png'
 
@@ -67,11 +68,11 @@ function DesktopSection4() {
 
   return (
     <section ref={sectionRef} className="relative -mt-[150dvh] h-[220dvh]">
-      <div className="sticky top-0 flex h-dvh items-center overflow-hidden px-x10">
+      <div className="pointer-events-none sticky top-0 flex h-dvh items-center overflow-hidden px-x10">
         <div className="relative mx-auto h-[834px] w-full max-w-[1200px]">
           <motion.div
             ref={textRef}
-            className="absolute left-0 top-0 w-[367px]"
+            className="pointer-events-auto absolute left-0 top-0 w-[367px]"
             style={{ opacity: textOpacity.get(), y: imageY }}
           >
             <h2 className="text-display-3-medium text-text-primary">
@@ -80,6 +81,9 @@ function DesktopSection4() {
             <p className="mt-x3 text-heading-1-regular text-text-primary">
               {BODY}
             </p>
+            <Button variant="default" color="primary" size="large" className="mt-x10">
+              캠페인 등록하러 가기
+            </Button>
           </motion.div>
 
           <motion.img
