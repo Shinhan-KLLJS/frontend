@@ -2,6 +2,7 @@
 @import './styles/tokens.css';
 @import './styles/interaction.css';
 @import './styles/scrollbar.css';
+@import './styles/particle.css';
 
 @layer base {
   body {
