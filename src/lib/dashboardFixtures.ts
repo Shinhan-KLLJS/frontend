@@ -96,6 +96,13 @@ export const DASHBOARD_CAMPAIGNS: DashboardCampaignFixture[] = [
         description: '매체 주변을 통과한 전체 인원입니다.',
       },
       {
+        key: 'exposure',
+        label: '노출인구',
+        value: '8,123명',
+        comparison: -0.5,
+        description: '유효 시청 조건을 충족한 추정 인원입니다.',
+      },
+      {
         key: 'attention',
         label: '주목인구',
         value: '123명',
@@ -108,13 +115,6 @@ export const DASHBOARD_CAMPAIGNS: DashboardCampaignFixture[] = [
         value: '3.5%',
         comparison: 0,
         description: '전체 유동인구 중 주목인구의 비율입니다.',
-      },
-      {
-        key: 'exposure',
-        label: '노출인구',
-        value: '8,123명',
-        comparison: -0.5,
-        description: '유효 시청 조건을 충족한 추정 인원입니다.',
       },
     ],
     viewers: createViewers([
@@ -146,6 +146,13 @@ export const DASHBOARD_CAMPAIGNS: DashboardCampaignFixture[] = [
         description: '매체 주변을 통과한 전체 인원입니다.',
       },
       {
+        key: 'exposure',
+        label: '노출인구',
+        value: '3,721명',
+        comparison: 1.4,
+        description: '유효 시청 조건을 충족한 추정 인원입니다.',
+      },
+      {
         key: 'attention',
         label: '주목인구',
         value: '5,936명',
@@ -158,13 +165,6 @@ export const DASHBOARD_CAMPAIGNS: DashboardCampaignFixture[] = [
         value: '60.3%',
         comparison: 3.1,
         description: '전체 유동인구 중 주목인구의 비율입니다.',
-      },
-      {
-        key: 'exposure',
-        label: '노출인구',
-        value: '3,721명',
-        comparison: 1.4,
-        description: '유효 시청 조건을 충족한 추정 인원입니다.',
       },
     ],
     viewers: createViewers([

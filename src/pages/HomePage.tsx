@@ -2,7 +2,9 @@ import { useState } from 'react'
 import AgeExposureHeatmap from '@/components/dashboard/AgeExposureHeatmap'
 import type { ExposureCell } from '@/components/dashboard/AgeExposureHeatmap'
 import AverageWatchTimeCard from '@/components/dashboard/AverageWatchTimeCard'
-import DashboardToolbar from '@/components/dashboard/DashboardToolbar'
+import DashboardToolbar, {
+  type CampaignOption,
+} from '@/components/dashboard/DashboardToolbar'
 import DemographicRatioCard from '@/components/dashboard/DemographicRatioCard'
 import type { DemographicRatio } from '@/components/dashboard/DemographicRatioCard'
 import type { GenderFilter } from '@/components/dashboard/GenderFilterChips'
@@ -15,18 +17,10 @@ import type { WatchTimeBucket } from '@/components/dashboard/AverageWatchTimeCar
 import TolaSection from '@/components/dashboard/TolaSection'
 import type { TolaMetric } from '@/components/dashboard/TolaSection'
 import type { DateRange } from '@/components/ui'
-import {
-  DASHBOARD_AGE_GROUPS,
-  DASHBOARD_HOURS,
-} from '@/lib/dashboardHeatmapFixture'
-import {
-  DASHBOARD_CAMPAIGNS,
-  type DashboardCampaignFixture,
-} from '@/lib/dashboardFixtures'
 
 export interface HomePageProps {
-  /** 섹션 데이터 소스(fixture). 실 API 연결 전까지 KPI/TOLA/차트는 여기서 그려진다. */
-  campaigns?: DashboardCampaignFixture[]
+  /** 캠페인 선택 드롭다운 옵션(실 API의 campaignId·campaignName). */
+  campaigns?: CampaignOption[]
   initialCampaignId?: string
   /** 컨테이너가 캠페인 선택을 제어할 때(미제공 시 내부 상태로 동작 — Storybook용) */
   selectedId?: string
@@ -37,16 +31,20 @@ export interface HomePageProps {
   /** DatePicker 선택 가능 범위(캠페인 집행기간) */
   minDate?: Date
   maxDate?: Date
-  /** 실 송출정보 KPI(미제공 시 fixture campaign.kpi 사용 — Storybook·로딩 중) */
+  /** 송출정보 KPI(미제공=로딩 중이면 빈 상태) */
   kpiMetrics?: KpiMetric[]
   /** 다운타임이 무중단 송출 추정치인지(안내 문구 노출). 기본 true */
   estimatedDowntime?: boolean
-  /** 실 깔때기(TOLA) 지표(미제공 시 fixture campaign.tola 사용) */
+  /** 깔때기(TOLA) 지표(미제공=로딩 중이면 빈 상태) */
   tolaMetrics?: TolaMetric[]
   /** TOLA 툴팁의 데이터 집계 기준 시각 "HH:mm" */
   tolaCutoffLabel?: string
-  /** 실 실시간 시청수 시계열(미제공 시 fixture) */
+  /** TOLA '어제 대비' 증감 표시 여부 — 기간 조회 시 false(빈 칸 유지). 기본 true */
+  showTolaComparison?: boolean
+  /** 시청수 시계열 — 오늘=실시간(5-1), 기간 선택=시간별 누적(5-2). 미제공=로딩 중이면 빈 상태 */
   realtimeData?: ViewerPoint[]
+  /** 시간별 누적(기간 선택) 모드 — 데이터가 길면 가로 스크롤 */
+  realtimeScrollable?: boolean
   /** 실 평균 시청시간(초)·구간 비중(미제공 시 fixture) */
   averageSeconds?: number
   watchBuckets?: WatchTimeBucket[]
@@ -65,10 +63,10 @@ export interface HomePageProps {
 /**
  * 대시보드 홈 — 프레젠테이셔널.
  * 캠페인 선택·조회 기간은 controlled(props)면 컨테이너가, 아니면 내부 상태가 관리한다.
- * 데이터는 fixture 기준(실 API 연결은 DashboardHome 컨테이너 + 각 섹션 태스크에서).
+ * 각 섹션 데이터는 컨테이너(DashboardHome)가 실 API로 주입하며, 미로드 시 빈 상태로 표시한다.
  */
 export default function HomePage({
-  campaigns = DASHBOARD_CAMPAIGNS,
+  campaigns = [],
   initialCampaignId,
   selectedId: controlledId,
   onCampaignChange,
@@ -80,7 +78,9 @@ export default function HomePage({
   estimatedDowntime = true,
   tolaMetrics,
   tolaCutoffLabel,
+  showTolaComparison,
   realtimeData,
+  realtimeScrollable,
   averageSeconds,
   watchBuckets,
   demographics,
@@ -107,22 +107,17 @@ export default function HomePage({
   const [demographicFilter, setDemographicFilter] =
     useState<GenderFilter>('all')
   const [heatmapFilter, setHeatmapFilter] = useState<GenderFilter>('all')
-  const campaign =
-    campaigns.find(({ id }) => id === selectedId) ?? firstCampaign
-
-  if (!campaign) return null
-
   return (
     <section className="min-h-full bg-bg-primary px-x5 py-x5">
       <div className="flex min-w-0 flex-col gap-x5 px-x5">
         <KpiSection
-          metrics={kpiMetrics ?? campaign.kpi}
+          metrics={kpiMetrics ?? []}
           estimatedDowntime={estimatedDowntime}
           cutoffLabel={kpiCutoffLabel}
           toolbar={
             <DashboardToolbar
               campaigns={campaigns}
-              selectedId={campaign.id}
+              selectedId={selectedId}
               onCampaignChange={setSelectedId}
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
@@ -132,18 +127,20 @@ export default function HomePage({
           }
         />
         <TolaSection
-          metrics={tolaMetrics ?? campaign.tola}
+          metrics={tolaMetrics ?? []}
           cutoffLabel={tolaCutoffLabel}
+          showComparison={showTolaComparison}
         />
         {/* 실시간 시청수(좌)는 가변, 평균 시청시간(우)은 376px 고정 */}
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_376px] gap-x5">
           <RealtimeViewerChart
-            data={realtimeData ?? campaign.viewers}
+            data={realtimeData ?? []}
             cutoffLabel={realtimeCutoffLabel}
+            scrollable={realtimeScrollable}
           />
           <AverageWatchTimeCard
-            averageSeconds={averageSeconds ?? campaign.averageSeconds}
-            buckets={watchBuckets ?? campaign.watchBuckets}
+            averageSeconds={averageSeconds ?? 0}
+            buckets={watchBuckets ?? []}
             cutoffLabel={averageCutoffLabel}
           />
         </div>
@@ -151,16 +148,16 @@ export default function HomePage({
         <div className="flex h-[348px] min-w-0 gap-x5">
           <MovementFlowCard />
           <DemographicRatioCard
-            data={demographics ?? campaign.demographics}
+            data={demographics ?? []}
             filter={demographicFilter}
             onFilterChange={setDemographicFilter}
             cutoffLabel={demographicCutoffLabel}
           />
         </div>
         <AgeExposureHeatmap
-          hours={exposure?.hours ?? DASHBOARD_HOURS}
-          ageGroups={exposure?.ageGroups ?? DASHBOARD_AGE_GROUPS}
-          cells={exposure?.cells ?? campaign.exposureCells}
+          hours={exposure?.hours ?? []}
+          ageGroups={exposure?.ageGroups ?? []}
+          cells={exposure?.cells ?? []}
           filter={heatmapFilter}
           onFilterChange={setHeatmapFilter}
           cutoffLabel={exposureCutoffLabel}

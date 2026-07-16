@@ -52,3 +52,23 @@ export const Zero: Story = {
     </PageWidth>
   ),
 }
+
+// 시간별 누적(기간 선택) 모드 — 포인트가 많아 가로 스크롤 발생
+const hourlyViewers = Array.from({ length: 48 }, (_, i) => ({
+  time: `${String(i % 24).padStart(2, '0')}:00`,
+  viewers: 180 + Math.round(90 * Math.sin(i / 3)) + i * 4,
+}))
+
+export const HourlyScroll: Story = {
+  name: '시간별(가로 스크롤)',
+  render: () => (
+    <PageWidth width={1280}>
+      <RealtimeAverageRow
+        viewers={hourlyViewers}
+        averageSeconds={c.averageSeconds}
+        buckets={c.watchBuckets}
+        scrollable
+      />
+    </PageWidth>
+  ),
+}

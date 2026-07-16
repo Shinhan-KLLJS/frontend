@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { CampaignOption } from '@/components/dashboard/DashboardToolbar'
 import { Button, LoadingSpinner } from '@/components/ui'
 import type { DateRange } from '@/components/ui'
 import HomePage from '@/pages/HomePage'
@@ -15,10 +16,6 @@ import {
   useRealtimeHourly,
 } from '@/lib/dashboard'
 import { formatCutoffLabel, formatKstTime } from '@/lib/dashboardTime'
-import {
-  DASHBOARD_CAMPAIGNS,
-  type DashboardCampaignFixture,
-} from '@/lib/dashboardFixtures'
 import {
   bucketRealtimeToMinutes,
   toDemographics,
@@ -61,16 +58,15 @@ export default function DashboardHome() {
     override ?? (defaultCampaign ? String(defaultCampaign.campaignId) : '')
   const selected = campaigns?.find((c) => String(c.campaignId) === selectedId)
 
-  // 실 캠페인 id·이름을 fixture 골격에 얹어 드롭다운 옵션 구성
-  const options = useMemo<DashboardCampaignFixture[]>(() => {
-    const base = DASHBOARD_CAMPAIGNS[0]
-    if (!base || !campaigns) return []
-    return campaigns.map((c) => ({
-      ...base,
-      id: String(c.campaignId),
-      name: c.campaignName,
-    }))
-  }, [campaigns])
+  // 드롭다운 옵션 — 실 캠페인 id·이름 (fixture 없음)
+  const options = useMemo<CampaignOption[]>(
+    () =>
+      campaigns?.map((c) => ({
+        id: String(c.campaignId),
+        name: c.campaignName,
+      })) ?? [],
+    [campaigns],
+  )
 
   const { data: delivery } = useCampaignDelivery(selected?.campaignId, dateRange)
   const kpiMetrics = delivery ? toKpiMetrics(delivery) : undefined
@@ -81,14 +77,21 @@ export default function DashboardHome() {
     ? formatKstTime(funnel.aggregationCutoffTime)
     : undefined
 
-  // 실시간 시청수: 오늘=5초 라이브(1분 슬롯), 과거 날짜=시간별 누적
-  const live = isToday(dateRange.end)
-  const { points: realtimePoints } = useRealtimeGraph(selected?.campaignId, live)
+  // 기간 미선택(오늘 단일 일자)=실시간(5-1, 5초 라이브·1분 슬롯), 기간 선택=시간별 누적(5-2)
+  const isTodayView = isToday(dateRange.start) && isToday(dateRange.end)
+
+  // '어제 대비' 증감은 오늘 조회일 때만 의미 → 기간을 선택하면 숨기고 빈 칸 유지
+  const showTolaComparison = isTodayView
+
+  const { points: realtimePoints } = useRealtimeGraph(
+    selected?.campaignId,
+    isTodayView,
+  )
   const { data: hourly } = useRealtimeHourly(
-    live ? undefined : selected?.campaignId,
+    isTodayView ? undefined : selected?.campaignId,
     dateRange,
   )
-  const realtimeData = live
+  const realtimeData = isTodayView
     ? realtimePoints.length
       ? bucketRealtimeToMinutes(realtimePoints)
       : undefined
@@ -109,7 +112,7 @@ export default function DashboardHome() {
   const kpiCutoffLabel = delivery
     ? formatCutoffLabel(delivery.serverTime)
     : undefined
-  const realtimeCutoffLabel = live
+  const realtimeCutoffLabel = isTodayView
     ? realtimePoints.length
       ? formatCutoffLabel(realtimePoints[realtimePoints.length - 1].eventTime)
       : undefined
@@ -175,7 +178,9 @@ export default function DashboardHome() {
       estimatedDowntime={delivery?.isEstimated ?? true}
       tolaMetrics={tolaMetrics}
       tolaCutoffLabel={tolaCutoffLabel}
+      showTolaComparison={showTolaComparison}
       realtimeData={realtimeData}
+      realtimeScrollable={!isTodayView}
       averageSeconds={watchTime?.averageSeconds}
       watchBuckets={watchTime?.buckets}
       demographics={demographics}

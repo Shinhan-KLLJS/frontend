@@ -18,12 +18,15 @@ export interface TolaSectionProps {
   metrics: TolaMetric[]
   /** 데이터 집계 기준 시각 "HH:mm" — 툴팁에 "HH:mm 기준"으로 표기 */
   cutoffLabel?: string
+  /** '어제 대비' 증감 표시 여부 — 기간 조회 시 false로 숨기고 빈 칸을 유지한다. 기본 true */
+  showComparison?: boolean
 }
 
 /** 유동인구가 시청으로 전환되는 TOLA 퍼널 지표를 표현합니다. */
 export default function TolaSection({
   metrics,
   cutoffLabel,
+  showComparison = true,
 }: TolaSectionProps) {
   return (
     <DashboardPanel
@@ -68,22 +71,27 @@ export default function TolaSection({
                 {metric.value}
               </strong>
             </div>
-            <div className="flex items-center gap-x2">
-              <span className="text-label-1-normal-regular text-text-secondary">
-                어제 대비
-              </span>
-              {metric.comparison === undefined ? (
-                <span className="text-label-1-normal-medium text-text-caption">
-                  -
-                </span>
-              ) : (
-                <Badge
-                  size="small"
-                  direction={metric.comparison >= 0 ? 'up' : 'down'}
-                  className="rounded-x1"
-                >
-                  {Math.abs(metric.comparison)}
-                </Badge>
+            {/* 기간 조회 시(showComparison=false) 증감 행은 비우되 높이는 유지해 퍼널 정렬을 고정한다 */}
+            <div className="flex h-[24px] items-center gap-x2">
+              {showComparison && (
+                <>
+                  <span className="text-label-1-normal-regular text-text-secondary">
+                    어제 대비
+                  </span>
+                  {metric.comparison === undefined ? (
+                    <span className="text-label-1-normal-medium text-text-caption">
+                      -
+                    </span>
+                  ) : (
+                    <Badge
+                      size="small"
+                      direction={metric.comparison >= 0 ? 'up' : 'down'}
+                      className="rounded-x1"
+                    >
+                      {Math.abs(metric.comparison)}
+                    </Badge>
+                  )}
+                </>
               )}
             </div>
           </article>

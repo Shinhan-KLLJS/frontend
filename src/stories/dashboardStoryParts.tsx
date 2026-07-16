@@ -87,14 +87,16 @@ export function RealtimeAverageRow({
   viewers,
   averageSeconds,
   buckets,
+  scrollable,
 }: {
   viewers: typeof c.viewers
   averageSeconds: number
   buckets: typeof c.watchBuckets
+  scrollable?: boolean
 }) {
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_376px] gap-x5">
-      <RealtimeViewerChart data={viewers} />
+      <RealtimeViewerChart data={viewers} scrollable={scrollable} />
       <AverageWatchTimeCard averageSeconds={averageSeconds} buckets={buckets} />
     </div>
   )
