@@ -9,8 +9,8 @@ export interface CampaignSummaryProps {
   info: CampaignInfoValues
   media: CampaignMedia | null
   uploadStatus: UploadStatus
-  /** 업로드 영상 미리보기 objectURL (success일 때만 존재) */
-  previewUrl: string | null
+  /** 영상에서 추출한 썸네일(dataURL) */
+  thumbnailUrl: string | null
   // 업로드 실패 시 이 화면에서 바로 재업로드할 수 있어야 해서 업로드 핸들러를 그대로 받는다
   onFileSelect: (file: File) => void
   onUploadCancel: () => void
@@ -50,7 +50,7 @@ export default function CampaignSummary({
   info,
   media,
   uploadStatus,
-  previewUrl,
+  thumbnailUrl,
   onFileSelect,
   onUploadCancel,
   onEditInfo,
@@ -73,12 +73,10 @@ export default function CampaignSummary({
             <div className="flex min-h-0 flex-1 flex-col justify-center gap-x4">
               {/* 영상은 프레임이 잘리지 않도록 레터박스(contain + 검정 배경)로 전체를 보여준다 */}
               <div className="max-h-[204px] min-h-0 w-full flex-1 overflow-hidden rounded-x3 bg-[var(--cool-neutral-1000)]">
-                {previewUrl && (
-                  <video
-                    src={previewUrl}
-                    muted
-                    playsInline
-                    preload="metadata"
+                {thumbnailUrl && (
+                  <img
+                    src={thumbnailUrl}
+                    alt=""
                     className="size-full object-contain"
                   />
                 )}
@@ -105,7 +103,7 @@ export default function CampaignSummary({
         ) : (
           <VideoUploadCard
             status={uploadStatus}
-            previewUrl={previewUrl}
+            thumbnailUrl={thumbnailUrl}
             onFileSelect={onFileSelect}
             onCancel={onUploadCancel}
             className="min-h-[532px] min-w-0 flex-1"

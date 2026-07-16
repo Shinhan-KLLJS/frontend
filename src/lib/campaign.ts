@@ -163,11 +163,15 @@ export const mediaUnitKeys = {
   all: ['media-units'] as const,
 }
 
-/** 매체 목록 react-query 훅 — 대시보드(useCampaigns)와 동일 패턴 (캐싱·loading/error) */
-export function useMediaUnits() {
+/**
+ * 매체 목록 react-query 훅 — 대시보드(useCampaigns)와 동일 패턴 (캐싱·loading/error).
+ * enabled=false면 조회를 미룬다 (매체 선택 단계 진입 전 불필요한 호출 방지).
+ */
+export function useMediaUnits(enabled = true) {
   return useQuery({
     queryKey: mediaUnitKeys.all,
     queryFn: fetchCampaignMedia,
+    enabled,
   })
 }
 

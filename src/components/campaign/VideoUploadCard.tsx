@@ -8,8 +8,8 @@ export type UploadStatus = (typeof UPLOAD_STATUS)[number]
 
 export interface VideoUploadCardProps {
   status: UploadStatus
-  /** 업로드한 영상의 objectURL — success 상태에서 카드 배경 미리보기로 사용 */
-  previewUrl: string | null
+  /** 영상에서 추출한 썸네일(dataURL) — 업로드 진행/완료와 무관하게 준비되면 카드 배경 미리보기로 사용 */
+  thumbnailUrl: string | null
   // 업로드 호출·상태 전이·파일 형식 검증은 부모(위저드 페이지)가 소유 — 여기선 파일 선택/드롭 이벤트만 전달
   onFileSelect: (file: File) => void
   onCancel: () => void
@@ -30,13 +30,16 @@ const STATUS_CARD_CLASS: Record<UploadStatus, string> = {
  */
 export default function VideoUploadCard({
   status,
-  previewUrl,
+  thumbnailUrl,
   onFileSelect,
   onCancel,
   className,
 }: VideoUploadCardProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+
+  // 썸네일이 준비되면 업로드 진행/완료와 무관하게 배경 미리보기를 노출 (에러 상태는 재업로드 안내를 위해 제외)
+  const hasPreview = Boolean(thumbnailUrl) && status !== 'idle' && status !== 'error'
 
   const openFileDialog = () => inputRef.current?.click()
 
@@ -83,20 +86,14 @@ export default function VideoUploadCard({
         }}
       />
 
-      {/* success: 업로드한 영상 첫 프레임 + 딤 처리를 카드 배경으로.
+      {/* 추출한 썸네일 + 딤 처리를 카드 배경으로 (업로드 중에도 노출).
           프레임이 잘리지 않도록 레터박스(contain + 검정 배경)로 전체를 보여준다 */}
-      {status === 'success' && previewUrl && (
+      {hasPreview && thumbnailUrl && (
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-[var(--cool-neutral-1000)]"
         >
-          <video
-            src={previewUrl}
-            muted
-            playsInline
-            preload="metadata"
-            className="size-full object-contain"
-          />
+          <img src={thumbnailUrl} alt="" className="size-full object-contain" />
           <div className="absolute inset-0 bg-[rgba(0,0,0,0.7)]" />
         </div>
       )}
@@ -138,11 +135,13 @@ export default function VideoUploadCard({
               <div className="flex flex-col items-center gap-x1 text-center">
                 <p
                   role="status"
-                  className="text-body-1-normal-bold text-text-primary"
+                  className={`text-body-1-normal-bold ${hasPreview ? 'text-text-primary-inverse' : 'text-text-primary'}`}
                 >
                   파일을 업로드 중입니다
                 </p>
-                <p className="text-label-1-normal-regular text-text-caption">
+                <p
+                  className={`text-label-1-normal-regular ${hasPreview ? 'text-text-primary-inverse' : 'text-text-caption'}`}
+                >
                   업로드는 계속 진행됩니다. 다음 단계로 이동하세요.
                 </p>
               </div>

@@ -14,12 +14,15 @@ import type { CampaignInfoValues } from '@/lib/campaign'
 export interface CampaignInfoFormProps {
   // 폼 인스턴스는 부모(위저드 페이지)가 소유 — 단계 왕복에도 입력값이 보존되도록
   form: UseFormReturn<CampaignInfoValues>
+  /** 영상 미리보기(썸네일)가 준비됐는지 — '다음' 활성 조건에 폼 유효성과 함께 포함 */
+  uploadReady: boolean
   onNext: () => void
 }
 
 /** 캠페인 기본 정보 폼 카드 — 캠페인명/브랜드명/송출기간/하루 송출 횟수/메모 + '다음' */
 export default function CampaignInfoForm({
   form,
+  uploadReady,
   onNext,
 }: CampaignInfoFormProps) {
   const {
@@ -47,7 +50,8 @@ export default function CampaignInfoForm({
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [pickerOpen])
 
-  const canNext = campaignInfoSchema.safeParse(watch()).success
+  // 다음 활성 = 폼 유효성 + 미리보기(썸네일) 준비 완료
+  const canNext = uploadReady && campaignInfoSchema.safeParse(watch()).success
 
   return (
     <div className="flex min-w-[470px] flex-1 flex-col gap-x5 self-stretch rounded-x4 bg-bg-primary p-x5">

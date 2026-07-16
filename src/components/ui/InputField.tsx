@@ -46,7 +46,7 @@ export default function InputField({
   const isDate = variant === 'date'
 
   const boxClass = [
-    'flex w-full items-center rounded-x2 border transition-colors',
+    'flex w-full items-center rounded-x3 border transition-colors',
     isDate ? 'gap-x2 px-x3 py-[14px]' : 'gap-x3 px-x4 py-x3',
     disabled
       ? 'border-line-secondary bg-bg-disabled text-text-disabled-secondary'

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
@@ -30,11 +30,59 @@ const STEP_SUBTITLE: Record<RegisterStep, string> = {
   3: '마지막으로 입력한 정보가 올바른지 확인하세요.',
 }
 
+/**
+ * 업로드한 영상에서 정지 프레임 썸네일(JPEG dataURL)을 추출한다.
+ * 실제 업로드 완료와 무관하게 로컬 파일에서 즉시 생성 — 미리보기 표시·다음 단계 진행 판단에 사용.
+ * maxWidth로 축소해 dataURL 크기를 억제한다.
+ */
+function extractVideoThumbnail(file: File, maxWidth = 640): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const video = document.createElement('video')
+    video.muted = true
+    video.preload = 'metadata'
+
+    const timer = setTimeout(() => fail('썸네일 생성 시간이 초과되었습니다.'), 10000)
+    function cleanup() {
+      clearTimeout(timer)
+      URL.revokeObjectURL(url)
+    }
+    function fail(message: string) {
+      cleanup()
+      reject(new Error(message))
+    }
+    function capture() {
+      const w = video.videoWidth
+      const h = video.videoHeight
+      if (!w || !h) return fail('영상 크기를 확인할 수 없습니다.')
+      const scale = Math.min(1, maxWidth / w)
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(w * scale)
+      canvas.height = Math.round(h * scale)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return fail('썸네일을 생성할 수 없습니다.')
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      cleanup()
+      resolve(canvas.toDataURL('image/jpeg', 0.7))
+    }
+
+    // 0초 프레임은 검은 화면일 수 있어 살짝 뒤 프레임을 캡처
+    video.onloadeddata = () => {
+      const seekTo = Math.min(0.1, video.duration || 0)
+      if (seekTo > 0) video.currentTime = seekTo
+      else capture()
+    }
+    video.onseeked = capture
+    video.onerror = () => fail('영상을 읽을 수 없습니다.')
+    video.src = url
+  })
+}
+
 interface UploadState {
   status: UploadStatus
   file: File | null
-  /** success 시 영상 미리보기용 objectURL — 교체/이탈 시 revoke 필요 */
-  previewUrl: string | null
+  /** 로컬 영상에서 추출한 썸네일(JPEG dataURL) — 업로드 완료와 무관하게 미리보기·다음 진행 판단에 사용 */
+  thumbnailUrl: string | null
   /** 업로드 완료 시 발급된 creativeToken — 캠페인 등록 요청에 사용 */
   creativeToken: string | null
 }
@@ -42,7 +90,7 @@ interface UploadState {
 const INITIAL_UPLOAD: UploadState = {
   status: 'idle',
   file: null,
-  previewUrl: null,
+  thumbnailUrl: null,
   creativeToken: null,
 }
 
@@ -72,17 +120,8 @@ export default function CampaignRegisterPage() {
   // 영상 업로드 — 단계 이동 후에도 진행·토스트가 이어지도록 페이지가 상태를 소유
   const { toast } = useToast()
   const [upload, setUpload] = useState<UploadState>(INITIAL_UPLOAD)
-  // mock은 abort가 불가하므로 시퀀스 토큰으로 취소·재업로드 이후 도착한 응답을 무시
+  // abort가 불가하므로 시퀀스 토큰으로 취소·재업로드 이후 도착한 응답을 무시
   const uploadSeqRef = useRef(0)
-
-  // 페이지 이탈 시 objectURL 누수 방지
-  const previewUrlRef = useRef<string | null>(null)
-  previewUrlRef.current = upload.previewUrl
-  useEffect(() => {
-    return () => {
-      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
-    }
-  }, [])
 
   const handleFileSelect = (file: File) => {
     // accept="video/*"는 드래그&드롭을 막지 못하므로 형식을 재검증
@@ -90,23 +129,30 @@ export default function CampaignRegisterPage() {
       toast('영상 파일만 업로드할 수 있습니다.', { status: 'error' })
       return
     }
-    if (upload.previewUrl) URL.revokeObjectURL(upload.previewUrl)
     const seq = ++uploadSeqRef.current
-    setUpload({ status: 'uploading', file, previewUrl: null, creativeToken: null })
+    setUpload({ status: 'uploading', file, thumbnailUrl: null, creativeToken: null })
+
+    // 썸네일 추출 — 업로드 완료와 무관하게 즉시 미리보기 생성 (다음 단계 진행 판단 기준)
+    extractVideoThumbnail(file)
+      .then((thumbnailUrl) => {
+        if (seq !== uploadSeqRef.current) return // 취소·재선택으로 무효화됨
+        setUpload((prev) => ({ ...prev, thumbnailUrl }))
+      })
+      .catch(() => {
+        if (seq !== uploadSeqRef.current) return
+        toast('영상 미리보기를 생성하지 못했습니다.', { status: 'error' })
+      })
+
+    // 영상 업로드 — presigned, 백그라운드로 진행 (완료 시 creativeToken 확보)
     uploadCampaignVideo(file)
       .then(({ creativeToken }) => {
-        if (seq !== uploadSeqRef.current) return // 취소·재업로드로 무효화된 응답
-        setUpload({
-          status: 'success',
-          file,
-          previewUrl: URL.createObjectURL(file),
-          creativeToken,
-        })
+        if (seq !== uploadSeqRef.current) return
+        setUpload((prev) => ({ ...prev, status: 'success', creativeToken }))
         toast('영상 업로드가 완료되었습니다.', { status: 'success' })
       })
       .catch(() => {
         if (seq !== uploadSeqRef.current) return
-        setUpload({ status: 'error', file, previewUrl: null, creativeToken: null })
+        setUpload((prev) => ({ ...prev, status: 'error', creativeToken: null }))
         toast('영상 업로드에 실패했습니다. 다시 시도하세요.', {
           status: 'error',
         })
@@ -119,8 +165,11 @@ export default function CampaignRegisterPage() {
   }
 
   // 매체 선택 — 카드·지도 핀이 하나의 선택 상태를 공유하도록 페이지가 소유.
-  // 목록 조회는 대시보드와 동일하게 react-query(useMediaUnits)로 캐싱·loading 처리
-  const { data: mediaList = [], isPending: mediaLoading } = useMediaUnits()
+  // 목록 조회는 대시보드와 동일하게 react-query(useMediaUnits)로 캐싱·loading 처리.
+  // 매체 선택 단계(step 2) 진입 시에만 조회 — 기본 정보 입력 중 불필요한 호출 방지
+  const { data: mediaList = [], isPending: mediaLoading } = useMediaUnits(
+    step >= 2,
+  )
   const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null)
 
   const selectedMedia =
@@ -197,12 +246,17 @@ export default function CampaignRegisterPage() {
           <>
             <VideoUploadCard
               status={upload.status}
-              previewUrl={upload.previewUrl}
+              thumbnailUrl={upload.thumbnailUrl}
               onFileSelect={handleFileSelect}
               onCancel={handleUploadCancel}
-              className="min-h-[608px] min-w-[470px] flex-1 lg:max-w-[552px]"
+              className="min-h-[608px] min-w-[470px] max-w-[552px] flex-1"
             />
-            <CampaignInfoForm form={form} onNext={() => setStep(2)} />
+            {/* 다음 활성 = 폼 유효 + 썸네일(미리보기) 표시됨. 실제 업로드 완료는 백그라운드라 여기서 안 막음 */}
+            <CampaignInfoForm
+              form={form}
+              uploadReady={upload.thumbnailUrl != null}
+              onNext={() => setStep(2)}
+            />
           </>
         )}
         {step === 2 && (
@@ -233,7 +287,7 @@ export default function CampaignRegisterPage() {
             info={form.getValues()}
             media={selectedMedia}
             uploadStatus={upload.status}
-            previewUrl={upload.previewUrl}
+            thumbnailUrl={upload.thumbnailUrl}
             onFileSelect={handleFileSelect}
             onUploadCancel={handleUploadCancel}
             onEditInfo={() => setStep(1)}
