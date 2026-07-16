@@ -252,6 +252,11 @@ function DesktopSection5() {
 function StaticSection5() {
   const sectionRef = useRef<HTMLElement>(null)
   const reduceMotion = useReducedMotion()
+  // 화면 폭이 아니라 실제 호버 가능 여부(마우스·트랙패드)로 판단한다 —
+  // 터치 전용 기기에서 onMouseEnter/Leave 기반 호버는 탭 후 상태가 안
+  // 풀리는 "sticky hover" 버그가 생기기 쉬워서, hover:hover 지원 기기
+  // (트랙패드 달린 태블릿 등)에서만 데스크탑과 동일한 호버 효과를 켠다.
+  const canHover = useMediaQuery('(hover: hover) and (pointer: fine)')
 
   const { scrollYProgress: entranceProgress } = useScroll({
     target: sectionRef,
@@ -286,7 +291,7 @@ function StaticSection5() {
         </h2>
 
         <TeamCards
-          hoverable={false}
+          hoverable={canHover}
           className="flex w-full flex-col items-center gap-x6 md:flex-row md:items-start md:justify-center"
           cardClassName="w-full md:min-w-0 md:flex-1"
         />
