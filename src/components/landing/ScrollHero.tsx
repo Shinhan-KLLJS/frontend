@@ -149,7 +149,7 @@ function DesktopScrollHero() {
     <section ref={sectionRef} className="relative h-[230dvh]">
       <div className="sticky top-0 min-h-dvh overflow-hidden">
         <motion.div
-          className="absolute left-1/2 top-x10 z-10 w-[min(680px,calc(100%-40px))] -translate-x-1/2"
+          className="absolute left-1/2 top-x10 z-10 w-[min(900px,calc(100%-40px))] -translate-x-1/2"
           style={{ opacity: copyFinalOpacity, y: copyY }}
         >
           <HeroCopy />

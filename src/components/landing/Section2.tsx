@@ -14,6 +14,7 @@ import {
   useTransform,
 } from 'motion/react'
 import { useMediaQuery } from '@/lib/useMediaQuery'
+import { FlowTabs } from './Section3'
 import tolaDataImage from '@/assets/landing/TOLA-Data-2.png'
 import liveViewerGraphImage from '@/assets/landing/Live-Viewer-Graph.png'
 import bestFlowImage from '@/assets/landing/Best-Flow.png'
@@ -51,10 +52,10 @@ const WIDGETS = [
   {
     key: 'live-viewer-graph',
     label: 'Live Viewer Graph',
-    x: -180,
-    y: 101,
-    width: 395,
-    height: 230,
+    x: 1029,
+    y: 61,
+    width: 564,
+    height: 368,
   },
   { key: 'best-flow', label: 'Best Flow', x: -258, y: 490, width: 376, height: 348 },
   {
@@ -68,8 +69,8 @@ const WIDGETS = [
   {
     key: 'gender-years-view',
     label: 'Gender Years View',
-    x: 929,
-    y: 31,
+    x: -180,
+    y: 101,
     width: 564,
     height: 368,
   },
@@ -93,13 +94,21 @@ function TolaDataImage({ className = '' }: { className?: string }) {
   )
 }
 
+// 원본 이미지(1580×919, 비율 1.72)가 박스(564×368, 비율 1.53)보다 옆으로 더
+// 길어서, object-cover를 쓰면 좌우가 잘려 타이틀·수치 라벨이 잘려나갔다
+// (AverageViewTimeImage와 동일하게 object-contain + 배경 패딩으로 전체가
+// 잘리지 않고 보이도록 한다).
 function LiveViewerGraphImage({ className = '' }: { className?: string }) {
   return (
-    <img
-      src={liveViewerGraphImage}
-      alt="Live Viewer Graph"
-      className={`rounded-[16px] object-cover shadow-normal-large ${className}`}
-    />
+    <div
+      className={`overflow-hidden rounded-[16px] bg-bg-secondary p-x1 shadow-normal-large ${className}`}
+    >
+      <img
+        src={liveViewerGraphImage}
+        alt="Live Viewer Graph"
+        className="size-full rounded-[12px] object-contain object-center"
+      />
+    </div>
   )
 }
 
@@ -283,7 +292,7 @@ function DesktopSection2() {
 
   // TOLA 위에 뜨는 새 타이틀 — 원래 타이틀이 있던 자리를 그대로 물려받되,
   // 등장 타이밍은 TOLA가 아니라 5개 위젯과 같은 widgetOpacity로 맞춘다.
-  const tolaTitleRef = useRef<HTMLHeadingElement>(null)
+  const tolaTitleRef = useRef<HTMLDivElement>(null)
   useMotionValueEvent(widgetOpacity, 'change', (v) => {
     if (tolaTitleRef.current) tolaTitleRef.current.style.opacity = String(v)
   })
@@ -335,15 +344,19 @@ function DesktopSection2() {
             style={{ opacity: titleOpacity.get() }}
           />
 
-          <SectionTitle
+          <div
             ref={tolaTitleRef}
-            className="absolute inset-x-0 top-[223px]"
+            className="absolute inset-x-0 top-[243px] flex flex-col items-center gap-x2"
             style={{ opacity: widgetOpacity.get() }}
           >
-            이제 Loovi에서
-            <br />
-            확인해 보세요
-          </SectionTitle>
+            <SectionTitle className="whitespace-nowrap">
+              이제 Loovi에서 확인해 보세요
+            </SectionTitle>
+            <p className="text-heading-1-regular text-text-primary">
+              유동인구부터 시청 수까지 다양한 옥외광고 성과 데이터를 측정할 수
+              있어요.
+            </p>
+          </div>
 
           {/* opacity 담당(부모) / scale 담당(자식) 분리 — 루프카드, opacity는 ref로 직접 갱신 */}
           <div
@@ -400,18 +413,23 @@ function DesktopSection2() {
                 height: widget.height,
                 opacity: widgetOpacity.get(),
                 transform: `translateY(${widgetY.get()}px)`,
-                zIndex: widget.key === 'best-flow' ? 0 : 10,
+                zIndex:
+                  widget.key === 'best-flow' || widget.key === 'gender-years-view'
+                    ? 0
+                    : 10,
               }}
             >
               {widget.key === 'gender-years-view' ? (
-                <div className="size-full origin-top-left scale-[0.85]">
+                <div className="size-full origin-top-left scale-[0.8]">
                   <GenderYearsView
                     className="size-full"
                     active={isGenderWidgetRevealed}
                   />
                 </div>
               ) : widget.key === 'live-viewer-graph' ? (
-                <LiveViewerGraphImage className="size-full" />
+                <div className="size-full origin-top-left scale-[0.75]">
+                  <LiveViewerGraphImage className="size-full" />
+                </div>
               ) : widget.key === 'best-flow' ? (
                 <BestFlowImage className="size-full" />
               ) : widget.key === 'time-years-heat-map' ? (
@@ -429,14 +447,16 @@ function DesktopSection2() {
 
 function FadeInCard({
   reduceMotion,
+  className = '',
   children,
 }: {
   reduceMotion: boolean
+  className?: string
   children: ReactNode
 }) {
   return (
     <motion.div
-      className="w-full max-w-[500px]"
+      className={`w-full max-w-[500px] ${className}`}
       initial={reduceMotion ? false : { opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
@@ -447,12 +467,63 @@ function FadeInCard({
   )
 }
 
+// 모바일·태블릿 전용 위젯 탭 스위처. 위젯 5개 중 2개(GenderYearsView·
+// TimeYearsHeatMap)는 고정 비율 이미지가 아니라 콘텐츠 높이가 자체적으로
+// 정해지는 카드 컴포넌트라, Section3의 드래그 캐러셀(고정 비율 슬라이드
+// 전제)을 그대로 재사용할 수 없다 — 탭으로 하나씩 전환해 보여주는 방식으로
+// 단순화했다.
+const WIDGET_STEPS = [
+  { key: 'tola-data', label: 'Funnel Data', render: () => <TolaDataImage className="w-full" /> },
+  { key: 'gender-years-view', label: '성별·연령 분석', render: () => <GenderYearsView className="w-full" /> },
+  { key: 'best-flow', label: '인기 동선', render: () => <BestFlowImage className="w-full" /> },
+  { key: 'time-years-heat-map', label: '시간대별 분석', render: () => <TimeYearsHeatMap className="w-full" /> },
+  { key: 'live-viewer-graph', label: '실시간 시청 수', render: () => <LiveViewerGraphImage className="w-full" /> },
+  { key: 'average-view-time', label: '평균 시청 시간', render: () => <AverageViewTimeImage className="w-full" /> },
+] as const
+
+// 위젯 6개를 전부 마운트한 채 grid의 같은 셀(col-start-1 row-start-1)에
+// 겹쳐두고 활성 항목만 오퍼시티로 보여준다 — grid는 같은 셀을 공유하는
+// 자식들 중 가장 큰 높이에 트랙 높이를 맞추므로, 별도 측정 로직 없이도
+// 컨테이너(및 그 배경 그라디언트)가 가장 높은 위젯 기준으로 고정된다.
+// 탭을 바꿔도 짧은 위젯이 보일 때 아래 그라디언트가 줄어들지 않는다.
+function WidgetSwitcher({ reduceMotion }: { reduceMotion: boolean }) {
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  return (
+    <div className="flex w-full flex-col items-center gap-x6">
+      <FlowTabs
+        steps={WIDGET_STEPS}
+        activeIndex={activeIndex}
+        onSelect={setActiveIndex}
+        size="medium"
+        className="scrollbar-none max-w-full overflow-x-auto"
+      />
+
+      <div className="grid w-full px-x5">
+        {WIDGET_STEPS.map((step, index) => (
+          <div
+            key={step.key}
+            aria-hidden={index !== activeIndex}
+            className={`col-start-1 row-start-1 flex items-center justify-center ${reduceMotion ? '' : 'transition-opacity duration-300'} ${
+              index === activeIndex
+                ? 'opacity-100'
+                : 'pointer-events-none opacity-0'
+            }`}
+          >
+            {step.render()}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** lg(1280px) 미만이거나 prefers-reduced-motion일 때: 세로 1열로 쌓고 각자 뷰포트 진입 시 페이드인 */
 function StaticSection2() {
   const reduceMotion = useReducedMotion()
 
   return (
-    <section className="overflow-hidden py-[120px]">
+    <section className="overflow-hidden pt-[120px]">
       <motion.div
         initial={reduceMotion ? false : { opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -464,25 +535,29 @@ function StaticSection2() {
           <LoopCard loop={!reduceMotion} />
         </div>
       </motion.div>
-      <div className="mt-x6 flex flex-col items-center gap-x6 rounded-[24px] bg-gradient-to-b from-white to-[var(--blue-400)] px-x5 py-x8">
-        <FadeInCard reduceMotion={!!reduceMotion}>
-          <TolaDataImage className="w-full" />
+      <div className="mt-x6 flex flex-col items-center gap-x6 rounded-t-[24px] bg-gradient-to-b from-white to-[var(--blue-400)] px-x5 py-x8">
+        <FadeInCard
+          reduceMotion={!!reduceMotion}
+          className="mt-[100px] md:max-w-[700px]"
+        >
+          <div className="flex flex-col items-center gap-x3 text-center">
+            <SectionTitle className="whitespace-nowrap">
+              이제 Loovi에서 확인해 보세요
+            </SectionTitle>
+            <p className="text-headline-1-regular text-text-primary md:whitespace-nowrap md:text-heading-2-regular">
+              유동인구부터 시청 수까지{' '}
+              <br className="md:hidden" />
+              다양한 옥외광고 성과 데이터를 측정할 수 있어요.
+            </p>
+          </div>
         </FadeInCard>
-        {WIDGETS.map((widget) => (
-          <FadeInCard key={widget.key} reduceMotion={!!reduceMotion}>
-            {widget.key === 'gender-years-view' ? (
-              <GenderYearsView className="w-full" />
-            ) : widget.key === 'live-viewer-graph' ? (
-              <LiveViewerGraphImage className="w-full" />
-            ) : widget.key === 'best-flow' ? (
-              <BestFlowImage className="w-full" />
-            ) : widget.key === 'time-years-heat-map' ? (
-              <TimeYearsHeatMap className="w-full" />
-            ) : (
-              <AverageViewTimeImage className="w-full" />
-            )}
-          </FadeInCard>
-        ))}
+
+        <FadeInCard
+          reduceMotion={!!reduceMotion}
+          className="md:max-w-[700px]"
+        >
+          <WidgetSwitcher reduceMotion={!!reduceMotion} />
+        </FadeInCard>
       </div>
     </section>
   )

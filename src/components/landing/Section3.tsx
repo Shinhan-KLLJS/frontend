@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { forwardRef, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   animate,
   motion,
@@ -20,17 +20,15 @@ const STEPS = [
 
 type TabSize = 'large' | 'medium'
 
-function FlowTabButton({
-  selected,
-  size,
-  children,
-  onClick,
-}: {
-  selected: boolean
-  size: TabSize
-  children: ReactNode
-  onClick: () => void
-}) {
+const FlowTabButton = forwardRef<
+  HTMLButtonElement,
+  {
+    selected: boolean
+    size: TabSize
+    children: ReactNode
+    onClick: () => void
+  }
+>(function FlowTabButton({ selected, size, children, onClick }, ref) {
   const sizeClass =
     size === 'medium'
       ? 'px-x2 py-x3 text-label-1-normal-bold'
@@ -38,6 +36,7 @@ function FlowTabButton({
 
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onClick}
       className={`interaction-normal whitespace-nowrap rounded-full ${sizeClass} ${
@@ -49,28 +48,63 @@ function FlowTabButton({
       {children}
     </button>
   )
-}
+})
 
-function FlowTabs({
+// x2(8px) 여백을 기준으로 활성 탭이 스크롤 영역 좌/우 어느 쪽으로든 가려지면
+// 그 여백만큼만 보이도록 자동 스크롤한다 — 탭이 많아 overflow-x-auto로
+// 넘칠 때(Section2 위젯 스위처처럼) 버튼을 눌러도 활성 탭이 화면 밖에
+// 남아있지 않게 하기 위함. 탭이 컨테이너 안에 다 들어가는 경우(Section3의
+// 3탭)는 스크롤할 게 없어 아무 효과가 없다.
+const EDGE_MARGIN = 8
+
+export function FlowTabs({
+  steps,
   activeIndex,
   onSelect,
   size = 'large',
   className = '',
 }: {
+  steps: readonly { key: string; label: string }[]
   activeIndex: number
   onSelect: (index: number) => void
   size?: TabSize
   className?: string
 }) {
   const padding = size === 'medium' ? 'p-x2' : 'p-x3'
+  const containerRef = useRef<HTMLDivElement>(null)
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
+
+  useEffect(() => {
+    const container = containerRef.current
+    const button = buttonRefs.current[activeIndex]
+    if (!container || !button) return
+
+    const buttonLeft = button.offsetLeft
+    const buttonRight = buttonLeft + button.offsetWidth
+    const viewLeft = container.scrollLeft
+    const viewRight = viewLeft + container.clientWidth
+
+    if (buttonLeft - EDGE_MARGIN < viewLeft) {
+      container.scrollTo({ left: buttonLeft - EDGE_MARGIN, behavior: 'smooth' })
+    } else if (buttonRight + EDGE_MARGIN > viewRight) {
+      container.scrollTo({
+        left: buttonRight + EDGE_MARGIN - container.clientWidth,
+        behavior: 'smooth',
+      })
+    }
+  }, [activeIndex])
 
   return (
     <div
+      ref={containerRef}
       className={`flex items-center gap-x4 rounded-full bg-bg-secondary ${padding} ${className}`}
     >
-      {STEPS.map((step, index) => (
+      {steps.map((step, index) => (
         <FlowTabButton
           key={step.key}
+          ref={(el) => {
+            buttonRefs.current[index] = el
+          }}
           selected={activeIndex === index}
           size={size}
           onClick={() => onSelect(index)}
@@ -205,6 +239,7 @@ function DesktopSection3() {
             </div>
 
             <FlowTabs
+              steps={STEPS}
               activeIndex={activeIndex}
               onSelect={setActiveIndex}
               size="medium"
@@ -256,6 +291,7 @@ function StaticSection3() {
 
         <div className="flex w-full max-w-[1000px] flex-col items-center gap-x10">
           <FlowTabs
+            steps={STEPS}
             activeIndex={activeIndex}
             onSelect={setActiveIndex}
             size="large"

@@ -276,7 +276,7 @@ function StaticSection5() {
       />
 
       <motion.div
-        className="relative mx-auto flex w-full max-w-[488px] flex-col items-center gap-x10"
+        className="relative mx-auto flex w-full max-w-[488px] flex-col items-center gap-x10 md:max-w-[900px]"
         style={
           reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }
         }
@@ -287,8 +287,8 @@ function StaticSection5() {
 
         <TeamCards
           hoverable={false}
-          className="flex w-full flex-col items-center gap-x6"
-          cardClassName="w-full"
+          className="flex w-full flex-col items-center gap-x6 md:flex-row md:items-start md:justify-center"
+          cardClassName="w-full md:min-w-0 md:flex-1"
         />
       </motion.div>
     </section>

@@ -165,10 +165,10 @@ function DesktopSection6() {
           />
 
           <div ref={titleRef} className="absolute left-[60px] top-[70px] z-10 opacity-0">
-            <h2 className="text-display-3-medium text-text-primary-inverse">
+            <h2 className="text-display-3-medium text-text-primary-inverse shadow-normal-small">
               {TITLE}
             </h2>
-            <p className="mt-x2 text-heading-1-regular text-text-primary-inverse">
+            <p className="mt-x2 text-heading-1-regular text-text-primary-inverse shadow-normal-small">
               {BODY}
             </p>
           </div>
@@ -204,12 +204,10 @@ function StaticSection6() {
   const entranceY = useTransform(entranceProgress, [0.5, 1], [40, 0])
 
   return (
-    <section ref={sectionRef} className="px-x5 py-[100px]">
+    <section ref={sectionRef} className="px-x5 py-[100px] md:px-0">
       <motion.div
-        className="relative mx-auto overflow-hidden"
+        className="relative mx-auto w-full max-w-[600px] overflow-hidden md:max-w-none"
         style={{
-          width: '100%',
-          maxWidth: 600,
           aspectRatio: `${CONTAINER_WIDTH} / ${CONTAINER_HEIGHT}`,
           ...(reduceMotion ? {} : { opacity: entranceOpacity, y: entranceY }),
         }}
@@ -221,11 +219,11 @@ function StaticSection6() {
           style={{ filter: 'saturate(0%)' }}
         />
 
-        <div className="absolute left-x5 top-x5 z-10">
-          <h2 className="text-title-2-medium text-text-primary-inverse md:text-title-1-medium">
+        <div className="absolute right-x6 top-x6 z-10 text-right md:right-auto md:left-x6 md:text-left">
+          <h2 className="text-title-3-medium text-text-primary-inverse shadow-normal-small md:text-title-1-medium">
             {TITLE}
           </h2>
-          <p className="mt-x2 text-headline-1-regular text-text-primary-inverse md:text-heading-2-regular">
+          <p className="mt-x2 text-body-1-normal-regular text-text-primary-inverse shadow-normal-small md:text-heading-2-regular">
             {BODY}
           </p>
         </div>
