@@ -136,7 +136,11 @@ export default function TimeYearsHeatMap({
             ))}
           </div>
         </div>
-        <div className="flex flex-col gap-x2">
+        <div
+          className="flex flex-col gap-x2"
+          role="group"
+          aria-label="연령대·시간대별 노출도 히트맵"
+        >
           {AGE_GROUPS.map((label, rowIndex) => (
             <div key={label} className="flex items-center gap-x2">
               <span className="w-[66px] shrink-0 whitespace-nowrap text-right text-label-1-normal-regular text-text-secondary">
@@ -146,6 +150,8 @@ export default function TimeYearsHeatMap({
                 {rows[rowIndex].map((level, hourIndex) => (
                   <span
                     key={hourIndex}
+                    role="img"
+                    aria-label={`${label}, ${HOURS[hourIndex]}, 노출도 ${level}/4`}
                     className={`aspect-square min-w-0 flex-1 rounded-[2px] transition-colors duration-500 ${LEVEL_COLOR[level]}`}
                   />
                 ))}

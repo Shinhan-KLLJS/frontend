@@ -97,7 +97,7 @@ export function FlowTabs({
   return (
     <div
       ref={containerRef}
-      className={`flex items-center gap-x4 rounded-full bg-bg-secondary ${padding} ${className}`}
+      className={`relative flex items-center gap-x4 rounded-full bg-bg-secondary ${padding} ${className}`}
     >
       {steps.map((step, index) => (
         <FlowTabButton
@@ -269,6 +269,7 @@ function DesktopSection3() {
 function TabletSection3() {
   const sectionRef = useRef<HTMLElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
+  const reduceMotion = useReducedMotion()
 
   // pin 구간 = wrapper 높이(200dvh) - 100dvh = 100dvh. TabletSection4의
   // -mt 값을 이 100dvh에 맞춰야 겹침 타이밍이 깨지지 않는다.
@@ -288,7 +289,9 @@ function TabletSection3() {
       <div className="sticky top-0 flex h-dvh flex-col items-center justify-center overflow-hidden px-x5">
         <motion.div
           className="flex w-full max-w-[600px] flex-col items-center gap-x8"
-          style={{ opacity: entranceOpacity, y: entranceY }}
+          style={
+            reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }
+          }
         >
           <div className="flex flex-col items-center gap-x3 text-center">
             <h2 className="text-title-1-medium text-text-primary">
@@ -305,6 +308,7 @@ function TabletSection3() {
             activeIndex={activeIndex}
             onSelect={setActiveIndex}
             size="medium"
+            className="max-w-full overflow-x-auto scrollbar-none"
           />
           <FlowImageTrack
             activeIndex={activeIndex}
@@ -356,6 +360,7 @@ function StaticSection3() {
             activeIndex={activeIndex}
             onSelect={setActiveIndex}
             size="large"
+            className="max-w-full overflow-x-auto scrollbar-none"
           />
           <FlowImageTrack
             activeIndex={activeIndex}

@@ -31,7 +31,7 @@ function HeroCopy({ className = '' }: { className?: string }) {
         {BODY_LINE_2}
       </p>
       <div className="mt-x8 flex flex-wrap items-center justify-center gap-x2">
-        <Button variant="line" color="secondary" className="!bg-bg-secondary">
+        <Button variant="line" color="secondary" className="bg-bg-secondary!">
           서비스 둘러보기
         </Button>
         <Button variant="default" color="primary">

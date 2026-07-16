@@ -152,7 +152,7 @@ function TeamCard({
         <Button
           variant="default"
           color="primary"
-          className="w-full !bg-[var(--cool-neutral-900)]"
+          className="w-full bg-[var(--cool-neutral-900)]!"
         >
           {card.buttonLabel}
         </Button>

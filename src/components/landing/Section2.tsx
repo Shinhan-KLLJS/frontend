@@ -137,12 +137,33 @@ function AverageViewTimeImage({ className = '' }: { className?: string }) {
   )
 }
 
-export function LoopCard({ loop }: { loop: boolean }) {
-  const cards = loop ? [...LOOP_CARD_IMAGES, ...LOOP_CARD_IMAGES] : LOOP_CARD_IMAGES
+// 카드 사이 간격. gap을 트랙 전체에 걸어버리면 두 묶음 사이 이음매 간격까지
+// 포함된 절반 지점이 실제 두 번째 묶음의 시작 지점보다 반 칸 어긋나서, 루프가
+// 매번 반복될 때 살짝 튀는 것처럼 보였다 — 간격을 각 묶음 내부(및 끝에 이음매
+// 간격 하나)에 포함시켜 두 묶음의 폭을 완전히 동일하게 만들고, 트랙 자체는
+// gap 없이 두 묶음을 붙여서 정확히 -50% 지점이 두 번째 묶음의 시작이 되게 한다.
+const LOOP_CARD_GAP_CLASS = 'gap-[12px] md:gap-[16px] lg:gap-[20px]'
+const LOOP_CARD_SEAM_CLASS = 'pr-[12px] md:pr-[16px] lg:pr-[20px]'
 
+function LoopCardSet({ keyPrefix }: { keyPrefix: string }) {
+  return (
+    <div className={`flex h-full items-center ${LOOP_CARD_GAP_CLASS} ${LOOP_CARD_SEAM_CLASS}`}>
+      {LOOP_CARD_IMAGES.map((src, index) => (
+        <img
+          key={`${keyPrefix}-${index}`}
+          src={src}
+          alt=""
+          className="h-[200px] w-[200px] shrink-0 rounded-[16px] object-cover md:h-[280px] md:w-[280px] lg:h-full lg:w-auto lg:aspect-square"
+        />
+      ))}
+    </div>
+  )
+}
+
+export function LoopCard({ loop }: { loop: boolean }) {
   return (
     <motion.div
-      className="flex h-full w-max items-center gap-[12px] md:gap-[16px] lg:gap-[20px]"
+      className="flex h-full w-max items-center"
       animate={loop ? { x: ['0%', '-50%'] } : undefined}
       transition={
         loop
@@ -154,14 +175,8 @@ export function LoopCard({ loop }: { loop: boolean }) {
           : undefined
       }
     >
-      {cards.map((src, index) => (
-        <img
-          key={index}
-          src={src}
-          alt=""
-          className="h-[200px] w-[200px] shrink-0 rounded-[16px] object-cover md:h-[280px] md:w-[280px] lg:h-full lg:w-auto lg:aspect-square"
-        />
-      ))}
+      <LoopCardSet keyPrefix="a" />
+      {loop && <LoopCardSet keyPrefix="b" />}
     </motion.div>
   )
 }
@@ -546,6 +561,7 @@ function WidgetSwitcher({ reduceMotion }: { reduceMotion: boolean }) {
           <div
             key={step.key}
             aria-hidden={index !== activeIndex}
+            inert={index !== activeIndex}
             className={`col-start-1 row-start-1 flex items-center justify-center ${reduceMotion ? '' : 'transition-opacity duration-300'} ${
               index === activeIndex
                 ? 'opacity-100'

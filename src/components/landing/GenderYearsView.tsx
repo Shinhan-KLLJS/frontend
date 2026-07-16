@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { Chip } from '@/components/ui'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 
@@ -35,6 +35,7 @@ function AgeGroupRow({
   maxValue,
   revealed,
   delay,
+  reduceMotion,
 }: {
   label: string
   filter: Filter
@@ -43,10 +44,14 @@ function AgeGroupRow({
   maxValue: number
   revealed: boolean
   delay: number
+  reduceMotion: boolean
 }) {
   const maleWidthPercent = revealed ? (maleValue / maxValue) * 100 : 0
   const femaleWidthPercent = revealed ? (femaleValue / maxValue) * 100 : 0
-  const transition = { duration: 0.7, ease: 'easeOut' as const, delay }
+  // prefers-reduced-motion에서는 채워지는 트랜지션 없이 최종 값으로 바로 표시한다.
+  const transition = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.7, ease: 'easeOut' as const, delay }
 
   return (
     <div className="flex w-full items-center gap-x3">
@@ -55,20 +60,19 @@ function AgeGroupRow({
       </span>
       <div className="relative h-[16px] flex-1 rounded-x1 bg-chart-surface">
         {filter === 'all' ? (
+          // 스펙: 같은 시작점(왼쪽)에서 겹쳐 그린다 — 여성 바가 뒤(먼저 렌더),
+          // 남성 바가 앞(나중 렌더)에 오도록 DOM 순서로 z-order를 만든다.
           <>
             <motion.div
-              className="absolute inset-y-0 left-0 rounded-l-x1 bg-chart-categorical-1"
+              className="absolute inset-y-0 left-0 rounded-x1 bg-chart-sequential-1"
               initial={{ width: 0 }}
-              animate={{ width: `${maleWidthPercent}%` }}
+              animate={{ width: `${femaleWidthPercent}%` }}
               transition={transition}
             />
             <motion.div
-              className="absolute inset-y-0 rounded-r-x1 bg-chart-sequential-1"
-              initial={{ width: 0, left: 0 }}
-              animate={{
-                width: `${femaleWidthPercent}%`,
-                left: `${maleWidthPercent}%`,
-              }}
+              className="absolute inset-y-0 left-0 rounded-x1 bg-chart-categorical-1"
+              initial={{ width: 0 }}
+              animate={{ width: `${maleWidthPercent}%` }}
               transition={transition}
             />
           </>
@@ -83,8 +87,10 @@ function AgeGroupRow({
           />
         )}
       </div>
-      <span className="w-[50px] shrink-0 whitespace-nowrap text-right text-body-1-normal-medium text-text-primary">
-        {filter === 'all' && `${maleValue + femaleValue}%`}
+      <span
+        className={`shrink-0 whitespace-nowrap text-right text-body-1-normal-medium text-text-primary ${filter === 'all' ? 'w-[110px]' : 'w-[50px]'}`}
+      >
+        {filter === 'all' && `남 ${maleValue}% · 여 ${femaleValue}%`}
         {filter === 'male' && `${maleValue}%`}
         {filter === 'female' && `${femaleValue}%`}
       </span>
@@ -108,6 +114,7 @@ export default function GenderYearsView({
   const [filter, setFilter] = useState<Filter>('all')
   const [inViewRevealed, setInViewRevealed] = useState(false)
   const revealed = active ?? inViewRevealed
+  const reduceMotion = !!useReducedMotion()
   // 모바일에서는 칩이 한 단계 작은 사이즈(medium→small)를 쓴다.
   const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
   const chipSize = isTabletUp ? 'medium' : 'small'
@@ -173,6 +180,7 @@ export default function GenderYearsView({
             maxValue={maxValue}
             revealed={revealed}
             delay={index * 0.06}
+            reduceMotion={reduceMotion}
           />
         ))}
       </div>
