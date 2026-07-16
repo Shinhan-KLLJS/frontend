@@ -1,14 +1,17 @@
 import { useRef } from 'react'
 import {
   motion,
+  useMotionValueEvent,
   useReducedMotion,
   useScroll,
   useTransform,
 } from 'motion/react'
+import { ChevronDown } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import Icon from '@/components/ui/Icon'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 import heroBg from '@/assets/landing/hero-bg.png'
-import heroContent from '@/assets/landing/hero-content.png'
+import heroContent from '@/assets/landing/hero-content-2.png'
 
 const TITLE = 'Make the Invisible Visible'
 const BODY_LINE_1 =
@@ -19,16 +22,16 @@ const BODY_LINE_2 =
 function HeroCopy({ className = '' }: { className?: string }) {
   return (
     <div className={`text-center ${className}`}>
-      <h1 className="text-[32px] font-medium leading-[1.3] tracking-[-0.03em] text-text-primary md:text-[48px]">
+      <h1 className="text-[32px] font-medium leading-[1.3] tracking-[-0.03em] text-text-primary md:text-[40px] lg:text-[48px]">
         {TITLE}
       </h1>
-      <p className="mt-x2 text-heading-2-regular text-text-primary">
+      <p className="mt-x2 text-headline-1-regular text-text-primary md:text-heading-2-regular lg:text-heading-1-regular">
         {BODY_LINE_1}
         <br />
         {BODY_LINE_2}
       </p>
       <div className="mt-x8 flex flex-wrap items-center justify-center gap-x2">
-        <Button variant="line" color="secondary">
+        <Button variant="line" color="secondary" className="!bg-bg-secondary">
           서비스 둘러보기
         </Button>
         <Button variant="default" color="primary">
@@ -83,6 +86,7 @@ function StaticHero() {
  */
 function DesktopScrollHero() {
   const sectionRef = useRef<HTMLElement>(null)
+  const scrollHintRef = useRef<HTMLDivElement>(null)
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -132,6 +136,15 @@ function DesktopScrollHero() {
     (values) => (values as number[]).reduce((a, b) => a * b, 1),
   )
 
+  // 배경이 축소되는 구간(visualScale과 동일한 0~0.35)과 함께 사라진다.
+  // style={{opacity: motionValue}} 반응형 바인딩이 이 코드베이스에서 간헐적으로
+  // 멈췄다가 되살아나는 문제가 있어(원인 불명, Section2/4에서도 겪음) ref에
+  // 직접 opacity를 써서 우회한다.
+  const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.35], [1, 0])
+  useMotionValueEvent(scrollHintOpacity, 'change', (v) => {
+    if (scrollHintRef.current) scrollHintRef.current.style.opacity = String(v)
+  })
+
   return (
     <section ref={sectionRef} className="relative h-[230dvh]">
       <div className="sticky top-0 min-h-dvh overflow-hidden">
@@ -165,6 +178,22 @@ function DesktopScrollHero() {
             }}
           >
             <HeroDashboardImage />
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          ref={scrollHintRef}
+          className="absolute inset-x-0 bottom-x8 z-10 flex flex-col items-center gap-x1"
+          style={{ opacity: scrollHintOpacity.get() }}
+        >
+          <span className="text-label-1-normal-regular text-text-primary">
+            스크롤을 내려보세요
+          </span>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Icon icon={ChevronDown} color="primary" />
           </motion.div>
         </motion.div>
       </div>

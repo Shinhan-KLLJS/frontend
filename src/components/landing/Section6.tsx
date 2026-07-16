@@ -23,7 +23,7 @@ const BODY = (
   <>
     Vision AI로 사람을 자동으로 인식하고
     <br />
-    개인정보는 안전하게 보호합니다.
+    개인정보는 안전하게 보호해요.
   </>
 )
 
@@ -165,7 +165,7 @@ function DesktopSection6() {
           />
 
           <div ref={titleRef} className="absolute left-[60px] top-[70px] z-10 opacity-0">
-            <h2 className="text-title-1-medium text-text-primary-inverse">
+            <h2 className="text-display-3-medium text-text-primary-inverse">
               {TITLE}
             </h2>
             <p className="mt-x2 text-heading-1-regular text-text-primary-inverse">
@@ -222,10 +222,10 @@ function StaticSection6() {
         />
 
         <div className="absolute left-x5 top-x5 z-10">
-          <h2 className="text-display-3-medium text-text-primary-inverse">
+          <h2 className="text-title-2-medium text-text-primary-inverse md:text-title-1-medium">
             {TITLE}
           </h2>
-          <p className="mt-x2 text-heading-1-regular text-text-primary-inverse">
+          <p className="mt-x2 text-headline-1-regular text-text-primary-inverse md:text-heading-2-regular">
             {BODY}
           </p>
         </div>

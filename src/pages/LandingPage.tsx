@@ -12,7 +12,7 @@ export default function LandingPage() {
     <div className="bg-bg-primary">
       <ScrollHero />
       <Section2 />
-      <div className="h-[200px] w-full rounded-b-[40px] bg-[#3a83f5]" />
+      <div className="h-[200px] w-full rounded-b-[40px] bg-[var(--blue-400)]" />
       <Section3 />
       <Section4 />
       <Section6 />

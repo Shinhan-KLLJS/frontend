@@ -200,7 +200,7 @@ function DesktopSection3() {
               <p className="text-heading-1-regular text-text-primary">
                 광고 영상을 업로드하고 송출할 지역과
                 <br />
-                매체를 선택해 캠페인을 등록할 수 있어요
+                매체를 선택해 캠페인을 등록할 수 있어요.
               </p>
             </div>
 
@@ -245,12 +245,12 @@ function StaticSection3() {
         style={reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }}
       >
         <div className="flex flex-col items-center gap-x3 text-center">
-          <h2 className="text-display-3-medium text-text-primary">
+          <h2 className="text-title-2-medium text-text-primary md:text-title-1-medium">
             캠페인 등록
           </h2>
-          <p className="text-heading-1-regular text-text-primary">
+          <p className="text-headline-1-regular text-text-primary md:text-heading-2-regular">
             광고 영상을 업로드하고 송출할 지역과 매체를 선택해 캠페인을 등록할 수
-            있어요
+            있어요.
           </p>
         </div>
 

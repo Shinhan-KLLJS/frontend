@@ -14,7 +14,7 @@ import {
   useTransform,
 } from 'motion/react'
 import { useMediaQuery } from '@/lib/useMediaQuery'
-import tolaDataImage from '@/assets/landing/TOLA-Data.png'
+import tolaDataImage from '@/assets/landing/TOLA-Data-2.png'
 import liveViewerGraphImage from '@/assets/landing/Live-Viewer-Graph.png'
 import bestFlowImage from '@/assets/landing/Best-Flow.png'
 import averageViewTimeImage from '@/assets/landing/Average-View-Time-2.png'
@@ -60,7 +60,7 @@ const WIDGETS = [
   {
     key: 'time-years-heat-map',
     label: 'Time Years Heat Map',
-    x: 838,
+    x: 858,
     y: 702,
     width: 576,
     height: 360,
@@ -68,7 +68,7 @@ const WIDGETS = [
   {
     key: 'gender-years-view',
     label: 'Gender Years View',
-    x: 909,
+    x: 929,
     y: 31,
     width: 564,
     height: 368,
@@ -163,7 +163,7 @@ const SectionTitle = forwardRef<
   return (
     <h2
       ref={ref}
-      className={`text-[32px] font-medium leading-[1.3] tracking-[-0.03em] text-center text-text-primary md:text-display-2-medium ${className}`}
+      className={`text-center text-title-2-medium text-text-primary md:text-title-1-medium lg:text-display-3-medium ${className}`}
       style={style}
     >
       {children ?? (
@@ -313,7 +313,7 @@ function DesktopSection2() {
       <div className="sticky top-0 flex h-dvh items-center justify-center overflow-hidden">
         <div
           ref={tolaGradientRef}
-          className="absolute inset-0 bg-gradient-to-b from-white to-[#3a83f5]"
+          className="absolute inset-0 bg-gradient-to-b from-white to-[var(--blue-400)]"
           style={{
             clipPath: `inset(${(1 - tolaOpacity.get()) * 100}% 0% 0% 0%)`,
           }}
@@ -464,7 +464,7 @@ function StaticSection2() {
           <LoopCard loop={!reduceMotion} />
         </div>
       </motion.div>
-      <div className="mt-x6 flex flex-col items-center gap-x6 px-x5">
+      <div className="mt-x6 flex flex-col items-center gap-x6 rounded-[24px] bg-gradient-to-b from-white to-[var(--blue-400)] px-x5 py-x8">
         <FadeInCard reduceMotion={!!reduceMotion}>
           <TolaDataImage className="w-full" />
         </FadeInCard>

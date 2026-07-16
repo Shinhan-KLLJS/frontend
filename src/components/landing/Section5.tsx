@@ -33,7 +33,7 @@ const CARDS: {
   {
     key: 'join',
     title: '초대받은 팀에 참여하세요',
-    body: '초대 코드를 입력해 진행 중인 팀에 바로 합류할 수 있습니다.',
+    body: '초대 코드를 입력해 진행 중인 팀에 바로 합류할 수 있어요.',
     image: teamCodeFillImage,
     bullets: [
       '초대 코드로 간편하게 팀에 합류할 수 있어요.',
@@ -281,7 +281,7 @@ function StaticSection5() {
           reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }
         }
       >
-        <h2 className="text-center text-display-3-medium text-text-primary">
+        <h2 className="text-center text-title-2-medium text-text-primary md:text-title-1-medium">
           {TITLE}
         </h2>
 

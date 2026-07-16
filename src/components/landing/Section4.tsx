@@ -122,8 +122,8 @@ function StaticSection4() {
         }
       >
         <div className="flex flex-col items-center gap-x3 text-center">
-          <h2 className="text-display-3-medium text-text-primary">{TITLE}</h2>
-          <p className="text-heading-1-regular text-text-primary">{BODY}</p>
+          <h2 className="text-title-2-medium text-text-primary md:text-title-1-medium">{TITLE}</h2>
+          <p className="text-headline-1-regular text-text-primary md:text-heading-2-regular">{BODY}</p>
         </div>
 
         <img
