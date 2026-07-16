@@ -20,8 +20,8 @@ const FILTERS: { value: CampaignFilter; label: string }[] = [
 
 const SORTS: { value: CampaignSort; label: string }[] = [
   { value: 'name', label: '이름순' },
-  { value: 'latest', label: '등록 최신순' },
-  { value: 'oldest', label: '등록 오래된순' },
+  { value: 'latest', label: '집행 최신순' },
+  { value: 'oldest', label: '집행 오래된순' },
 ]
 
 /** 상태 칩, 이름 검색, 정렬 메뉴를 캠페인 목록 상태에 연결합니다. */
@@ -37,7 +37,10 @@ export default function CampaignListControls({
 
   return (
     <div className="flex w-full items-center justify-between">
-      <div className="flex items-center gap-[6px]" aria-label="캠페인 상태 필터">
+      <div
+        className="flex items-center gap-[6px]"
+        aria-label="캠페인 상태 필터"
+      >
         {FILTERS.map((item) => (
           <Chip
             key={item.value}
@@ -57,6 +60,7 @@ export default function CampaignListControls({
           className="w-[307px] [&>div:first-child]:h-[40px] [&>div:first-child]:py-x2"
         />
         <DropdownMenu
+          className="shrink-0"
           triggerAriaLabel="캠페인 정렬"
           menuAriaLabel="캠페인 정렬 옵션"
           items={SORTS.map((item) => ({
@@ -65,7 +69,7 @@ export default function CampaignListControls({
             onSelect: () => onSortChange(item.value),
           }))}
           renderTrigger={() => (
-            <span className="flex items-center gap-x1 px-x2 py-[6px] text-label-1-normal-bold text-text-primary">
+            <span className="flex h-[40px] items-center gap-x1 whitespace-nowrap rounded-x2-5 px-x3 text-label-1-normal-bold text-text-primary interaction-normal">
               {selectedSort.label}
               <Icon icon={ChevronDown} size="small" />
             </span>

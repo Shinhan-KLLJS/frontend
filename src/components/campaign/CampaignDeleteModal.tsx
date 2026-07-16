@@ -28,14 +28,13 @@ export default function CampaignDeleteModal({
           <Button
             variant="line"
             color="secondary"
-            className="w-[143px]"
             disabled={pending}
             onClick={onClose}
           >
-            아니요
+            취소
           </Button>
-          <Button className="w-[143px]" disabled={pending} onClick={onConfirm}>
-            네
+          <Button disabled={pending} onClick={onConfirm}>
+            삭제하기
           </Button>
         </div>
       }
@@ -43,10 +42,10 @@ export default function CampaignDeleteModal({
     >
       <div className="flex w-full flex-col items-center gap-x1 text-center">
         <p className="text-headline-1-bold text-text-primary">
-          {`{${campaign.name}} 캠페인을 삭제하시겠습니까?`}
+          {`${campaign.name} 캠페인을 삭제하시겠어요?`}
         </p>
         <p className="text-body-2-normal-regular text-text-primary">
-          삭제시 송출이 중단되고 데이터를 측정할 수 없습니다.
+          삭제한 캠페인과 관련 데이터는 복구할 수 없어요.
         </p>
       </div>
     </Modal>

@@ -43,6 +43,7 @@ export default function CampaignInfoModal({
   return (
     <Modal
       open
+      scoped
       aria-label="캠페인 정보"
       className="w-[796px] rounded-[24px]"
       footer={<Button className="w-full" onClick={onClose}>확인</Button>}
