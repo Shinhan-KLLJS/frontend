@@ -11,7 +11,7 @@ import Button from '@/components/ui/Button'
 import Icon from '@/components/ui/Icon'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 import heroBg from '@/assets/landing/hero-bg.png'
-import heroContent from '@/assets/landing/hero-content-2.png'
+import heroContent from '@/assets/landing/hero-content-3.png'
 
 const TITLE = 'Make the Invisible Visible'
 const BODY_LINE_1 =

@@ -31,11 +31,11 @@ const FEMALE_DATA = [7, 13, 19, 18, 16, 15, 12] // 합 100
 `Chip`(`src/components/ui/Chip.tsx`) 컴포넌트로 전체/남성/여성 3개 필터. 기본 선택은 "전체". 로컬 `useState<'all' | 'male' | 'female'>` 로 관리.
 
 ### 전체 탭
-연령대별 행마다 같은 시작점(왼쪽)에서 두 개의 바를 겹쳐 그린다:
-- 여성 바(연한 파랑, 뒤쪽 z-order) — 폭은 `femaleValue / maxOfBothDatasets * trackWidth`
-- 남성 바(진한 파랑, 앞쪽 z-order) — 폭은 `maleValue / maxOfBothDatasets * trackWidth`
+연령대별 행마다 왼쪽부터 남성 바(진한 파랑) 다음에 여성 바(연한 파랑)가 겹치지 않고 이어서 그려지는 연속형 막대:
+- 남성 바 — 왼쪽 시작(0), 폭은 `maleValue / maxOfBothDatasets * trackWidth`
+- 여성 바 — 남성 바 끝 지점에서 시작, 폭은 `femaleValue / maxOfBothDatasets * trackWidth`
 
-우측 라벨: `남 {maleValue}% · 여 {femaleValue}%`
+우측 라벨: 두 비율을 합친 값 `{maleValue + femaleValue}%` 단일 표시 (2026-07-16 결정: 성별 분리 표기 대신 합산값으로 변경)
 
 ### 남성 / 여성 탭
 해당 성별 바만 단색으로 표시. 폭은 `value / maxOfThatDataset * trackWidth`(그 성별 데이터셋 내 최댓값 기준 스케일). 우측 라벨: `{value}%` 단일 표시.

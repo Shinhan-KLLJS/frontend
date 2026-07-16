@@ -15,7 +15,7 @@ import {
 } from 'motion/react'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 import { FlowTabs } from './Section3'
-import tolaDataImage from '@/assets/landing/TOLA-Data-2.png'
+import tolaDataImage from '@/assets/landing/TOLA-Data-3.png'
 import liveViewerGraphImage from '@/assets/landing/Live-Viewer-Graph.png'
 import bestFlowImage from '@/assets/landing/Best-Flow.png'
 import averageViewTimeImage from '@/assets/landing/Average-View-Time-2.png'
