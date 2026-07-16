@@ -115,9 +115,15 @@ export default function CampaignSummary({
           <div className="flex min-h-0 flex-1 flex-col justify-center gap-x4">
             <div className="max-h-[204px] min-h-0 w-full flex-1 overflow-hidden rounded-x3 bg-bg-tertiary">
               {media && (
+                // 깨진 photoUrl이면 이미지를 숨겨 회색 placeholder(부모 배경)만 남긴다.
+                // key로 매체 변경 시 새 img가 생성돼 숨김 상태가 초기화됨
                 <img
+                  key={media.thumbnail}
                   src={media.thumbnail}
                   alt=""
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
                   className="size-full object-cover"
                 />
               )}
@@ -163,7 +169,7 @@ export default function CampaignSummary({
         disabled={!canSubmit}
         onClick={onSubmit}
       >
-        {submitting ? '등록 중...' : '캠페인 등록'}
+        {submitting ? '등록 중...' : '캠페인 등록하기'}
       </Button>
     </div>
   )
