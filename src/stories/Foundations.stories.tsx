@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import AppLayout from '@/components/layout/AppLayout'
 
 /**
@@ -1031,23 +1030,6 @@ export const Shadow: Story = {
   ),
 }
 
-// App Shell — 실제 AppLayout을 그대로 렌더 (목업 아님, 레이아웃 변경 시 자동 반영)
-const appShellRouter = createMemoryRouter([
-  {
-    element: <AppLayout />,
-    children: [
-      {
-        path: '/',
-        element: (
-          <p className="text-body-2-normal-regular text-text-tertiary">
-            콘텐츠 영역
-          </p>
-        ),
-      },
-    ],
-  },
-])
-
 export const Layout: Story = {
   render: () => (
     <div className="font-sans flex flex-col gap-10 p-8">
@@ -1058,7 +1040,12 @@ export const Layout: Story = {
       <section>
         <h2 className="text-label-1-normal-bold mb-3">App Shell</h2>
         <div className="h-90 overflow-hidden rounded-lg border border-line-tertiary">
-          <RouterProvider router={appShellRouter} />
+          {/* 실제 AppLayout을 그대로 렌더 (목업 아님, 레이아웃 변경 시 자동 반영) */}
+          <AppLayout>
+            <p className="text-body-2-normal-regular text-text-tertiary">
+              콘텐츠 영역
+            </p>
+          </AppLayout>
         </div>
       </section>
 

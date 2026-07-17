@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LNB_DEFAULT_MENUS } from '@/components/ui'
 import type { DropdownMenuItem, LNBMenu } from '@/components/ui'
@@ -26,8 +27,9 @@ const NAV_ITEMS: NavItem[] = LNB_DEFAULT_MENUS.map((menu) => ({
 
 /**
  * 앱 셸 컨테이너 — 인증(useAuth)과 라우터(선택/이동)를 AppShell에 연결.
+ * 레이아웃 라우트로 쓰면 <Outlet/>을, children을 넘기면 그 내용을 본문에 렌더한다.
  */
-export default function AppLayout() {
+export default function AppLayout({ children }: { children?: ReactNode }) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { status, user, logout } = useAuth()
@@ -68,7 +70,7 @@ export default function AppLayout() {
       onLoginClick={() => navigate('/login')}
       profileMenu={profileMenu}
     >
-      <Outlet />
+      {children ?? <Outlet />}
     </AppShell>
   )
 }

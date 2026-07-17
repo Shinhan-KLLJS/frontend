@@ -1,0 +1,28 @@
+/**
+ * 카드 호버 시 카드 중심에서 바깥으로 퍼지는 파란 파티클 애니메이션.
+ * 각 파티클의 도착 지점은 --particle-dx/--particle-dy 커스텀 프로퍼티로,
+ * 크기·딜레이·지속시간은 인라인 style(animation-delay/duration)로 준다.
+ * left-1/2 top-1/2로 중심에 앵커한 뒤, translate(-50%,-50%)로 자기 크기만큼
+ * 보정하고 거기에 dx/dy를 더해 바깥으로 이동시킨다.
+ */
+
+@keyframes particle-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(-50% + var(--particle-dx, 0px)),
+      calc(-50% + var(--particle-dy, 0px))
+    ) scale(1);
+  }
+}
+
+@utility particle-burst {
+  animation: particle-burst 1.6s ease-out infinite;
+}

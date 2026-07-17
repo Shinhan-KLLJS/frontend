@@ -8,12 +8,34 @@ import ComingSoonPage from '@/pages/ComingSoonPage'
 import CreateTeamPage from '@/pages/CreateTeamPage'
 import DashboardHome from '@/pages/DashboardHome'
 import JoinTeamPage from '@/pages/JoinTeamPage'
+import LandingPage from '@/pages/LandingPage'
 import LoginPage from '@/pages/LoginPage'
 import TeamPage from '@/pages/TeamPage'
 import WelcomePage from '@/pages/WelcomePage'
-import { ToastProvider } from '@/components/ui'
-import { AuthProvider, RequireAuth } from '@/lib/auth'
+import { ToastProvider, LoadingSpinner } from '@/components/ui'
+import { AuthProvider, RequireAuth, useAuth } from '@/lib/auth'
 import { queryClient } from '@/lib/queryClient'
+
+/** '/' 전용 분기: 세션 확인 중엔 스피너, 비로그인은 랜딩, 로그인은 대시보드(앱 셸) */
+function RootRoute() {
+  const { status } = useAuth()
+
+  if (status === 'loading') {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <LoadingSpinner progress={0} showLabel={false} />
+      </div>
+    )
+  }
+  if (status === 'guest') {
+    return <LandingPage />
+  }
+  return (
+    <AppLayout>
+      <DashboardHome />
+    </AppLayout>
+  )
+}
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -35,6 +57,8 @@ const router = createBrowserRouter([
       { path: 'create', element: <CreateTeamPage /> },
     ],
   },
+  // '/'는 공개 진입점 — 게스트 랜딩 / 인증 시 대시보드를 RootRoute가 분기한다.
+  { path: '/', element: <RootRoute /> },
   {
     element: (
       <RequireAuth>
@@ -42,7 +66,6 @@ const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { path: '/', element: <DashboardHome /> },
       // 기존 단수형 주소로 접근해도 캠페인 목록으로 자연스럽게 이동합니다.
       { path: '/campaign', element: <Navigate to="/campaigns" replace /> },
       { path: '/campaigns', element: <CampaignListPage /> },
