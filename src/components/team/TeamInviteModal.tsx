@@ -43,10 +43,13 @@ export default function TeamInviteModal({
   const { entries } = inviteEntries
 
   // 전송 중 ESC/배경 클릭/X 버튼으로 닫히지 않도록 최신 값을 ref에 보관한다.
+  // 렌더 단계가 아닌 커밋 후(effect)에 동기화해 폐기된 렌더 값이 리스너에 새지 않게 한다.
   const sendingRef = useRef(sending)
-  sendingRef.current = sending
   const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
+  useEffect(() => {
+    sendingRef.current = sending
+    onCloseRef.current = onClose
+  })
 
   useEffect(() => {
     if (!open) return

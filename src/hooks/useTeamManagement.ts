@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/components/ui'
+import { useAuth } from '@/lib/auth'
 import {
   fetchTeamMembers,
   issueInviteCode,
@@ -25,6 +26,7 @@ interface UseTeamManagementParams {
 /** 팀 관리 화면의 조회·변경 상태를 한 곳에서 관리한다. */
 export function useTeamManagement({ teamId }: UseTeamManagementParams) {
   const { toast } = useToast()
+  const { updateUser } = useAuth()
   const navigate = useNavigate()
   const [team, setTeam] = useState<Team | null>(null)
   const [members, setMembers] = useState<TeamMember[]>([])
@@ -37,7 +39,14 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
   const [leaveOpen, setLeaveOpen] = useState(false)
 
   useEffect(() => {
-    if (teamId == null) return
+    // teamId가 바뀌면 이전 팀명·멤버를 즉시 비운다 — 조회 지연/실패 시 이전 팀 정보가 남지 않게.
+    setTeam(null)
+    setMembers([])
+    if (teamId == null) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
     let active = true
     fetchTeamMembers(teamId)
       .then((data) => {
@@ -91,11 +100,12 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
   }
 
   const handleOpenInvite = async () => {
-    setInviteOpen(true)
     if (teamId == null) return
+    // 코드 발급이 성공한 뒤에 모달을 연다 — 빈 코드/이전 코드가 노출되거나 복사·전송되는 것을 막는다.
     try {
       const { code } = await issueInviteCode(teamId)
       setInviteCode(code)
+      setInviteOpen(true)
     } catch {
       toast('초대 코드를 불러오지 못했습니다. 다시 시도하세요.', {
         status: 'error',
@@ -165,6 +175,8 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
     if (teamId == null) return
     try {
       await leaveTeam(teamId)
+      // auth 상태를 갱신하지 않으면 hasTeam이 true로 남아 /welcome이 다시 홈으로 되돌린다.
+      updateUser({ hasTeam: false, teamId: undefined })
       navigate('/welcome', { replace: true })
     } catch {
       toast('팀 나가기에 실패했습니다. 다시 시도하세요.', { status: 'error' })
