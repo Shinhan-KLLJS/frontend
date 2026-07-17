@@ -9,6 +9,7 @@ import CreateTeamPage from '@/pages/CreateTeamPage'
 import DashboardHome from '@/pages/DashboardHome'
 import JoinTeamPage from '@/pages/JoinTeamPage'
 import LoginPage from '@/pages/LoginPage'
+import TeamPage from '@/pages/TeamPage'
 import WelcomePage from '@/pages/WelcomePage'
 import { ToastProvider } from '@/components/ui'
 import { AuthProvider, RequireAuth } from '@/lib/auth'
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
       { path: '/campaigns', element: <CampaignListPage /> },
       // 캠페인 등록 3단계 위저드 (기본 정보 → 매체 선택 → 최종 확인)
       { path: '/campaigns/new', element: <CampaignRegisterPage /> },
-      { path: '/team', element: <ComingSoonPage title="팀 관리" /> },
+      { path: '/team', element: <TeamPage /> },
       { path: '/calendar', element: <ComingSoonPage title="캘린더" /> },
       { path: '/service-intro', element: <ComingSoonPage title="서비스 소개" /> },
       { path: '/mypage', element: <ComingSoonPage title="마이 페이지" /> },

@@ -16,6 +16,13 @@ export const API_ENDPOINTS = {
   businessRegistration: '/api/v1/teams/business-registration', // POST 사업자등록증 업로드(OCR)
   teamJoin: '/api/v1/teams/join', // POST 팀 합류
   teamInviteCode: (teamId: number) => `/api/v1/teams/${teamId}/invite-code`, // POST 초대 코드 발급
+  // 팀 관리 (DV-165)
+  teamMembers: (teamId: number) => `/api/v1/teams/${teamId}/members`, // GET 팀원 목록(+팀명)
+  teamMemberRole: (teamId: number, userId: number) =>
+    `/api/v1/teams/${teamId}/members/${userId}/role`, // PATCH 권한 변경·Owner 이전
+  teamMember: (teamId: number, userId: number) =>
+    `/api/v1/teams/${teamId}/members/${userId}`, // DELETE 팀원 삭제
+  teamLeave: (teamId: number) => `/api/v1/teams/${teamId}/members/me`, // DELETE 팀 나가기
   // 캠페인 등록
   mediaUnits: '/api/v1/media-units', // GET 송출 매체 목록·검색 (keyword·sido·sigungu·executionStartDate·executionEndDate 쿼리)
   mediaUnitRegions: '/api/v1/media-units/regions', // GET 매체 서비스 지역 목록
