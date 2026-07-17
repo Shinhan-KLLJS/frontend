@@ -92,15 +92,15 @@ export default function TeamPage() {
 
       <Modal
         open={transferTarget !== null}
-        title="Owner 권한을 이전하시겠습니까?"
-        body="Owner 권한은 한 명만 가질 수 있습니다. 권한을 이전하면 기존 소유자는 Admin으로 변경됩니다."
+        title="소유자 권한을 부여하시겠어요?"
+        body="부여하면 팀 관리 권한이 모두 이전돼요."
         onClose={() => setTransferTarget(null)}
         onConfirm={handleTransferOwnership}
       />
       <Modal
         open={leaveOpen}
-        title="팀을 나가시겠습니까?"
-        body="팀에서 나가면 이 팀의 캠페인 데이터에 더 이상 접근할 수 없습니다."
+        title="팀을 나가시겠어요?"
+        body="팀을 나가면 팀 데이터에 더 이상 접근할 수 없어요."
         cancelText="취소"
         confirmText="팀 나가기"
         onClose={() => setLeaveOpen(false)}

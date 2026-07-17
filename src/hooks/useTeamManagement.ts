@@ -131,7 +131,7 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
       const updated = await updateMemberRole(teamId, target.userId, 'OWNER')
       applyRoleUpdates(updated)
     } catch {
-      toast('Owner 권한 이전에 실패했습니다. 다시 시도하세요.', {
+      toast('소유자 권한 이전에 실패했습니다. 다시 시도하세요.', {
         status: 'error',
       })
     }
@@ -179,7 +179,8 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
           member.email.toLowerCase().includes(keyword),
       )
     : members
-  const myRole: TeamRole = members.find((member) => member.isMe)?.role ?? 'MEMBER'
+  const myRole: TeamRole =
+    members.find((member) => member.isMe)?.role ?? 'MEMBER'
 
   return {
     team,

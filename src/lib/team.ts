@@ -18,11 +18,11 @@ import { maskRegistrationNumber } from './team-format'
 export const TEAM_ROLE = ['OWNER', 'ADMIN', 'MEMBER'] as const
 export type TeamRole = (typeof TEAM_ROLE)[number]
 
-/** 역할 표기 라벨 — Figma 원문의 'Onwer' 오타는 Owner로 교정해 사용 */
+/** 역할 표기 라벨 — 역할 배지·권한 부여 드롭다운 공통(Figma 한국어 표기) */
 export const TEAM_ROLE_LABEL: Record<TeamRole, string> = {
-  OWNER: 'Owner',
-  ADMIN: 'Admin',
-  MEMBER: 'Member',
+  OWNER: '소유자',
+  ADMIN: '관리자',
+  MEMBER: '팀원',
 }
 
 // --- 온보딩 (팀 생성·합류) -------------------------------------------------
