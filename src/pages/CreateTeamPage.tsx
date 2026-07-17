@@ -7,6 +7,7 @@ import type { UploadStatus } from '@/components/team/LicenseDropzone'
 import TeamInvitePanel from '@/components/team/TeamInvitePanel'
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 import { createTeam, TeamApiError, uploadBusinessLicense } from '@/lib/team'
 import type { CreatedTeam } from '@/lib/team'
 import { createTeamSchema } from '@/lib/team-schema'
@@ -84,7 +85,7 @@ export default function CreateTeamPage() {
         team={createdTeam}
         onGoHome={() => {
           updateUser({ hasTeam: true, teamId: createdTeam.id })
-          navigate('/', { replace: true })
+          navigate(ROUTES.home, { replace: true })
         }}
       />
     )
@@ -100,7 +101,7 @@ export default function CreateTeamPage() {
       onSubmit={handleSubmit(onSubmit)}
       canSubmit={canSubmit}
       isSubmitting={isSubmitting}
-      onBack={() => navigate('/welcome')}
+      onBack={() => navigate(ROUTES.welcome)}
     />
   )
 }

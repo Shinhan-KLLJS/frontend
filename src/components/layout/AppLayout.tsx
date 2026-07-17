@@ -4,6 +4,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LNB_DEFAULT_MENUS } from '@/components/ui'
 import type { DropdownMenuItem, LNBMenu } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 import AppShell from './AppShell'
 
 interface NavItem extends LNBMenu {
@@ -12,10 +13,10 @@ interface NavItem extends LNBMenu {
 
 // 메뉴 key ↔ 라우트 (홈만 실제 화면, 나머지는 준비 중 placeholder)
 const ROUTE_BY_KEY: Record<string, string> = {
-  home: '/',
-  campaign: '/campaigns',
-  team: '/team',
-  calendar: '/calendar',
+  home: ROUTES.home,
+  campaign: ROUTES.campaigns,
+  team: ROUTES.team,
+  calendar: ROUTES.calendar,
 }
 
 // 디자인 시스템 LNB 기본 메뉴(아이콘 포함)를 재사용해 라우트를 매핑
@@ -39,10 +40,10 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
     {
       key: 'mypage',
       label: '마이 페이지',
-      onSelect: () => navigate('/mypage'),
+      onSelect: () => navigate(ROUTES.mypage),
     },
-    { key: 'settings', label: '설정', onSelect: () => navigate('/settings') },
-    { key: 'support', label: '고객센터', onSelect: () => navigate('/support') },
+    { key: 'settings', label: '설정', onSelect: () => navigate(ROUTES.settings) },
+    { key: 'support', label: '고객센터', onSelect: () => navigate(ROUTES.support) },
     { key: 'logout', label: '로그아웃', onSelect: () => void logout() },
   ]
 
@@ -65,9 +66,9 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
       onSelect={handleSelect}
       login={status === 'authenticated'}
       avatarSrc={user?.profileImageUrl}
-      onServiceIntroClick={() => navigate('/service-intro')}
-      onSignUpClick={() => navigate('/login')}
-      onLoginClick={() => navigate('/login')}
+      onServiceIntroClick={() => navigate(ROUTES.serviceIntro)}
+      onSignUpClick={() => navigate(ROUTES.login)}
+      onLoginClick={() => navigate(ROUTES.login)}
       profileMenu={profileMenu}
     >
       {children ?? <Outlet />}

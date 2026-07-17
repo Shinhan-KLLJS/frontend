@@ -52,7 +52,7 @@ export default function AppShell({
             profileMenu={profileMenu}
           />
           <main className="min-h-0 flex-1 overflow-y-auto w-full">
-            <div className="mx-auto h-full min-w-[1040px] max-w-[1440px] bg-bg-cautionary">
+            <div className="mx-auto h-full min-w-[1040px] max-w-[1440px]">
               {children}
             </div>
           </main>

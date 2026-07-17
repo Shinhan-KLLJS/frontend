@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
 import { Check } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import Button from '@/components/ui/Button'
 import Icon from '@/components/ui/Icon'
+import { ROUTES } from '@/lib/routes'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 import teamChoiceBgVideo from '@/assets/landing/Teamchoicebg.mp4'
 import generateTeamFieldImage from '@/assets/landing/Generate-Team-Field.png'
@@ -80,6 +82,7 @@ function TeamCard({
   onHoverChange?: (hovered: boolean) => void
   className?: string
 }) {
+  const navigate = useNavigate()
   const stateClass = hovered
     ? 'scale-[1.05]'
     : otherHovered
@@ -153,6 +156,7 @@ function TeamCard({
           variant="default"
           color="primary"
           className="w-full bg-[var(--cool-neutral-900)]!"
+          onClick={() => navigate(ROUTES.login)}
         >
           {card.buttonLabel}
         </Button>

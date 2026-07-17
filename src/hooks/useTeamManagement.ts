@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 import {
   fetchTeamMembers,
   issueInviteCode,
@@ -177,7 +178,7 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
       await leaveTeam(teamId)
       // auth 상태를 갱신하지 않으면 hasTeam이 true로 남아 /welcome이 다시 홈으로 되돌린다.
       updateUser({ hasTeam: false, teamId: undefined })
-      navigate('/welcome', { replace: true })
+      navigate(ROUTES.welcome, { replace: true })
     } catch {
       toast('팀 나가기에 실패했습니다. 다시 시도하세요.', { status: 'error' })
     }

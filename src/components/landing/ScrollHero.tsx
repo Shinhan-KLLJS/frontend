@@ -7,8 +7,11 @@ import {
   useTransform,
 } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import Button from '@/components/ui/Button'
 import Icon from '@/components/ui/Icon'
+import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 import { useMediaQuery } from '@/lib/useMediaQuery'
 import heroBg from '@/assets/landing/hero-bg.png'
 import heroContent from '@/assets/landing/hero-content-3.png'
@@ -20,6 +23,9 @@ const BODY_LINE_2 =
   'Track foot traffic, ad viewers, and engagement around every DOOH display.'
 
 function HeroCopy({ className = '' }: { className?: string }) {
+  const navigate = useNavigate()
+  const { status } = useAuth()
+
   return (
     <div className={`text-center ${className}`}>
       <h1 className="text-[32px] font-medium leading-[1.3] tracking-[-0.03em] text-text-primary md:text-[40px] lg:text-[48px]">
@@ -31,12 +37,34 @@ function HeroCopy({ className = '' }: { className?: string }) {
         {BODY_LINE_2}
       </p>
       <div className="mt-x8 flex flex-wrap items-center justify-center gap-x2">
-        <Button variant="line" color="secondary" className="bg-bg-secondary!">
-          서비스 둘러보기
-        </Button>
-        <Button variant="default" color="primary">
-          무료로 시작하기
-        </Button>
+        {/* 로그인 사용자가 '서비스 소개'로 랜딩을 다시 볼 때는 로그인 유도 대신 대시보드 복귀 */}
+        {status === 'authenticated' ? (
+          <Button
+            variant="default"
+            color="primary"
+            onClick={() => navigate(ROUTES.home)}
+          >
+            홈으로 가기
+          </Button>
+        ) : (
+          <>
+            <Button
+              variant="line"
+              color="secondary"
+              className="bg-bg-secondary!"
+              onClick={() => navigate(ROUTES.login)}
+            >
+              서비스 둘러보기
+            </Button>
+            <Button
+              variant="default"
+              color="primary"
+              onClick={() => navigate(ROUTES.login)}
+            >
+              무료로 시작하기
+            </Button>
+          </>
+        )}
       </div>
     </div>
   )

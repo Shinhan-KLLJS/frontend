@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import JoinTeamCard from '@/components/team/JoinTeamCard'
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 import { joinTeam, TeamApiError } from '@/lib/team'
 
 type JoinState = 'idle' | 'submitting' | 'error'
@@ -37,7 +38,7 @@ export default function JoinTeamPage() {
       const team = await joinTeam(code.trim())
       updateUser({ hasTeam: true, teamId: team.id })
       toast(`${team.name} 팀에 합류했습니다.`, { status: 'success' })
-      navigate('/', { replace: true })
+      navigate(ROUTES.home, { replace: true })
     } catch (err) {
       setJoinState('error')
       setErrorMessage(
