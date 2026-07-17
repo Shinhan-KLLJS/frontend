@@ -71,20 +71,29 @@ export function refreshAccessToken(): Promise<string | null> {
   return refreshPromise
 }
 
-// 401 응답이면 refresh 1회 시도 후 원요청 재시도
+// 인증 만료 복구: 액세스 토큰이 만료되면 refresh 후 원요청을 1회 재시도한다.
+// 백엔드는 보호 API에 401이 아니라 로그인 리다이렉트(302 → OAuth authorize)를 응답하는데,
+// 브라우저 XHR이 이 302를 자동으로 따라가다 크로스오리진(CORS)으로 실패하면 axios는
+// 응답 없는 네트워크 에러로 던진다. 그래서 401뿐 아니라 "응답 없이 실패"도 만료로 간주해 복구한다.
 api.interceptors.response.use(undefined, async (error: AxiosError) => {
   const original = error.config as
     | (InternalAxiosRequestConfig & { _retried?: boolean })
     | undefined
-  if (error.response?.status === 401 && original && !original._retried) {
+  if (!original || original._retried) return Promise.reject(error)
+
+  const status = error.response?.status
+  const looksLikeAuthExpiry = status === 401 || !error.response
+
+  if (looksLikeAuthExpiry) {
     original._retried = true
     const token = await refreshAccessToken()
     if (token) {
       original.headers.Authorization = `Bearer ${token}`
       return api(original)
     }
-    // refresh 실패 = 세션 만료 → 보호 화면이 계속 노출되지 않도록 guest 전환 알림
-    onAuthFailure?.()
+    // 확실한 401 + refresh 실패만 세션 만료로 확정해 guest 전환.
+    // (응답 없는 실패는 일시적 네트워크 오류일 수 있어 강제 로그아웃하지 않는다)
+    if (status === 401) onAuthFailure?.()
   }
   return Promise.reject(error)
 })
