@@ -32,7 +32,7 @@ export default function DateTrigger({
       aria-haspopup="dialog"
       aria-expanded={open}
       className={[
-        'flex cursor-pointer items-center gap-x2 rounded-x3 bg-bg-secondary p-x3 font-sans',
+        'flex cursor-pointer items-center gap-x2 rounded-x3 bg-bg-secondary px-x4 py-x3 font-sans',
         className,
       ]
         .filter(Boolean)

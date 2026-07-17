@@ -152,7 +152,7 @@ export default function SearchBar({
       className={['relative w-full', className].filter(Boolean).join(' ')}
     >
       {/* 검색 인풋 */}
-      <div className="flex h-[36px] w-full items-center gap-[6px] rounded-x1 bg-bg-primary px-x3 py-[6px]">
+      <div className="flex h-[36px] w-full items-center gap-[6px] rounded-x2 bg-bg-primary px-x3 py-x2">
         <Icon
           icon={Search}
           size="medium"

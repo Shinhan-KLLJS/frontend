@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { Navigate } from 'react-router-dom'
 import heroImage from '@/assets/login-pannel.png'
 import looviLogo from '@/assets/logos/loovi.svg'
+import heroVideo from '@/assets/videos/Login_BG_2.mov'
 import {
   Button,
   Checkbox,
@@ -88,11 +89,19 @@ export default function LoginPage() {
         <div className="hidden w-[640px] shrink-0 p-x10 lg:block">
           <div className="relative h-[880px] w-[560px] shrink-0 overflow-hidden rounded-2xl">
             {/* 배경 이미지로 처리 — 부모가 lg 미만에서 display:none이라 모바일/태블릿에선 아예 다운로드되지 않음 */}
-            <div
+            <video
               aria-hidden="true"
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${heroImage})` }}
-            />
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              poster={heroImage}
+              className="absolute inset-0 size-full scale-120 object-cover rotate-180"
+              // className="absolute inset-0 size-full scale-110 object-cover object-left-top"
+            >
+              <source src={heroVideo} type="video/mp4" />
+            </video>
             <div className="absolute left-x10 top-x10 flex w-[480px] flex-col gap-x2">
               <h1 className="text-[48px] leading-[1.3] font-medium tracking-[-0.0282em] text-text-primary">
                 Make the

@@ -47,6 +47,8 @@ interface AuthContextValue {
   user: AuthUser | null
   loginWithKakao: () => void // 카카오 인가 페이지로 이동 — code 교환·쿠키 발급은 백엔드가 전담
   logout: () => Promise<void>
+  // 팀 합류/생성 직후 user를 낙관적으로 갱신 (mock 단계에선 /me 재조회 시 hasTeam이 되돌아가므로 로컬 패치)
+  updateUser: (patch: Partial<AuthUser>) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -112,19 +114,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
-    try {
-      await api.post(API_ENDPOINTS.logout)
-    } catch {
-      // 로그아웃 API 실패해도 로컬 세션은 정리한다
+    // 목 인증(로컬)에서는 백엔드가 없으므로 API 호출 없이 상태만 정리
+    const isMock =
+      import.meta.env.DEV && import.meta.env.VITE_MOCK_AUTH === 'true'
+    if (!isMock) {
+      try {
+        await api.post(API_ENDPOINTS.logout)
+      } catch {
+        // 로그아웃 API 실패해도 로컬 세션은 정리한다
+      }
     }
     setAccessToken(null)
     setUser(null)
     setStatus('guest')
   }, [])
 
+  const updateUser = useCallback((patch: Partial<AuthUser>) => {
+    setUser((prev) => (prev ? { ...prev, ...patch } : prev))
+  }, [])
+
   const value = useMemo(
-    () => ({ status, user, loginWithKakao, logout }),
-    [status, user, loginWithKakao, logout],
+    () => ({ status, user, loginWithKakao, logout, updateUser }),
+    [status, user, loginWithKakao, logout, updateUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

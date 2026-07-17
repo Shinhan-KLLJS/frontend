@@ -107,7 +107,11 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
     if (teamId == null) return
     setInviteSending(true)
     try {
-      await sendTeamInvites(teamId, entries)
+      // sendTeamInvites는 백엔드 미지원(이메일 발송 API 없음)이라 이메일만 넘긴다 — 역할은 서버 미반영.
+      await sendTeamInvites(
+        teamId,
+        entries.map((entry) => entry.email),
+      )
       toast('팀 코드를 전송했습니다.', { status: 'success' })
       setInviteOpen(false)
     } catch {

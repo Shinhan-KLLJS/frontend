@@ -1,12 +1,13 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
-import ScrollArea from './ScrollArea'
+import DropdownMenuItems from './DropdownMenuItems'
 
 export interface DropdownMenuItem {
   key: string
   label: string
   onSelect?: () => void
   disabled?: boolean
+  tone?: 'default' | 'negative'
 }
 
 export interface DropdownMenuProps {
@@ -22,12 +23,7 @@ export interface DropdownMenuProps {
 
 const ITEM_HEIGHT = 36
 
-/**
- * 드롭다운 메뉴 (액션 메뉴) — 트리거 버튼 + 항목 팝오버.
- *
- * 값을 고르는 셀렉트(Dropdown)와 달리, 각 항목이 동작(onSelect)을 실행하는 메뉴 패턴.
- * - 항목 최대 maxVisible(기본 8)개까지 보이고 그 이상은 소형 ScrollArea로 스크롤
- */
+/** 액션을 실행하는 드롭다운 메뉴입니다. */
 export default function DropdownMenu({
   items,
   renderTrigger,
@@ -178,44 +174,16 @@ export default function DropdownMenu({
             align === 'end' ? 'right-0' : 'left-0',
           ].join(' ')}
         >
-          <ScrollArea
-            size="small"
+          <DropdownMenuItems
+            activeIndex={activeIndex}
+            items={items}
+            itemId={itemId}
             maxHeight={maxVisible * ITEM_HEIGHT}
-            role="menu"
-            id={menuId}
-            aria-label={menuAriaLabel}
-          >
-            {items.map((item, index) => {
-              const isActive = index === activeIndex
-              const itemClass = [
-                'flex h-[36px] w-full items-center rounded-x2 p-x2 text-label-1-normal-regular select-none',
-                item.disabled
-                  ? 'cursor-not-allowed text-text-disabled'
-                  : 'cursor-pointer text-text-primary interaction-normal',
-                !item.disabled && isActive ? 'bg-bg-primary' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')
-
-              return (
-                <button
-                  key={item.key}
-                  id={itemId(index)}
-                  type="button"
-                  role="menuitem"
-                  tabIndex={-1}
-                  disabled={item.disabled}
-                  className={itemClass}
-                  onClick={() => activate(item)}
-                  onMouseEnter={() => !item.disabled && setActiveIndex(index)}
-                >
-                  <span className="min-w-0 flex-1 truncate text-left">
-                    {item.label}
-                  </span>
-                </button>
-              )
-            })}
-          </ScrollArea>
+            menuId={menuId}
+            menuAriaLabel={menuAriaLabel}
+            onActivate={activate}
+            onHover={setActiveIndex}
+          />
         </div>
       )}
     </div>
