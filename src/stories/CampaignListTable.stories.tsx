@@ -2,56 +2,82 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import CampaignListTable from '@/components/campaign/CampaignListTable'
 import type { Campaign, CampaignStatus } from '@/lib/campaigns'
 
-const STATUSES: CampaignStatus[] = ['running', 'running', 'before', 'completed']
+const STATUSES: CampaignStatus[] = ['running', 'before', 'completed', 'running']
+const NAMES = [
+  '나이키 썸머 프로모션 홍보 영상 2026 07',
+  '루이비통 2026 SS 컬렉션 패션쇼',
+  'HD현대오일뱅크 2026 하반기 브랜드',
+  'LG에너지솔루션 배터리 산업 전시',
+  '삼성전자 주식 자량 대회 누가누가',
+]
 
 const makeCampaigns = (n: number): Campaign[] =>
   Array.from({ length: n }, (_, i) => ({
     id: String(i + 1),
-    name: `${i + 1}번 캠페인 나이키 썸머 프로모션 홍보 영상 2026`,
+    name: `${NAMES[i % NAMES.length]} (${i + 1})`,
     status: STATUSES[i % STATUSES.length],
     startDate: '2026.07.11',
     endDate: '2026.08.15',
     mediaAddress: '서울특별시 강남구 테헤란로 1123',
-    todayPlayCount: 12,
+    todayPlayCount: 12 + i,
     totalPlayCount: 200,
   }))
 
-// 페이지의 flex 컬럼(고정 높이) 안에 배치해 flex-1 채움을 재현
-function Frame({ campaigns }: { campaigns: Campaign[] }) {
+const noop = () => {}
+
+// 빈 목록은 세로로 꽉 채우고, 많으면 늘어나며 스크롤되는 동작을 보이도록 고정 높이 컨테이너에 담는다.
+function Frame({
+  campaigns,
+  width,
+  height = 560,
+}: {
+  campaigns: Campaign[]
+  width: number
+  height?: number
+}) {
   return (
     <div
-      className="flex flex-col gap-x5 bg-bg-secondary p-x5"
-      style={{ height: 640, width: 1040 }}
+      className="mx-auto flex flex-col overflow-y-auto bg-bg-secondary p-x5"
+      style={{ width, height }}
     >
-      <div className="h-[40px] shrink-0" />
       <CampaignListTable
         campaigns={campaigns}
-        onCampaignInfo={() => {}}
-        onCampaignMemo={() => {}}
-        onCampaignDelete={() => {}}
+        onCampaignInfo={noop}
+        onCampaignMemo={noop}
+        onCampaignDelete={noop}
       />
     </div>
   )
 }
 
 const meta: Meta = {
-  title: 'Pages/Campaign/List Table',
+  title: 'Pages/Campaign/4) 광고 리스트/캠페인 목록 테이블',
   parameters: { layout: 'fullscreen' },
 }
 export default meta
 type Story = StoryObj
 
-export const Few: Story = {
-  name: '적은 목록(높이 채움)',
-  render: () => <Frame campaigns={makeCampaigns(3)} />,
+export const Empty: Story = {
+  name: '빈 목록',
+  render: () => <Frame campaigns={[]} width={1040} />,
 }
 
 export const Many: Story = {
   name: '많은 목록',
-  render: () => <Frame campaigns={makeCampaigns(20)} />,
+  render: () => <Frame campaigns={makeCampaigns(30)} width={1040} />,
 }
 
-export const Empty: Story = {
-  name: '빈 목록',
-  render: () => <Frame campaigns={[]} />,
+export const Few: Story = {
+  name: '적은 목록',
+  render: () => <Frame campaigns={makeCampaigns(3)} width={1040} />,
+}
+
+export const W1280: Story = {
+  name: '1280px',
+  render: () => <Frame campaigns={makeCampaigns(8)} width={1280} />,
+}
+
+export const W1440: Story = {
+  name: '1440px',
+  render: () => <Frame campaigns={makeCampaigns(8)} width={1440} />,
 }

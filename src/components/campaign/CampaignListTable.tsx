@@ -10,22 +10,35 @@ interface CampaignListTableProps {
   onCampaignDelete: (campaign: Campaign) => void
 }
 
-// 캠페인명(222~, 나머지 채움) · 상태(글자 크기에 맞춤, auto) · 집행기간 180 · 매체주소 220 · 송출 90 · 작업 24
+// 캠페인명(222~, 나머지 채움) · 상태(가장 긴 라벨에 맞춘 60px, 태그는 내용 크기·왼쪽정렬) · 집행기간 180 · 매체주소 220 · 송출 90 · 작업 24
 // 항목 간 gap 24px, 캠페인명↔상태만 32px(첫 칸 mr-x2 8px + gap 24px).
+// 상태를 auto로 두면 헤더·행마다 폭이 달라 왼쪽 정렬이 어긋나므로 고정 폭 + 태그 justify-self-start.
 const GRID_CLASS =
-  'grid grid-cols-[minmax(222px,1fr)_auto_180px_220px_90px_24px] items-center gap-x6'
+  'grid grid-cols-[minmax(222px,1fr)_60px_180px_220px_90px_24px] items-center gap-x6'
 
-/** 피그마 가이드의 48px 헤더·64px 행 높이를 따르며, 목록이 적어도 세로로 꽉 채운다. */
+/**
+ * 피그마 가이드의 48px 헤더·64px 행 높이를 따른다.
+ * 빈 목록일 때만 영역을 세로로 꽉 채워 안내를 중앙에 두고, 목록이 있으면 내용 높이만큼 늘어난다(페이지 스크롤).
+ */
 export default function CampaignListTable({
   campaigns,
   onCampaignInfo,
   onCampaignMemo,
   onCampaignDelete,
 }: CampaignListTableProps) {
+  const isEmpty = campaigns.length === 0
+
   return (
-    <div className="w-full overflow-visible rounded-x3 border border-line-secondary bg-bg-secondary">
+    <div
+      className={[
+        'w-full overflow-visible rounded-x3 border border-line-secondary bg-bg-secondary',
+        isEmpty ? 'flex flex-1 flex-col' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div
-        className={`${GRID_CLASS} h-[48px] border-b border-line-secondary px-x5 text-label-1-normal-medium text-text-secondary`}
+        className={`${GRID_CLASS} h-[48px] shrink-0 border-b border-line-secondary px-x5 text-label-1-normal-medium text-text-secondary`}
       >
         <span className="mr-x2">캠페인명</span>
         <span>상태</span>
@@ -35,8 +48,8 @@ export default function CampaignListTable({
         <span className="sr-only">작업</span>
       </div>
 
-      {campaigns.length === 0 ? (
-        <div className="flex min-h-[240px] items-center justify-center text-body-2-normal-regular text-text-tertiary">
+      {isEmpty ? (
+        <div className="flex flex-1 items-center justify-center text-body-2-normal-regular text-text-tertiary">
           조건에 맞는 캠페인이 없습니다.
         </div>
       ) : (

@@ -26,7 +26,7 @@ export default function CampaignStatusTag({
   return (
     <span
       className={[
-        'inline-flex h-[24px] items-center rounded-x1 py-xs px-[6px] text-caption-1-medium whitespace-nowrap',
+        'inline-flex h-[24px] w-fit items-center justify-self-start rounded-x1 py-xs px-[6px] text-caption-1-medium whitespace-nowrap',
         preset.className,
       ].join(' ')}
     >
