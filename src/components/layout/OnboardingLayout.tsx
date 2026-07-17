@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { Header } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 
 /**
  * 팀 온보딩(합류/생성) 공통 레이아웃 — 상단 헤더 + 블루 그라데이션 배경 + 중앙 콘텐츠
@@ -10,7 +11,7 @@ export default function OnboardingLayout() {
   const { user } = useAuth()
 
   if (user?.hasTeam) {
-    return <Navigate to="/" replace />
+    return <Navigate to={ROUTES.home} replace />
   }
 
   return (

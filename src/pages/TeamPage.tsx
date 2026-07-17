@@ -6,6 +6,7 @@ import TeamNameTitle from '@/components/team/TeamNameTitle'
 import { Button, Modal, SearchBar } from '@/components/ui'
 import { useTeamManagement } from '@/hooks/useTeamManagement'
 import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 
 /**
  * 팀 관리 화면 — 팀원 목록·초대·권한 관리·팀 나가기 기능을 조합한다.
@@ -42,7 +43,7 @@ export default function TeamPage() {
   } = teamManagement
 
   // 소속 팀이 없으면 팀 생성·합류 분기점으로 이동해 딥링크 접근을 방어한다.
-  if (user && !user.hasTeam) return <Navigate to="/welcome" replace />
+  if (user && !user.hasTeam) return <Navigate to={ROUTES.welcome} replace />
 
   return (
     <section className="flex min-h-full flex-col p-x5 pb-[80px]">

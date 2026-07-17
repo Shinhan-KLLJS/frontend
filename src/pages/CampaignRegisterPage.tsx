@@ -11,6 +11,7 @@ import VideoUploadCard from '@/components/campaign/VideoUploadCard'
 import type { UploadStatus } from '@/components/campaign/VideoUploadCard'
 import { Icon, ProgressBar, useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 import {
   ALL_SIGUNGU,
   campaignInfoSchema,
@@ -262,7 +263,7 @@ export default function CampaignRegisterPage() {
         creativeToken: upload.creativeToken,
       })
       toast('캠페인이 등록되었습니다.', { status: 'success' })
-      navigate('/campaigns')
+      navigate(ROUTES.campaigns)
     } catch (err) {
       const message =
         err instanceof CampaignApiError
@@ -276,7 +277,7 @@ export default function CampaignRegisterPage() {
   // 뒤로가기: 2·3단계는 이전 단계로, 1단계는 위저드를 벗어나 캠페인 리스트로
   const handleBack = () => {
     if (step > 1) setStep((step - 1) as RegisterStep)
-    else navigate('/campaigns')
+    else navigate(ROUTES.campaigns)
   }
 
   return (

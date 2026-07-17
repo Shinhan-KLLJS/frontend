@@ -9,6 +9,7 @@ import {
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { LoadingSpinner } from '@/components/ui'
+import { ROUTES } from '@/lib/routes'
 import {
   api,
   refreshAccessToken,
@@ -153,7 +154,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     )
   }
   if (status === 'guest') {
-    return <Navigate to="/login" replace />
+    return <Navigate to={ROUTES.login} replace />
   }
   return children
 }

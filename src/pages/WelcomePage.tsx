@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import teamCreateImage from '@/assets/onboarding/team-create.png'
 import teamJoinImage from '@/assets/onboarding/team-join.png'
 import PlanCard from '@/components/team/PlanCard'
+import { ROUTES } from '@/lib/routes'
 
 /**
  * 팀 생성/합류 분기점 (Choose Plan) — 팀이 없는 유저의 온보딩 첫 화면
@@ -31,7 +32,7 @@ export default function WelcomePage() {
             '옥외광고 성과를 분석하세요.',
           ]}
           buttonLabel="팀 생성하기"
-          onSelect={() => navigate('/welcome/create')}
+          onSelect={() => navigate(ROUTES.welcomeCreate)}
         />
         <PlanCard
           image={teamJoinImage}
@@ -41,7 +42,7 @@ export default function WelcomePage() {
             '옥외광고 효과를 분석하세요.',
           ]}
           buttonLabel="팀 합류하기"
-          onSelect={() => navigate('/welcome/join')}
+          onSelect={() => navigate(ROUTES.welcomeJoin)}
         />
       </div>
     </section>

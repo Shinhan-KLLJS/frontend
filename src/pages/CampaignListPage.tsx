@@ -14,6 +14,7 @@ import {
   type Campaign,
 } from '@/lib/campaigns'
 import { CampaignApiError } from '@/lib/campaign'
+import { ROUTES } from '@/lib/routes'
 import { useCampaignList } from '@/hooks/useCampaignList'
 import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
 
@@ -127,7 +128,7 @@ export default function CampaignListPage() {
           <Button
             size="large"
             leadingIcon={Plus}
-            onClick={() => navigate('/campaigns/new')}
+            onClick={() => navigate(ROUTES.campaignsNew)}
           >
             캠페인 등록
           </Button>

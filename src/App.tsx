@@ -1,85 +1,9 @@
-import { Navigate, createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
-import AppLayout from '@/components/layout/AppLayout'
-import OnboardingLayout from '@/components/layout/OnboardingLayout'
-import CampaignListPage from '@/pages/CampaignListPage'
-import CampaignRegisterPage from '@/pages/CampaignRegisterPage'
-import ComingSoonPage from '@/pages/ComingSoonPage'
-import CreateTeamPage from '@/pages/CreateTeamPage'
-import DashboardHome from '@/pages/DashboardHome'
-import JoinTeamPage from '@/pages/JoinTeamPage'
-import LandingPage from '@/pages/LandingPage'
-import LoginPage from '@/pages/LoginPage'
-import TeamPage from '@/pages/TeamPage'
-import WelcomePage from '@/pages/WelcomePage'
-import { ToastProvider, LoadingSpinner } from '@/components/ui'
-import { AuthProvider, RequireAuth, useAuth } from '@/lib/auth'
+import { ToastProvider } from '@/components/ui'
+import { AuthProvider } from '@/lib/auth'
 import { queryClient } from '@/lib/queryClient'
-
-/** '/' 전용 분기: 세션 확인 중엔 스피너, 비로그인은 랜딩, 로그인은 대시보드(앱 셸) */
-function RootRoute() {
-  const { status } = useAuth()
-
-  if (status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <LoadingSpinner progress={0} showLabel={false} />
-      </div>
-    )
-  }
-  if (status === 'guest') {
-    return <LandingPage />
-  }
-  return (
-    <AppLayout>
-      <DashboardHome />
-    </AppLayout>
-  )
-}
-
-const router = createBrowserRouter([
-  { path: '/login', element: <LoginPage /> },
-  // 카카오 OAuth 복귀 지점 (백엔드가 로그인 성공/실패 후 이 경로로 리다이렉트).
-  // LoginPage가 세션 복원 결과로 분기: 성공→팀 유무 따라 /·/welcome, 실패→로그인 폼
-  { path: '/login/success', element: <LoginPage /> },
-  { path: '/login/failure', element: <LoginPage /> },
-  // 로그인 O + 소속 팀 X 사용자의 팀 온보딩 (이미 팀이 있으면 레이아웃에서 홈으로 리다이렉트)
-  {
-    path: '/welcome',
-    element: (
-      <RequireAuth>
-        <OnboardingLayout />
-      </RequireAuth>
-    ),
-    children: [
-      { index: true, element: <WelcomePage /> }, // 팀 생성/합류 분기점 (Choose Plan)
-      { path: 'join', element: <JoinTeamPage /> },
-      { path: 'create', element: <CreateTeamPage /> },
-    ],
-  },
-  // '/'는 공개 진입점 — 게스트 랜딩 / 인증 시 대시보드를 RootRoute가 분기한다.
-  { path: '/', element: <RootRoute /> },
-  {
-    element: (
-      <RequireAuth>
-        <AppLayout />
-      </RequireAuth>
-    ),
-    children: [
-      // 기존 단수형 주소로 접근해도 캠페인 목록으로 자연스럽게 이동합니다.
-      { path: '/campaign', element: <Navigate to="/campaigns" replace /> },
-      { path: '/campaigns', element: <CampaignListPage /> },
-      // 캠페인 등록 3단계 위저드 (기본 정보 → 매체 선택 → 최종 확인)
-      { path: '/campaigns/new', element: <CampaignRegisterPage /> },
-      { path: '/team', element: <TeamPage /> },
-      { path: '/calendar', element: <ComingSoonPage title="캘린더" /> },
-      { path: '/service-intro', element: <ComingSoonPage title="서비스 소개" /> },
-      { path: '/mypage', element: <ComingSoonPage title="마이 페이지" /> },
-      { path: '/settings', element: <ComingSoonPage title="설정" /> },
-      { path: '/support', element: <ComingSoonPage title="고객센터" /> },
-    ],
-  },
-])
+import { router } from '@/router'
 
 function App() {
   return (

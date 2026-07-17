@@ -15,6 +15,7 @@ import {
   useToast,
 } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 
 const SAVED_EMAIL_KEY = 'loovi.savedEmail'
 
@@ -70,7 +71,7 @@ export default function LoginPage() {
 
   // 로그인 완료: 소속 팀이 있으면 대시보드, 없으면 팀 생성/합류 분기점으로
   if (status === 'authenticated') {
-    return <Navigate to={user?.hasTeam ? '/' : '/welcome'} replace />
+    return <Navigate to={user?.hasTeam ? ROUTES.home : ROUTES.welcome} replace />
   }
 
   // 세션 복원 중(OAuth 복귀 직후 포함)에는 폼 대신 스피너 — 로그인 폼 깜빡임 방지
