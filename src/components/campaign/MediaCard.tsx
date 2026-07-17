@@ -25,7 +25,7 @@ export default function MediaCard({
       onClick={onSelect}
       className={[
         'flex w-full cursor-pointer items-center gap-x2 rounded-x2 p-x2 text-left transition-colors',
-        selected ? 'bg-bg-primary interaction-light' : 'bg-bg-secondary',
+        selected ? 'bg-primary-brand-weak' : 'bg-bg-secondary',
       ].join(' ')}
     >
       {imgError || !media.thumbnail ? (
@@ -42,7 +42,12 @@ export default function MediaCard({
       )}
       <span className="flex min-w-0 flex-1 flex-col gap-x1">
         <span className="flex flex-col">
-          <span className="truncate text-body-1-normal-bold text-text-primary">
+          <span
+            className={[
+              'truncate text-body-1-normal-bold',
+              selected ? 'text-text-brand' : 'text-text-primary',
+            ].join(' ')}
+          >
             {media.name}
           </span>
           <span className="text-label-1-normal-regular text-text-caption">

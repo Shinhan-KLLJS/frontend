@@ -33,6 +33,9 @@
   --cool-neutral-950: #0f0f10;
   --cool-neutral-1000: #000000;
 
+  /* Dimmer (모달·오버레이 배경 딤) */
+  --Dimer_Black: rgba(0, 0, 0, 0.7);
+
   /* Red */
   --red-10: #fffafa;
   --red-50: #feecec;

@@ -1,7 +1,8 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { Navigate, createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import AppLayout from '@/components/layout/AppLayout'
 import OnboardingLayout from '@/components/layout/OnboardingLayout'
+import CampaignListPage from '@/pages/CampaignListPage'
 import CampaignRegisterPage from '@/pages/CampaignRegisterPage'
 import ComingSoonPage from '@/pages/ComingSoonPage'
 import CreateTeamPage from '@/pages/CreateTeamPage'
@@ -41,7 +42,9 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <DashboardHome /> },
-      { path: '/campaigns', element: <ComingSoonPage title="캠페인" /> },
+      // 기존 단수형 주소로 접근해도 캠페인 목록으로 자연스럽게 이동합니다.
+      { path: '/campaign', element: <Navigate to="/campaigns" replace /> },
+      { path: '/campaigns', element: <CampaignListPage /> },
       // 캠페인 등록 3단계 위저드 (기본 정보 → 매체 선택 → 최종 확인)
       { path: '/campaigns/new', element: <CampaignRegisterPage /> },
       { path: '/team', element: <ComingSoonPage title="팀 관리" /> },

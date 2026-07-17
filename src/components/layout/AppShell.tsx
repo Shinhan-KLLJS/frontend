@@ -39,7 +39,10 @@ export default function AppShell({
           onSelect={onSelect}
           className="shrink-0"
         />
-        <div className="flex w-full flex-1 flex-col">
+        <div
+          id="app-content-area"
+          className="relative flex w-full flex-1 flex-col"
+        >
           <Header
             login={login}
             avatarSrc={avatarSrc}
@@ -49,7 +52,7 @@ export default function AppShell({
             profileMenu={profileMenu}
           />
           <main className="min-h-0 flex-1 overflow-y-auto w-full">
-            <div className="mx-auto min-h-full min-w-[1040px] max-w-[1440px] bg-bg-cautionary">
+            <div className="mx-auto h-full min-w-[1040px] max-w-[1440px] bg-bg-cautionary">
               {children}
             </div>
           </main>

@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { ScrollArea } from '@/components/ui'
 import DashboardPanel from './DashboardPanel'
 import DashboardSectionHeader from './DashboardSectionHeader'
 
@@ -19,12 +20,16 @@ export interface RealtimeViewerChartProps {
   data: ViewerPoint[]
   /** 집계 기준 시각 라벨(예: "14:37 기준") — 헤더 (i) 툴팁 */
   cutoffLabel?: string
+  /** 시간별 누적(기간 선택) 모드 — 포인트가 많아 폭을 초과하면 가로 스크롤한다. */
+  scrollable?: boolean
 }
 
 /** 첫 라벨을 x축 왼쪽 끝에서 안쪽으로 밀어 넣는 여백(spacing-x5). */
 const EDGE_LABEL_INSET = 20
 /** 화면에 노출할 x축 라벨 최대 개수(1분 단위 데이터가 촘촘해도 과밀 방지). */
 const MAX_LABELS = 8
+/** 가로 스크롤 모드에서 포인트 1개당 최소 폭(px) — 컨테이너보다 넓어지면 스크롤. */
+const SCROLL_POINT_WIDTH = 48
 
 interface AxisTickProps {
   x?: number
@@ -60,6 +65,7 @@ function AxisTick({ x = 0, y = 0, index, payload }: AxisTickProps) {
 export default function RealtimeViewerChart({
   data,
   cutoffLabel,
+  scrollable = false,
 }: RealtimeViewerChartProps) {
   const gradientId = useId().replace(/:/g, '')
   const latest = data.at(-1)
@@ -78,7 +84,71 @@ export default function RealtimeViewerChart({
     { time: '', viewers: null },
   ]
 
-  const labelInterval = Math.max(0, Math.ceil(series.length / MAX_LABELS) - 1)
+  // 스크롤 모드는 폭이 넉넉하니 라벨을 모두 노출, 그 외엔 과밀 방지 캡
+  const labelInterval = scrollable
+    ? 0
+    : Math.max(0, Math.ceil(series.length / MAX_LABELS) - 1)
+
+  const chart = (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart
+        data={series}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+      >
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop
+              offset="0%"
+              stopColor="var(--color-chart-categorical-1)"
+              stopOpacity={0.24}
+            />
+            <stop
+              offset="100%"
+              stopColor="var(--color-chart-categorical-1)"
+              stopOpacity={0}
+            />
+          </linearGradient>
+        </defs>
+        <XAxis
+          dataKey="time"
+          axisLine={{ stroke: 'var(--color-line-tertiary)' }}
+          tickLine={false}
+          height={28}
+          interval={labelInterval}
+          padding={{ left: 0, right: 0 }}
+          tick={<AxisTick />}
+        />
+        <YAxis
+          axisLine={{ stroke: 'var(--color-line-tertiary)' }}
+          tickLine={false}
+          tick={{ fill: 'var(--color-chart-axis-label)', fontSize: 14 }}
+          domain={[axisMin, axisMax]}
+          width={48}
+        />
+        <Area
+          type="monotone"
+          dataKey="viewers"
+          stroke="var(--color-chart-categorical-1)"
+          strokeWidth={2}
+          fill={`url(#${gradientId})`}
+          baseValue={axisMin}
+          connectNulls={false}
+          dot={false}
+          activeDot={{ r: 4, strokeWidth: 2 }}
+          isAnimationActive={false}
+        />
+        {latest && (
+          <ReferenceDot
+            x={latest.time}
+            y={latest.viewers}
+            r={3}
+            fill="var(--color-chart-categorical-1)"
+            stroke="none"
+          />
+        )}
+      </AreaChart>
+    </ResponsiveContainer>
+  )
 
   return (
     <DashboardPanel className="flex h-[328px] flex-col gap-x5 py-x5">
@@ -87,66 +157,25 @@ export default function RealtimeViewerChart({
         description="선택한 캠페인의 시간대별 시청 추이를 보여줍니다."
         cutoffLabel={cutoffLabel}
       />
-      <div className="min-h-0 min-w-0 flex-1" aria-hidden="true">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={series}
-            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+      {scrollable ? (
+        <ScrollArea
+          axis="horizontal"
+          size="small"
+          className="min-h-0 min-w-0 flex-1"
+          aria-hidden="true"
+        >
+          <div
+            className="h-full"
+            style={{ minWidth: series.length * SCROLL_POINT_WIDTH }}
           >
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="0%"
-                  stopColor="var(--color-chart-categorical-1)"
-                  stopOpacity={0.24}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--color-chart-categorical-1)"
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="time"
-              axisLine={{ stroke: 'var(--color-line-tertiary)' }}
-              tickLine={false}
-              height={28}
-              interval={labelInterval}
-              padding={{ left: 0, right: 0 }}
-              tick={<AxisTick />}
-            />
-            <YAxis
-              axisLine={{ stroke: 'var(--color-line-tertiary)' }}
-              tickLine={false}
-              tick={{ fill: 'var(--color-chart-axis-label)', fontSize: 14 }}
-              domain={[axisMin, axisMax]}
-              width={48}
-            />
-            <Area
-              type="monotone"
-              dataKey="viewers"
-              stroke="var(--color-chart-categorical-1)"
-              strokeWidth={2}
-              fill={`url(#${gradientId})`}
-              baseValue={axisMin}
-              connectNulls={false}
-              dot={false}
-              activeDot={{ r: 4, strokeWidth: 2 }}
-              isAnimationActive={false}
-            />
-            {latest && (
-              <ReferenceDot
-                x={latest.time}
-                y={latest.viewers}
-                r={3}
-                fill="var(--color-chart-categorical-1)"
-                stroke="none"
-              />
-            )}
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+            {chart}
+          </div>
+        </ScrollArea>
+      ) : (
+        <div className="min-h-0 min-w-0 flex-1" aria-hidden="true">
+          {chart}
+        </div>
+      )}
       <p className="sr-only">
         {latest
           ? `최근 ${latest.time} 시청 수는 ${latest.viewers}명입니다.`

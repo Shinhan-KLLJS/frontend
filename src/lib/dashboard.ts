@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { api } from './api'
 import type { ApiResponse } from './api'
 import { API_ENDPOINTS } from './config'
@@ -84,13 +84,14 @@ export interface YesterdayComparison {
 export interface PopulationMetric {
   value: number
   unit: string
-  yesterdayComparison: YesterdayComparison
+  // 전일 데이터가 없으면(집행 첫날 등) null — 비교 배지 미표시
+  yesterdayComparison: YesterdayComparison | null
 }
 
 export interface RateMetric {
   value: number
   unit: string
-  yesterdayComparison: YesterdayComparison
+  yesterdayComparison: YesterdayComparison | null
 }
 
 /** 깔때기(TOLA) — GET /dashboard/campaigns/{campaignId}/funnel */
@@ -361,6 +362,7 @@ export function useCampaignDetail(
         end: period.end as Date,
       }),
     enabled,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -385,6 +387,8 @@ export function useCampaignDelivery(
         end: period.end as Date,
       }),
     enabled,
+    // 기간·캠페인 변경 시 새 데이터 도착까지 이전 값을 유지(빈값→fixture 폴백 깜빡임 방지)
+    placeholderData: keepPreviousData,
     refetchInterval: (query) => {
       const sec = query.state.data?.refreshIntervalSec
       return sec && sec > 0 ? sec * 1000 : false
@@ -413,6 +417,8 @@ export function useCampaignFunnel(
         end: period.end as Date,
       }),
     enabled,
+    // 기간·캠페인 변경 시 새 데이터 도착까지 이전 값을 유지(빈값→fixture 폴백 깜빡임 방지)
+    placeholderData: keepPreviousData,
     refetchInterval: (query) => {
       const sec = query.state.data?.refreshIntervalSec
       return sec && sec > 0 ? sec * 1000 : false
@@ -454,6 +460,8 @@ function usePeriodResource<T extends PeriodResource>(
         end: period.end as Date,
       }),
     enabled,
+    // 기간·캠페인 변경 시 새 데이터 도착까지 이전 값을 유지(빈값→fixture 폴백 깜빡임 방지)
+    placeholderData: keepPreviousData,
     refetchInterval: (query) => {
       const sec = query.state.data?.refreshIntervalSec
       return sec && sec > 0 ? sec * 1000 : false
