@@ -3,8 +3,6 @@ import type { TeamMember, TeamRole } from '@/lib/team'
 
 export interface TeamMemberListProps {
   members: TeamMember[]
-  /** 로그인 유저 id — 내 행(Me 배지) 판별 */
-  meUserId: number | null
   /** 로그인 유저의 팀 내 역할 — 행 관리 메뉴 활성화 기준 */
   myRole: TeamRole
   loading?: boolean
@@ -16,7 +14,6 @@ export interface TeamMemberListProps {
 /** 팀원 리스트 카드 — 행 매핑 + 로딩/빈 검색 결과 상태 (Figma Table) */
 export default function TeamMemberList({
   members,
-  meUserId,
   myRole,
   loading = false,
   onSelectRole,
@@ -50,9 +47,9 @@ export default function TeamMemberList({
       ) : (
         members.map((member) => (
           <TeamMemberRow
-            key={member.id}
+            key={member.userId}
             member={member}
-            isMe={member.userId === meUserId}
+            isMe={member.isMe}
             myRole={myRole}
             onSelectRole={(role) => onSelectRole(member, role)}
             onRemove={() => onRemoveMember(member)}

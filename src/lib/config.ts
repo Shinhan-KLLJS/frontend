@@ -8,4 +8,12 @@ export const API_ENDPOINTS = {
   tokenRefresh: '/api/v1/auth/token/refresh',
   logout: '/api/v1/auth/logout',
   me: '/api/v1/users/me',
+  // 팀 관리 (DV-165)
+  teamMembers: (teamId: number) => `/api/v1/teams/${teamId}/members`, // GET 팀원 목록(+팀명)
+  teamMemberRole: (teamId: number, userId: number) =>
+    `/api/v1/teams/${teamId}/members/${userId}/role`, // PATCH 권한 변경·Owner 이전
+  teamMember: (teamId: number, userId: number) =>
+    `/api/v1/teams/${teamId}/members/${userId}`, // DELETE 팀원 삭제
+  teamLeave: (teamId: number) => `/api/v1/teams/${teamId}/members/me`, // DELETE 팀 나가기
+  teamInviteCode: (teamId: number) => `/api/v1/teams/${teamId}/invite-code`, // POST 초대 코드 발급
 } as const

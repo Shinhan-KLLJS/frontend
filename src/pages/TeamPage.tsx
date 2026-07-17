@@ -14,7 +14,7 @@ import { useAuth } from '@/lib/auth'
 export default function TeamPage() {
   const { user } = useAuth()
   const teamId = user?.teamId ?? null
-  const teamManagement = useTeamManagement({ teamId, userId: user?.id })
+  const teamManagement = useTeamManagement({ teamId })
 
   const {
     team,
@@ -22,6 +22,7 @@ export default function TeamPage() {
     loading,
     query,
     inviteOpen,
+    inviteCode,
     inviteSending,
     transferTarget,
     leaveOpen,
@@ -31,6 +32,7 @@ export default function TeamPage() {
     setInviteOpen,
     setTransferTarget,
     setLeaveOpen,
+    handleOpenInvite,
     handleSendInvites,
     handleSelectRole,
     handleRemoveMember,
@@ -62,7 +64,7 @@ export default function TeamPage() {
           <Button
             leadingIcon={Plus}
             disabled={!team}
-            onClick={() => setInviteOpen(true)}
+            onClick={handleOpenInvite}
           >
             팀원 초대
           </Button>
@@ -81,7 +83,6 @@ export default function TeamPage() {
 
         <TeamMemberList
           members={filteredMembers}
-          meUserId={user?.id ?? null}
           myRole={myRole}
           loading={loading}
           onSelectRole={handleSelectRole}
@@ -107,7 +108,7 @@ export default function TeamPage() {
       />
       <TeamInviteModal
         open={inviteOpen}
-        teamCode={team?.code ?? ''}
+        teamCode={inviteCode}
         memberEmails={members.map((member) => member.email)}
         sending={inviteSending}
         onClose={() => setInviteOpen(false)}
