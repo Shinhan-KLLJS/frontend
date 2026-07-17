@@ -20,7 +20,7 @@ export default function CampaignInfoModal({
     campaignId,
   )
 
-  if (campaignId == null) return null
+  if (campaignId == null || teamId == null) return null
 
   const campaignFields = detail
     ? [

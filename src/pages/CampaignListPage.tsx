@@ -60,6 +60,18 @@ export default function CampaignListPage() {
     })
   }
 
+  // teamId가 없으면 목록 쿼리가 비활성(enabled=false)이라 isPending이 계속 true → 무한 스피너.
+  // 팀 미소속 사용자는 라우터가 /welcome으로 보내지만, 방어적으로 안내 상태를 렌더한다.
+  if (teamId == null) {
+    return (
+      <section className="flex min-h-full items-center justify-center bg-bg-secondary p-x5">
+        <p className="text-body-1-normal-regular text-text-secondary">
+          소속된 팀이 없습니다.
+        </p>
+      </section>
+    )
+  }
+
   if (isPending) {
     return (
       <section className="flex min-h-full items-center justify-center bg-bg-secondary p-x5">

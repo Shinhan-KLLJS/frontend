@@ -129,7 +129,7 @@ export default function Modal({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={title ? titleId : undefined}
+        aria-labelledby={title && !children ? titleId : undefined}
         aria-describedby={hasDescription ? bodyId : undefined}
         onKeyDown={handlePanelKeyDown}
         className={[

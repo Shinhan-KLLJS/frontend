@@ -19,7 +19,7 @@ export default function CampaignMemoModal({
     campaignId,
   )
 
-  if (campaignId == null) return null
+  if (campaignId == null || teamId == null) return null
 
   return (
     <Modal
