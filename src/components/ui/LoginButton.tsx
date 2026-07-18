@@ -34,6 +34,8 @@ const PROVIDER_STYLE: Record<
 export interface LoginButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   provider: LoginProvider
   children?: string
+  /** false면 외형은 그대로 두고 hover·pointer 커서만 제거(핸들러 미연동 버튼). 기본 true */
+  interactive?: boolean
 }
 
 /* ── LoginButton  */
@@ -41,6 +43,7 @@ export default function LoginButton({
   provider,
   children,
   className,
+  interactive = true,
   ...props
 }: LoginButtonProps) {
   const { logo, label, container, title } = PROVIDER_STYLE[provider]
@@ -49,7 +52,8 @@ export default function LoginButton({
     <button
       type="button"
       className={[
-        'interaction-normal font-sans flex h-[48px] w-full cursor-pointer items-center gap-x1 rounded-x2 p-x3',
+        'font-sans flex h-[48px] w-full items-center gap-x1 rounded-x2 p-x3',
+        interactive ? 'interaction-normal cursor-pointer' : 'cursor-default',
         container,
         className,
       ]
