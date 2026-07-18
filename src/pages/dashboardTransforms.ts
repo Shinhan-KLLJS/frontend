@@ -24,7 +24,16 @@ import { formatKstTime } from '@/lib/dashboardTime'
  * (조회·상태는 DashboardHome 컨테이너 담당)
  */
 
-const formatPercent = (v: number): string => {
+// API 숫자 필드는 타입상 number지만, 집행 전·집계 데이터 없음 상태에서
+// 실제로 null이 내려온다. 방어 없이 포맷하면 렌더 중 예외로 대시보드 전체가
+// 죽으므로, null/undefined는 '-'(데이터 없음)로 대체한다.
+const NO_DATA = '-'
+
+const formatCount = (v: number | null | undefined): string =>
+  v == null ? NO_DATA : v.toLocaleString()
+
+const formatPercent = (v: number | null | undefined): string => {
+  if (v == null) return NO_DATA
   const r = Math.round(v * 10) / 10
   return Number.isInteger(r) ? String(r) : r.toFixed(1)
 }
@@ -35,8 +44,8 @@ export function toKpiMetrics(d: CampaignDelivery): KpiMetric[] {
     {
       key: 'play-count',
       label: '현재 송출 회수',
-      value: d.currentPlayCount.toLocaleString(),
-      guide: `/${d.dailyTargetPlayCount.toLocaleString()}`,
+      value: formatCount(d.currentPlayCount),
+      guide: `/${formatCount(d.dailyTargetPlayCount)}`,
       icon: DEFAULT_KPI_ICONS.currentPlayCount,
     },
     {
@@ -49,7 +58,7 @@ export function toKpiMetrics(d: CampaignDelivery): KpiMetric[] {
     {
       key: 'play-time',
       label: '총 플레이 타임',
-      value: d.totalPlayTimeMin.toLocaleString(),
+      value: formatCount(d.totalPlayTimeMin),
       guide: '분',
       icon: DEFAULT_KPI_ICONS.totalPlayTime,
     },
@@ -75,33 +84,39 @@ const TOLA_DESCRIPTIONS = {
 /** 깔때기 응답 → TOLA 카드 4종(유동 → 주목 → 전환률 → 노출). */
 export function toTolaMetrics(f: CampaignFunnel): TolaMetric[] {
   const m = f.metrics
+  // 인원 지표: value가 null이면 '-'(단위 없이), 값이 있으면 'N명'.
+  const formatPopulation = (v: number | null | undefined): string =>
+    v == null ? NO_DATA : `${v.toLocaleString()}명`
   return [
     {
       key: 'traffic',
       label: '전체 유동인구',
-      value: `${m.totalTrafficCount.value.toLocaleString()}명`,
-      comparison: m.totalTrafficCount.yesterdayComparison?.increaseRate,
+      value: formatPopulation(m.totalTrafficCount?.value),
+      comparison: m.totalTrafficCount?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.traffic,
     },
     {
       key: 'exposure',
       label: '노출인구',
-      value: `${m.exposedPopulationCount.value.toLocaleString()}명`,
-      comparison: m.exposedPopulationCount.yesterdayComparison?.increaseRate,
+      value: formatPopulation(m.exposedPopulationCount?.value),
+      comparison: m.exposedPopulationCount?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.exposure,
     },
     {
       key: 'attention',
       label: '주목인구',
-      value: `${m.attentionPopulationCount.value.toLocaleString()}명`,
-      comparison: m.attentionPopulationCount.yesterdayComparison?.increaseRate,
+      value: formatPopulation(m.attentionPopulationCount?.value),
+      comparison: m.attentionPopulationCount?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.attention,
     },
     {
       key: 'conversion',
       label: '주목 전환률',
-      value: `${formatPercent(m.attentionConversionRate.value)}%`,
-      comparison: m.attentionConversionRate.yesterdayComparison?.increaseRate,
+      value:
+        m.attentionConversionRate?.value == null
+          ? NO_DATA
+          : `${formatPercent(m.attentionConversionRate.value)}%`,
+      comparison: m.attentionConversionRate?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.conversion,
     },
   ]

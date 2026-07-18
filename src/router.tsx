@@ -9,6 +9,7 @@ import CampaignRegisterPage from '@/pages/CampaignRegisterPage'
 import ComingSoonPage from '@/pages/ComingSoonPage'
 import CreateTeamPage from '@/pages/CreateTeamPage'
 import DashboardHome from '@/pages/DashboardHome'
+import RouteErrorBoundary from '@/components/RouteErrorBoundary'
 import JoinTeamPage from '@/pages/JoinTeamPage'
 import LandingPage from '@/pages/LandingPage'
 import LoginPage from '@/pages/LoginPage'
@@ -39,12 +40,16 @@ function RootRoute() {
   )
 }
 
+// 각 라우트 렌더 중 예외를 잡는 폴백. 위젯/페이지 하나의 예외가 React Router
+// 기본 에러 화면으로 앱 전체를 덮는 걸 막는다.
+const errorElement = <RouteErrorBoundary />
+
 export const router = createBrowserRouter([
-  { path: ROUTES.login, element: <LoginPage /> },
+  { path: ROUTES.login, element: <LoginPage />, errorElement },
   // 카카오 OAuth 복귀 지점 (백엔드가 로그인 성공/실패 후 이 경로로 리다이렉트).
   // LoginPage가 세션 복원 결과로 분기: 성공→팀 유무 따라 /·/welcome, 실패→로그인 폼
-  { path: ROUTES.loginSuccess, element: <LoginPage /> },
-  { path: ROUTES.loginFailure, element: <LoginPage /> },
+  { path: ROUTES.loginSuccess, element: <LoginPage />, errorElement },
+  { path: ROUTES.loginFailure, element: <LoginPage />, errorElement },
   // 로그인 O + 소속 팀 X 사용자의 팀 온보딩 (이미 팀이 있으면 레이아웃에서 홈으로 리다이렉트)
   {
     path: ROUTES.welcome,
@@ -53,6 +58,7 @@ export const router = createBrowserRouter([
         <OnboardingLayout />
       </RequireAuth>
     ),
+    errorElement,
     children: [
       { index: true, element: <WelcomePage /> }, // 팀 생성/합류 분기점 (Choose Plan)
       { path: 'join', element: <JoinTeamPage /> },
@@ -60,16 +66,17 @@ export const router = createBrowserRouter([
     ],
   },
   // '/'는 공개 진입점 — 게스트 랜딩 / 인증 시 대시보드를 RootRoute가 분기한다.
-  { path: ROUTES.home, element: <RootRoute /> },
+  { path: ROUTES.home, element: <RootRoute />, errorElement },
   // 서비스 소개 = 랜딩(마케팅) 페이지. 로그인 여부와 무관하게 접근 가능하며 앱 셸 없이 전체 화면으로 렌더.
   // 로그인 헤더의 '서비스 소개'가 이 경로로 이동한다(랜딩 히어로 CTA는 로그인 시 '홈으로 가기'로 바뀜).
-  { path: ROUTES.serviceIntro, element: <LandingPage /> },
+  { path: ROUTES.serviceIntro, element: <LandingPage />, errorElement },
   {
     element: (
       <RequireAuth>
         <AppLayout />
       </RequireAuth>
     ),
+    errorElement,
     children: [
       { path: ROUTES.campaigns, element: <CampaignListPage /> },
       // 캠페인 등록 3단계 위저드 (기본 정보 → 매체 선택 → 최종 확인)
