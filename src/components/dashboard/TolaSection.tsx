@@ -78,8 +78,10 @@ export default function TolaSection({
                   <span className="text-label-1-normal-regular text-text-secondary">
                     어제 대비
                   </span>
-                  {/* 증감이 없거나(undefined) 변화가 0이면 뱃지 대신 '-' 표기 */}
-                  {metric.comparison === undefined || metric.comparison === 0 ? (
+                  {/* 증감이 없거나 값이 0(문자열 "0.0" 포함)이면 뱃지 대신 '-' 표기.
+                      나머지는 백엔드가 준 값을 그대로 노출(프론트 추가 포맷 없음). */}
+                  {metric.comparison == null ||
+                  Number(metric.comparison) === 0 ? (
                     <span className="text-label-1-normal-medium text-text-caption">
                       -
                     </span>
