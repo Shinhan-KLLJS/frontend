@@ -50,17 +50,19 @@ export default function DashboardToolbar({
         align="start"
         menuAriaLabel="캠페인 목록"
         triggerAriaLabel="캠페인 선택"
-        className="w-[462px] min-w-0"
-        triggerClassName="flex w-[462px] min-w-0 items-center text-left"
+        className="min-w-0"
+        triggerClassName="flex min-w-0 items-center gap-x1 text-left"
         renderTrigger={(open) => (
           <>
-            <span className="w-[430px] truncate text-title-1-medium text-text-primary">
+            {/* 이름 길이에 맞춰 폭을 잡고(최대 430px에서 말줄임), 쉐브론이 바로 옆에 붙는다 */}
+            <span className="min-w-0 max-w-[430px] truncate text-title-1-medium text-text-primary">
               {selected?.name ?? '캠페인을 선택해 주세요'}
             </span>
             <Icon
               icon={open ? ChevronUp : ChevronDown}
               size={32}
               color="secondary"
+              className="shrink-0"
             />
           </>
         )}
