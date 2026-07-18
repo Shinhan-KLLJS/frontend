@@ -65,11 +65,12 @@ export interface CampaignDelivery {
   playStartTime: string
   playIntervalSec: number
   refreshIntervalSec: number // 프론트 재조회 권장 주기(초)
-  currentPlayCount: number // 현재 송출 회수
-  dailyTargetPlayCount: number // 일 목표 송출 회수(현재 송출 회수 분모)
-  periodTargetPlayCount: number
-  progressRate: number // 오늘 진행률(%)
-  totalPlayTimeMin: number // 총 플레이 타임(분)
+  // 집행 전·집계 데이터 없음 상태에선 서버가 null을 내려준다(Java 박싱 타입).
+  currentPlayCount: number | null // 현재 송출 회수
+  dailyTargetPlayCount: number | null // 일 목표 송출 회수(현재 송출 회수 분모)
+  periodTargetPlayCount: number | null
+  progressRate: number | null // 오늘 진행률(%)
+  totalPlayTimeMin: number | null // 총 플레이 타임(분)
   nextIncrementAt: string // ISO date-time
   isEstimated: boolean // 무중단 송출 추정 여부(다운타임 실측 아님)
 }
@@ -82,14 +83,14 @@ export interface YesterdayComparison {
 }
 
 export interface PopulationMetric {
-  value: number
+  value: number | null // 집계 데이터 없음 상태에선 null
   unit: string
   // 전일 데이터가 없으면(집행 첫날 등) null — 비교 배지 미표시
   yesterdayComparison: YesterdayComparison | null
 }
 
 export interface RateMetric {
-  value: number
+  value: number | null // 집계 데이터 없음 상태에선 null
   unit: string
   yesterdayComparison: YesterdayComparison | null
 }
@@ -131,7 +132,7 @@ export interface CampaignRealtimeHourly extends PeriodResource {
   serverTime: string
   aggregationUnit: string
   aggregationCutoffTime: string
-  points: RealtimeHourlyPoint[]
+  points: RealtimeHourlyPoint[] | null
 }
 
 /** 실시간 시청수(오늘·5초·커서 폴링) — GET .../realtime-graph */
@@ -173,7 +174,7 @@ export interface CampaignAverageWatchTime extends PeriodResource {
   aggregationUnit: string
   aggregationCutoffTime: string
   averageWatchTimeSec: number | null
-  watchTimeBuckets: WatchTimeBucketData[]
+  watchTimeBuckets: WatchTimeBucketData[] | null
 }
 
 /** 성별·연령 시청 비율 — GET .../demographic-view-ratio */
@@ -203,7 +204,7 @@ export interface CampaignDemographic extends PeriodResource {
   aggregationUnit: string
   aggregationCutoffTime: string
   genderSummary: { maleRatio: number | null; femaleRatio: number | null }
-  ageGroups: DemographicAgeGroup[]
+  ageGroups: DemographicAgeGroup[] | null
 }
 
 /** 시간·연령별 노출도 — GET .../hourly-age-exposure */
@@ -229,9 +230,9 @@ export interface CampaignExposure extends PeriodResource {
   serverTime: string
   aggregationUnit: string
   aggregationCutoffTime: string
-  hours: string[]
-  ageGroups: ExposureAgeGroup[]
-  cells: ExposureCellData[]
+  hours: string[] | null
+  ageGroups: ExposureAgeGroup[] | null
+  cells: ExposureCellData[] | null
 }
 
 export interface CampaignQuery {

@@ -13,14 +13,28 @@ export interface ExposureCell {
 }
 
 export interface AgeExposureHeatmapProps {
-  hours: string[]
-  ageGroups: string[]
   cells: ExposureCell[]
   filter: GenderFilter
   onFilterChange: (value: GenderFilter) => void
   /** 집계 기준 시각 라벨(예: "14시 기준") — 헤더 (i) 툴팁 */
   cutoffLabel?: string
 }
+
+// 히트맵 축·행은 데이터 유무와 무관하게 항상 고정: 06~24시(19칸) × 7개 연령대.
+// 서버가 현재 시각까지의 시간만 내려줘도 레이아웃이 흔들리지 않게 여기서 고정한다.
+// cells에 없는 (연령대,시간) 조합은 0(빈 셀)으로 렌더된다.
+const HEATMAP_HOURS: string[] = Array.from({ length: 19 }, (_, i) =>
+  String(i + 6).padStart(2, '0'),
+)
+const HEATMAP_AGE_GROUPS: string[] = [
+  '0-9세',
+  '10-19세',
+  '20-29세',
+  '30-39세',
+  '40-49세',
+  '50-59세',
+  '60세 이상',
+]
 
 const LEVEL_STYLE: Record<ExposureLevel, string> = {
   0: 'bg-chart-surface',
@@ -32,8 +46,6 @@ const LEVEL_STYLE: Record<ExposureLevel, string> = {
 
 /** 피그마의 36px 셀 규격으로 시간·연령대별 노출 강도를 표시합니다. */
 export default function AgeExposureHeatmap({
-  hours,
-  ageGroups,
   cells,
   filter,
   onFilterChange,
@@ -64,14 +76,14 @@ export default function AgeExposureHeatmap({
           aria-label={`${filter} 기준 시간·연령별 노출도 히트맵`}
           className="flex min-w-[920px] flex-col gap-x2"
         >
-          <HeatmapTimeAxis hours={hours} />
-          {ageGroups.map((ageGroup) => (
+          <HeatmapTimeAxis hours={HEATMAP_HOURS} />
+          {HEATMAP_AGE_GROUPS.map((ageGroup) => (
             <div key={ageGroup} className="flex h-[36px] items-center gap-x7">
               <span className="w-[66px] shrink-0 text-right text-body-1-normal-regular text-text-primary">
                 {ageGroup}
               </span>
               <div className="flex min-w-0 flex-1 items-center justify-between">
-                {hours.map((hour) => {
+                {HEATMAP_HOURS.map((hour) => {
                   const level =
                     cellMap.get(`${ageGroup}-${hour}`)?.[filter] ?? 0
                   return (

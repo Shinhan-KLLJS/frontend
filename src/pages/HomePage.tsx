@@ -50,8 +50,8 @@ export interface HomePageProps {
   watchBuckets?: WatchTimeBucket[]
   /** 실 성별·연령 시청 비율(미제공 시 fixture) */
   demographics?: DemographicRatio[]
-  /** 실 시간·연령별 노출도(미제공 시 fixture) */
-  exposure?: { hours: string[]; ageGroups: string[]; cells: ExposureCell[] }
+  /** 실 시간·연령별 노출도 셀(축·행은 히트맵이 06~24시×7연령대로 고정) */
+  exposureCells?: ExposureCell[]
   /** 각 섹션 (i) 툴팁의 집계 기준 시각 라벨(예: "14:37 기준"/"14시 기준") */
   kpiCutoffLabel?: string
   realtimeCutoffLabel?: string
@@ -84,7 +84,7 @@ export default function HomePage({
   averageSeconds,
   watchBuckets,
   demographics,
-  exposure,
+  exposureCells,
   kpiCutoffLabel,
   realtimeCutoffLabel,
   averageCutoffLabel,
@@ -155,9 +155,7 @@ export default function HomePage({
           />
         </div>
         <AgeExposureHeatmap
-          hours={exposure?.hours ?? []}
-          ageGroups={exposure?.ageGroups ?? []}
-          cells={exposure?.cells ?? []}
+          cells={exposureCells ?? []}
           filter={heatmapFilter}
           onFilterChange={setHeatmapFilter}
           cutoffLabel={exposureCutoffLabel}

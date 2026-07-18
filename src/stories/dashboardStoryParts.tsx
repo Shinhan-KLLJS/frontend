@@ -10,10 +10,6 @@ import AgeExposureHeatmap from '@/components/dashboard/AgeExposureHeatmap'
 import type { GenderFilter } from '@/components/dashboard/GenderFilterChips'
 import type { DateRange } from '@/components/ui'
 import { DASHBOARD_CAMPAIGNS } from '@/lib/dashboardFixtures'
-import {
-  DASHBOARD_AGE_GROUPS,
-  DASHBOARD_HOURS,
-} from '@/lib/dashboardHeatmapFixture'
 
 // 대시보드 섹션 스토리 공용 파츠(각 섹션 스토리 파일이 1440/1280/0값에서 재사용).
 export const c = DASHBOARD_CAMPAIGNS[0]!
@@ -124,8 +120,6 @@ export function HeatmapRow({ cells }: { cells: typeof c.exposureCells }) {
   const [filter, setFilter] = useState<GenderFilter>('all')
   return (
     <AgeExposureHeatmap
-      hours={DASHBOARD_HOURS}
-      ageGroups={DASHBOARD_AGE_GROUPS}
       cells={cells}
       filter={filter}
       onFilterChange={setFilter}

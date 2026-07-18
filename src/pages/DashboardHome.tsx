@@ -106,7 +106,7 @@ export default function DashboardHome() {
   const demographics = demographic ? toDemographics(demographic) : undefined
 
   const { data: exposureData } = useExposure(selected?.campaignId, dateRange)
-  const exposure = exposureData ? toExposure(exposureData) : undefined
+  const exposureCells = exposureData ? toExposure(exposureData) : undefined
 
   // 섹션별 (i) 툴팁 기준시각. KPI는 cutoff 필드가 없어 serverTime 사용.
   const kpiCutoffLabel = delivery
@@ -184,7 +184,7 @@ export default function DashboardHome() {
       averageSeconds={watchTime?.averageSeconds}
       watchBuckets={watchTime?.buckets}
       demographics={demographics}
-      exposure={exposure}
+      exposureCells={exposureCells}
       kpiCutoffLabel={kpiCutoffLabel}
       realtimeCutoffLabel={realtimeCutoffLabel}
       averageCutoffLabel={averageCutoffLabel}

@@ -132,7 +132,7 @@ const WATCH_COLORS = [
 
 /** 실시간 시청수(시간별 누적) → 차트 시계열. viewers=attention(주목=실 시청). */
 export function toRealtimeData(r: CampaignRealtimeHourly): ViewerPoint[] {
-  return r.points.map((p) => ({
+  return (r.points ?? []).map((p) => ({
     time: formatKstTime(p.eventTime),
     viewers: p.attentionPopulationCount,
   }))
@@ -146,7 +146,7 @@ export function bucketRealtimeToMinutes(
   points: RealtimeGraphPoint[],
   windowMinutes = 30,
 ): ViewerPoint[] {
-  if (!points.length) return []
+  if (!points?.length) return []
   const byMinute = new Map<number, number>()
   const sorted = [...points].sort((a, b) =>
     a.eventTime.localeCompare(b.eventTime),
@@ -172,7 +172,7 @@ export function toWatchTime(a: CampaignAverageWatchTime): {
 } {
   return {
     averageSeconds: a.averageWatchTimeSec ?? 0,
-    buckets: a.watchTimeBuckets.map((b, i) => ({
+    buckets: (a.watchTimeBuckets ?? []).map((b, i) => ({
       label: b.label,
       value: Math.round(b.ratio * 10) / 10,
       color: WATCH_COLORS[i % WATCH_COLORS.length],
@@ -182,7 +182,7 @@ export function toWatchTime(a: CampaignAverageWatchTime): {
 
 /** 성별·연령 시청 비율 → 카드 데이터. ratio는 0~100(%). */
 export function toDemographics(d: CampaignDemographic): DemographicRatio[] {
-  return d.ageGroups.map((g) => ({
+  return (d.ageGroups ?? []).map((g) => ({
     ageGroup: g.label,
     total: Math.round(g.totalRatio * 10) / 10,
     male: Math.round(g.maleRatio * 10) / 10,
@@ -193,22 +193,28 @@ export function toDemographics(d: CampaignDemographic): DemographicRatio[] {
 const clampLevel = (n: number): ExposureLevel =>
   Math.min(4, Math.max(0, Math.round(n))) as ExposureLevel
 
-/** 시간·연령별 노출도 → 히트맵 props(연령 코드→라벨, 강도 0~4 클램프). */
-export function toExposure(e: CampaignExposure): {
-  hours: string[]
-  ageGroups: string[]
-  cells: ExposureCell[]
-} {
-  const labelByCode = new Map(e.ageGroups.map((g) => [g.ageGroup, g.label]))
-  return {
-    hours: e.hours,
-    ageGroups: e.ageGroups.map((g) => g.label),
-    cells: e.cells.map((c) => ({
-      ageGroup: labelByCode.get(c.ageGroup) ?? c.ageGroup,
-      hour: c.hour,
-      all: clampLevel(c.intensityLevel),
-      male: clampLevel(c.maleIntensityLevel),
-      female: clampLevel(c.femaleIntensityLevel),
-    })),
-  }
+// 연령 코드 → 히트맵 고정 행 라벨(HEATMAP_AGE_GROUPS와 일치해야 셀이 렌더된다).
+// 서버가 age group 목록을 부분적으로만 내려줘도 항상 정규 라벨로 매핑한다.
+const AGE_GROUP_LABEL: Record<string, string> = {
+  UNDER_10: '0-9세',
+  '10S': '10-19세',
+  '20S': '20-29세',
+  '30S': '30-39세',
+  '40S': '40-49세',
+  '50S': '50-59세',
+  '60_PLUS': '60세 이상',
+}
+
+/**
+ * 시간·연령별 노출도 → 히트맵 셀(연령 코드→고정 라벨, 시각 2자리 정규화, 강도 0~4 클램프).
+ * 축·행 레이아웃은 히트맵이 06~24시×7연령대로 고정하므로 여기선 셀만 만든다.
+ */
+export function toExposure(e: CampaignExposure): ExposureCell[] {
+  return (e.cells ?? []).map((c) => ({
+    ageGroup: AGE_GROUP_LABEL[c.ageGroup] ?? c.ageGroup,
+    hour: String(Number(c.hour)).padStart(2, '0'),
+    all: clampLevel(c.intensityLevel),
+    male: clampLevel(c.maleIntensityLevel),
+    female: clampLevel(c.femaleIntensityLevel),
+  }))
 }
