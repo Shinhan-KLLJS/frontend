@@ -109,7 +109,7 @@ export default function HomePage({
   const [heatmapFilter, setHeatmapFilter] = useState<GenderFilter>('all')
   return (
     <section className="min-h-full bg-bg-primary px-x5 py-x5">
-      <div className="flex min-w-0 flex-col gap-x5 px-x5">
+      <div className="flex min-w-0 flex-col gap-x5">
         <KpiSection
           metrics={kpiMetrics ?? []}
           estimatedDowntime={estimatedDowntime}

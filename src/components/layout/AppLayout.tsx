@@ -70,6 +70,10 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
       onSignUpClick={() => navigate(ROUTES.login)}
       onLoginClick={() => navigate(ROUTES.login)}
       profileMenu={profileMenu}
+      // 대시보드(홈)만 컨텐츠 영역 primary, 나머지 공통 LNB/헤더 페이지는 secondary
+      mainClassName={
+        pathname === ROUTES.home ? 'bg-bg-primary' : 'bg-bg-secondary'
+      }
     >
       {children ?? <Outlet />}
     </AppShell>
