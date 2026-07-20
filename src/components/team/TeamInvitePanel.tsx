@@ -106,8 +106,8 @@ export default function TeamInvitePanel({
         <h1 className="text-title-3-bold text-text-primary">
           {team.name} 생성 완료!
         </h1>
-        <p className="text-body-1-normal-regular text-text-secondary">
-          Loovi에서 팀원과 함께 옥외광고 캠페인을 관리하고 효과를 분석하세요.
+        <p className="text-body-1-normal-regular text-text-primary">
+          팀원을 초대하고 옥외광고 캠페인 효과를 함께 분석해보세요.
         </p>
       </header>
 
@@ -194,7 +194,7 @@ export default function TeamInvitePanel({
       <div className="flex gap-x3">
         <Button
           variant="line"
-          color="secondary"
+          color="primary"
           size="large"
           className="flex-1"
           disabled={emails.length === 0 || sending}

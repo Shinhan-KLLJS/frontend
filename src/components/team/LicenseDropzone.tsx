@@ -48,7 +48,7 @@ export default function LicenseDropzone({
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
       className={[
-        'flex size-full flex-col items-center justify-center gap-x4 rounded-x5 border-2 border-line-brand p-x5 transition-colors',
+        'flex size-full flex-col items-center justify-center gap-x2 rounded-x5 border-2 border-line-brand p-x5 transition-colors',
         isDragging ? 'bg-primary-brand-weak' : 'bg-bg-secondary',
       ].join(' ')}
     >
@@ -67,7 +67,7 @@ export default function LicenseDropzone({
       />
 
       {status === 'idle' && (
-        <>
+        <div className="flex w-full flex-col items-center gap-x2 p-x5">
           <img src={uploadFileImage} alt="" className="size-[48px]" />
           <p className="text-center text-label-1-normal-regular text-text-secondary">
             사업자등록증을 끌어다 놓거나 파일을 선택하세요.
@@ -83,7 +83,7 @@ export default function LicenseDropzone({
           >
             파일 선택하기
           </Button>
-        </>
+        </div>
       )}
 
       {status === 'uploading' && (
