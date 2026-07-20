@@ -158,7 +158,7 @@ function FlowImageTrack({
       className={`overflow-hidden rounded-[16px] shadow-normal-large ${className}`}
     >
       <motion.div
-        className="flex h-full cursor-grab gap-x10 active:cursor-grabbing"
+        className="flex h-full gap-x10"
         style={{ x }}
         drag="x"
         dragConstraints={{ left: -(STEPS.length - 1) * slideStep, right: 0 }}

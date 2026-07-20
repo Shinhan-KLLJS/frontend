@@ -119,7 +119,7 @@ export default function TeamInviteModal({
           aria-label="초대 모달 닫기"
           disabled={sending}
           onClick={onClose}
-          className="absolute top-x5 right-x5 cursor-pointer rounded-x1 text-text-primary interaction-normal disabled:cursor-not-allowed"
+          className="absolute top-x5 right-x5 cursor-pointer rounded-x1 text-text-primary interaction-normal"
         >
           <Icon icon={X} size="large" />
         </button>

@@ -178,7 +178,7 @@ export default function LoginPage() {
                       <div className="flex items-center gap-x1">
                         <button
                           type="button"
-                          className="cursor-default text-label-1-normal-medium text-[var(--cool-neutral-800)]"
+                          className="text-label-1-normal-medium text-[var(--cool-neutral-800)]"
                         >
                           비밀번호 찾기
                         </button>
@@ -188,7 +188,7 @@ export default function LoginPage() {
                         />
                         <button
                           type="button"
-                          className="cursor-default text-label-1-normal-medium text-[var(--cool-neutral-800)]"
+                          className="text-label-1-normal-medium text-[var(--cool-neutral-800)]"
                         >
                           회원가입
                         </button>

@@ -49,7 +49,7 @@ const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
         className={[
           // justify는 기본(start) — 고정 폭에서 정렬 오버라이드(justify-end 등) 가능
           'inline-flex items-center gap-x1 font-sans whitespace-nowrap',
-          'cursor-pointer disabled:cursor-not-allowed',
+          'cursor-pointer',
           // hover 오버레이 없음(디자인상 텍스트 버튼은 hover 상태 없음)
           'rounded-x2',
           'text-text-primary disabled:text-text-disabled',

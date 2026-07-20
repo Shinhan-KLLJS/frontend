@@ -35,7 +35,7 @@ export default function MenuItem({
       className={[
         'flex items-center px-x2 py-x1 font-sans',
         short ? 'justify-center' : 'w-full',
-        disabled ? 'cursor-not-allowed' : 'cursor-pointer',
+        disabled ? '' : 'cursor-pointer',
         className,
       ]
         .filter(Boolean)

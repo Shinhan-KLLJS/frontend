@@ -53,7 +53,7 @@ export default function LoginButton({
       type="button"
       className={[
         'font-sans flex h-[48px] w-full items-center gap-x1 rounded-x2 p-x3',
-        interactive ? 'interaction-normal cursor-pointer' : 'cursor-default',
+        interactive ? 'interaction-normal cursor-pointer' : '',
         container,
         className,
       ]

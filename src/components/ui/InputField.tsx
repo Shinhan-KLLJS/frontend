@@ -89,7 +89,7 @@ export default function InputField({
           required={required}
           aria-invalid={isError || undefined}
           aria-describedby={describedBy}
-          className={`min-w-0 flex-1 bg-transparent text-text-primary outline-none disabled:cursor-not-allowed disabled:text-text-disabled-secondary disabled:placeholder:text-text-disabled-secondary ${inputTypo}`}
+          className={`min-w-0 flex-1 bg-transparent text-text-primary outline-none disabled:text-text-disabled-secondary disabled:placeholder:text-text-disabled-secondary ${inputTypo}`}
           {...inputProps}
         />
         {trailingIcon && (

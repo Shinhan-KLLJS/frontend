@@ -102,7 +102,7 @@ export default function Textarea({
           value={value}
           defaultValue={defaultValue}
           onChange={handleChange}
-          className="min-h-[60px] rounded-x3 w-full flex-1 resize-none bg-transparent px-x1 text-body-1-normal-regular text-text-primary outline-none placeholder:text-text-placeholder disabled:cursor-not-allowed disabled:text-text-disabled-secondary disabled:placeholder:text-text-disabled-secondary"
+          className="min-h-[60px] rounded-x3 w-full flex-1 resize-none bg-transparent px-x1 text-body-1-normal-regular text-text-primary outline-none placeholder:text-text-placeholder disabled:text-text-disabled-secondary disabled:placeholder:text-text-disabled-secondary"
           {...textareaProps}
         />
         {maxLength !== undefined && (

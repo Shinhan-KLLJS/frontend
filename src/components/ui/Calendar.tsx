@@ -125,7 +125,7 @@ export function CalendarDay({
       type="button"
       disabled={isDisabled}
       className={[
-        `group flex ${cellSize} cursor-pointer items-center justify-center font-sans focus-visible:outline-none disabled:cursor-default`,
+        `group flex ${cellSize} cursor-pointer items-center justify-center font-sans focus-visible:outline-none`,
         className,
       ]
         .filter(Boolean)
