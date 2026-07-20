@@ -111,7 +111,7 @@ export default function VideoUploadCard({
                   파일 업로드
                 </p>
                 <p className="text-label-1-normal-regular text-text-caption">
-                  광고를 송출할 파일을 업로드하세요.
+                  광고를 송출할 파일을 업로드해주세요.
                 </p>
               </div>
             </div>

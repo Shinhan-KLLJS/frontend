@@ -6,6 +6,7 @@ import { ChevronLeft } from 'lucide-react'
 import CampaignInfoForm from '@/components/campaign/CampaignInfoForm'
 import CampaignSummary from '@/components/campaign/CampaignSummary'
 import MediaListPanel from '@/components/campaign/MediaListPanel'
+import MediaListSideTab from '@/components/campaign/MediaListSideTab'
 import MediaMap from '@/components/campaign/MediaMap'
 import VideoUploadCard from '@/components/campaign/VideoUploadCard'
 import type { UploadStatus } from '@/components/campaign/VideoUploadCard'
@@ -33,7 +34,7 @@ const REGISTER_STEPS = ['기본 정보', '매체 선택', '최종 확인']
 type RegisterStep = 1 | 2 | 3
 
 const STEP_SUBTITLE: Record<RegisterStep, string> = {
-  1: '광고 영상 및 기본 정보를 입력하세요.',
+  1: '송출할 광고 영상과 기본 정보를 입력해주세요.',
   2: '광고를 송출할 매체를 선택하세요.',
   3: '마지막으로 입력한 정보가 올바른지 확인하세요.',
 }
@@ -213,6 +214,9 @@ export default function CampaignRegisterPage() {
     mediaQuery,
   )
 
+  // 매체 목록 패널 접기/펴기 (사이드 탭)
+  const [listCollapsed, setListCollapsed] = useState(false)
+
   // 선택 매체는 객체로 보관 — 지역/검색 필터로 목록이 바뀌어도 선택이 유지되도록
   const [selectedMedia, setSelectedMedia] = useState<CampaignMedia | null>(null)
   const selectedMediaId = selectedMedia?.id ?? null
@@ -281,33 +285,30 @@ export default function CampaignRegisterPage() {
   }
 
   return (
-    // p-x5: 컨텐츠 자체 패딩(L2). 컨텐츠 영역 프레임 패딩(L1)은 AppShell이 제공.
-    // pb-[80px]: 기본 높이(890)를 넘는 경우 최하단 여백 80px (Figma 가이드)
-    <section className="flex min-h-full flex-col p-x5 pb-[80px]">
+    // 헤더·본문 각각 p-x5(L2). 컨텐츠 영역 프레임 패딩(L1)은 AppShell이 제공.
+    <section className="flex min-h-full flex-col">
       <header className="flex items-end justify-between gap-x5 p-x5">
-        <div className="flex min-w-0 flex-1 items-start">
-          <button
-            type="button"
-            aria-label="뒤로 가기"
-            onClick={handleBack}
-            className="cursor-pointer rounded-x1 py-[7px] text-text-primary interaction-normal"
-          >
-            <Icon icon={ChevronLeft} size="large" />
-          </button>
-          <div className="flex min-w-0 flex-col gap-x2 px-x1">
-            <h1 className="text-title-2-medium text-text-primary">
+        <div className="flex min-w-0 flex-1 flex-col gap-x2">
+          {/* 뒤로가기 버튼(24×24)을 타이틀과 같은 행에 두어 세로 중앙 정렬 */}
+          <div className="flex items-center gap-x1">
+            <button
+              type="button"
+              aria-label="뒤로 가기"
+              onClick={handleBack}
+              className="flex size-[24px] shrink-0 cursor-pointer items-center justify-center rounded-x1 text-text-primary interaction-normal"
+            >
+              <Icon icon={ChevronLeft} size="large" />
+            </button>
+            <h1 className="min-w-0 truncate text-title-2-medium text-text-primary">
               캠페인 등록
             </h1>
-            <p className="text-heading-2-regular text-text-primary">
-              {STEP_SUBTITLE[step]}
-            </p>
           </div>
+          {/* 부제목: 버튼(24)+gap(4)=28px 들여써 타이틀과 좌측 정렬 */}
+          <p className="pl-[28px] text-heading-2-regular text-text-primary">
+            {STEP_SUBTITLE[step]}
+          </p>
         </div>
-        <ProgressBar
-          steps={REGISTER_STEPS}
-          currentStep={step}
-          className="w-[225px] shrink-0"
-        />
+        <ProgressBar steps={REGISTER_STEPS} currentStep={step} />
       </header>
 
       <div className="flex flex-1 items-stretch gap-x5 p-x5">
@@ -318,7 +319,7 @@ export default function CampaignRegisterPage() {
               thumbnailUrl={upload.thumbnailUrl}
               onFileSelect={handleFileSelect}
               onCancel={handleUploadCancel}
-              className="min-h-[608px] min-w-[470px] max-w-[552px] flex-1"
+              className="h-[661px] flex-1"
             />
             {/* 다음 활성 = 폼 유효 + 썸네일(미리보기) 표시됨. 실제 업로드 완료는 백그라운드라 여기서 안 막음 */}
             <CampaignInfoForm
@@ -329,7 +330,7 @@ export default function CampaignRegisterPage() {
           </>
         )}
         {step === 2 && (
-          <div className="relative min-h-[640px] w-full overflow-hidden rounded-x3 border border-line-secondary">
+          <div className="relative h-[640px] w-full overflow-hidden rounded-x3 border border-line-secondary">
             {/* 지도는 전체를 채우고, 리스트는 좌측에 rounded-x3 카드로 떠 있음 (Figma 구조).
                 MediaMap 루트가 relative라 위치 충돌 방지 위해 래퍼가 absolute를 담당 */}
             <div className="absolute inset-0">
@@ -345,17 +346,32 @@ export default function CampaignRegisterPage() {
                 onSelectMedia={handleSelectMedia}
               />
             </div>
-            <MediaListPanel
-              className="absolute inset-y-0 left-0 z-10 w-[372px] overflow-hidden rounded-x3 border border-line-secondary"
-              mediaList={mediaList}
-              loading={mediaLoading}
-              keyword={keyword}
-              onKeywordChange={setKeyword}
-              selectedMediaId={selectedMediaId}
-              onSelectMedia={handleSelectMedia}
-              onPrev={handleBack}
-              onNext={() => setStep(3)}
-            />
+            {/* 패널 + 사이드 탭을 함께 슬라이드해 목록을 접고 편다 */}
+            <div
+              className={[
+                'absolute inset-y-0 left-0 z-10 flex transition-transform duration-300',
+                listCollapsed ? '-translate-x-[372px]' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <MediaListPanel
+                className="h-full w-[372px] overflow-hidden rounded-x3 border border-line-secondary"
+                mediaList={mediaList}
+                loading={mediaLoading}
+                keyword={keyword}
+                onKeywordChange={setKeyword}
+                selectedMediaId={selectedMediaId}
+                onSelectMedia={handleSelectMedia}
+                onPrev={handleBack}
+                onNext={() => setStep(3)}
+              />
+              <MediaListSideTab
+                open={!listCollapsed}
+                onToggle={() => setListCollapsed((v) => !v)}
+                className="self-center"
+              />
+            </div>
           </div>
         )}
         {step === 3 && (

@@ -10,15 +10,18 @@ export interface DateTriggerProps extends Omit<
 > {
   value?: DateRange
   open?: boolean
+  /** 미선택 시 표기 문구 (기본 'YYYY.MM.DD') */
+  placeholder?: string
 }
 
 /**
  * 데이트 피커를 여는 트리거
- * 표기는 값에 따라 동적: 미선택 YYYY.MM.DD → 하루(시작=종료) 날짜 1개 → 기간 '시작-종료'
+ * 표기는 값에 따라 동적: 미선택 placeholder → 하루(시작=종료) 날짜 1개 → 기간 '시작-종료'
  */
 export default function DateTrigger({
   value,
   open = false,
+  placeholder = 'YYYY.MM.DD',
   className,
   ...props
 }: DateTriggerProps) {
@@ -47,7 +50,7 @@ export default function DateTrigger({
             start ? 'text-text-primary' : 'text-text-tertiary',
           ].join(' ')}
         >
-          {start ? formatDate(start) : 'YYYY.MM.DD'}
+          {start ? formatDate(start) : placeholder}
           {isRange && `-${formatDate(end)}`}
         </span>
       </span>

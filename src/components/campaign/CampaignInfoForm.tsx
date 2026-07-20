@@ -53,81 +53,94 @@ export default function CampaignInfoForm({
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [pickerOpen])
 
+  // 입력값 구독 — 다음 활성 판단 + 값이 비면 에러 대신 기본 상태로 되돌리는 데 사용
+  const values = watch()
   // 다음 활성 = 폼 유효성 + 미리보기(썸네일) 준비 완료
-  const canNext = uploadReady && campaignInfoSchema.safeParse(watch()).success
+  const canNext = uploadReady && campaignInfoSchema.safeParse(values).success
+
+  // 입력했다가 다 지우면 에러 대신 기본 상태로 — 값이 있을 때만 에러 메시지 노출
+  const shownError = (value: string | undefined, message?: string) =>
+    value?.trim() ? message : undefined
 
   return (
-    <div className="flex min-w-[470px] flex-1 flex-col gap-x5 self-stretch rounded-x4 bg-bg-primary p-x5">
+    <div className="flex h-[661px] flex-1 flex-col gap-x5 rounded-x4 bg-bg-primary p-x5">
       <div className="flex flex-1 flex-col gap-x4">
         <InputField
           label="캠페인명"
           required
           placeholder="ex) 2026 썸머 프로모션"
-          errorMessage={errors.name?.message}
+          errorMessage={shownError(values.name, errors.name?.message)}
           {...register('name')}
         />
         <InputField
           label="브랜드명"
           required
-          placeholder="ex) Loovi"
-          errorMessage={errors.brand?.message}
+          placeholder="광고를 집행하는 브랜드명을 입력해주세요."
+          errorMessage={shownError(values.brand, errors.brand?.message)}
           {...register('brand')}
         />
 
         <Controller
           name="period"
           control={control}
-          render={({ field, fieldState }) => (
-            <div
-              ref={periodRef}
-              className="relative flex w-full flex-col gap-x2"
-            >
-              <span
-                id={periodLabelId}
-                className="flex items-center gap-xs text-label-1-normal-bold text-text-secondary"
+          render={({ field, fieldState }) => {
+            // 미선택(기간 없음)이면 에러 대신 기본 상태 — 값이 선택됐을 때만 에러 표기
+            const periodError = field.value?.start
+              ? fieldState.error
+              : undefined
+            return (
+              <div
+                ref={periodRef}
+                className="relative flex w-full flex-col gap-x2"
               >
-                송출기간
-                <span aria-hidden="true" className="text-text-negative">
-                  *
-                </span>
-              </span>
-              <DateTrigger
-                value={field.value}
-                open={pickerOpen}
-                onClick={() => setPickerOpen((prev) => !prev)}
-                onBlur={field.onBlur}
-                aria-labelledby={periodLabelId}
-                aria-describedby={fieldState.error ? periodErrorId : undefined}
-                aria-invalid={fieldState.error ? true : undefined}
-                className={[
-                  'w-full justify-between border',
-                  fieldState.error
-                    ? 'border-line-negative'
-                    : 'border-line-secondary',
-                ].join(' ')}
-              />
-              {fieldState.error && (
-                <p
-                  id={periodErrorId}
-                  className="text-caption-1-regular text-text-negative"
+                <span
+                  id={periodLabelId}
+                  className="flex items-center gap-xs text-label-1-normal-bold text-text-secondary"
                 >
-                  {fieldState.error.message}
-                </p>
-              )}
-              {pickerOpen && (
-                // 패널(480px)이 카드 내부 폭(430px)보다 넓어 필드 오른쪽 끝 기준으로 왼쪽으로 넘치게 띄운다
-                <DatePicker
-                  className="absolute right-0 top-full z-50 mt-x2"
+                  송출기간
+                  <span aria-hidden="true" className="text-text-negative">
+                    *
+                  </span>
+                </span>
+                <DateTrigger
                   value={field.value}
-                  onApply={(range) => {
-                    field.onChange(range)
-                    setPickerOpen(false)
-                  }}
-                  onClose={() => setPickerOpen(false)}
+                  open={pickerOpen}
+                  placeholder="YYYY.MM.DD - YYYY.MM.DD"
+                  onClick={() => setPickerOpen((prev) => !prev)}
+                  onBlur={field.onBlur}
+                  aria-labelledby={periodLabelId}
+                  aria-describedby={periodError ? periodErrorId : undefined}
+                  aria-invalid={periodError ? true : undefined}
+                  className={[
+                    'w-full justify-between border',
+                    periodError
+                      ? 'border-line-negative'
+                      : 'border-line-secondary',
+                  ].join(' ')}
                 />
-              )}
-            </div>
-          )}
+                {periodError && (
+                  <p
+                    id={periodErrorId}
+                    className="text-caption-1-regular text-text-negative"
+                  >
+                    {periodError.message}
+                  </p>
+                )}
+                {pickerOpen && (
+                  // 패널(480px)이 카드 내부 폭(430px)보다 넓어 필드 오른쪽 끝 기준으로 왼쪽으로 넘치게 띄운다
+                  <DatePicker
+                    className="absolute right-0 top-full z-50 mt-x2"
+                    value={field.value}
+                    onApply={(range) => {
+                      field.onChange(range)
+                      setPickerOpen(false)
+                    }}
+                    onClose={() => setPickerOpen(false)}
+                  />
+                )}
+              </div>
+            )
+          }}
         />
 
         <Controller
@@ -137,12 +150,15 @@ export default function CampaignInfoForm({
             <InputField
               label="하루 송출 횟수"
               required
-              placeholder="ex) 100"
+              placeholder="하루동안 송출할 횟수를 입력해주세요."
               inputMode="numeric"
+              maxLength={4}
               value={field.value}
-              onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
+              onChange={(e) =>
+                field.onChange(e.target.value.replace(/\D/g, '').slice(0, 4))
+              }
               onBlur={field.onBlur}
-              errorMessage={fieldState.error?.message}
+              errorMessage={shownError(field.value, fieldState.error?.message)}
             />
           )}
         />
@@ -150,9 +166,10 @@ export default function CampaignInfoForm({
         <Textarea
           label="메모"
           optional
-          placeholder="최대 500글자 입력 가능"
-          maxLength={500}
+          placeholder="최대 100글자 입력 가능"
+          maxLength={100}
           errorMessage={errors.memo?.message}
+          className="h-[180px]"
           {...register('memo')}
         />
       </div>
