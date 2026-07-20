@@ -54,7 +54,11 @@ function DesktopSection4() {
   })
 
   const imageEntranceY = useTransform(scrollYProgress, [0, 0.3], [600, 0])
-  const imageWidth = useTransform(scrollYProgress, [0.3, 0.92], [1200, 793])
+  // 콘텐츠 최대 폭을 1200→1440(x1.2)으로 늘리면서 이미지도 같은 비율로
+  // 함께 키운다 — 텍스트만 그대로 두면 컨테이너가 넓어진 만큼 텍스트와
+  // 이미지 사이 빈 간격만 커져서 "커진 게 아니라 여백만 늘어난" 것처럼
+  // 보이는 문제가 있다.
+  const imageWidth = useTransform(scrollYProgress, [0.3, 0.92], [1440, 952])
   const imageSettleY = useTransform(
     imageWidth,
     (w) => (834 - (w * 551) / 793) / 2,
@@ -73,10 +77,10 @@ function DesktopSection4() {
   return (
     <section ref={sectionRef} className="relative -mt-[150dvh] h-[220dvh]">
       <div className="pointer-events-none sticky top-0 flex h-dvh items-center overflow-hidden px-x10">
-        <div className="relative mx-auto h-[834px] w-full max-w-[1200px]">
+        <div className="relative mx-auto h-[834px] w-full max-w-[1440px]">
           <motion.div
             ref={textRef}
-            className="pointer-events-auto absolute left-0 top-0 w-[367px]"
+            className="pointer-events-auto absolute left-0 top-0 w-[440px]"
             style={{ opacity: textOpacity.get(), y: imageY }}
           >
             <h2 className="text-display-3-medium text-text-primary">
@@ -201,7 +205,11 @@ function StaticSection4() {
 }
 
 export default function Section4() {
-  const isDesktop = useMediaQuery('(min-width: 1280px)') // tokens.css --breakpoint-lg
+  // Section3와 반드시 같은 임계값을 써야 한다 — DesktopSection4의
+  // -mt-[150dvh]가 DesktopSection3의 pin 구간(260dvh 기준)과 겹치도록 맞춰져
+  // 있어서, 둘이 서로 다른 시점에 Desktop/Tablet으로 갈리면 겹침 타이밍이
+  // 깨진다. 1440으로 올린 이유는 Section3와 동일(1280~1439 구간 레이아웃 깨짐).
+  const isDesktop = useMediaQuery('(min-width: 1440px)')
   const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
 
   if (isDesktop) {

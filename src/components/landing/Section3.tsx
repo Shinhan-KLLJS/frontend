@@ -221,7 +221,7 @@ function DesktopSection3() {
     <section ref={sectionRef} className="relative h-[260dvh]">
       <div className="sticky top-0 flex h-dvh items-center overflow-hidden px-x10">
         <motion.div
-          className="mx-auto flex w-full max-w-[1200px] items-start gap-x5"
+          className="mx-auto flex w-full max-w-[1440px] items-start gap-x10"
           style={
             reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }
           }
@@ -249,7 +249,7 @@ function DesktopSection3() {
           <FlowImageTrack
             activeIndex={activeIndex}
             onChangeIndex={setActiveIndex}
-            className="w-[793px] aspect-[793/514] shrink-0"
+            className="w-[952px] aspect-[793/514] shrink-0"
           />
         </motion.div>
       </div>
@@ -288,7 +288,7 @@ function TabletSection3() {
     <section ref={sectionRef} className="relative h-[200dvh]">
       <div className="sticky top-0 flex h-dvh flex-col items-center justify-center overflow-hidden px-x5">
         <motion.div
-          className="flex w-full max-w-[600px] flex-col items-center gap-x8"
+          className="flex w-full max-w-[800px] flex-col items-center gap-x8"
           style={
             reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }
           }
@@ -374,7 +374,11 @@ function StaticSection3() {
 }
 
 export default function Section3() {
-  const isDesktop = useMediaQuery('(min-width: 1280px)') // tokens.css --breakpoint-lg
+  // 데스크탑 레이아웃(793px→952px 고정 이미지 + gap-x10)이 1440px 폭
+  // 기준으로 설계돼 있어서, 예전처럼 1280부터 데스크탑으로 전환하면
+  // 1280~1439px 구간에서 텍스트 칼럼이 심하게 찌그러진다 — Section4와
+  // 함께 1440으로 올려서 그 구간은 이미 반응형인 TabletSection3가 담당하게 한다.
+  const isDesktop = useMediaQuery('(min-width: 1440px)')
   const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
 
   if (isDesktop) {

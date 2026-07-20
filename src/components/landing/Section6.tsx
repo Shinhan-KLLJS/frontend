@@ -43,12 +43,19 @@ const PERSON_BOXES = [
 ] as const
 
 // 데스크탑(웹)에서만 4개 박스 전부 y-10 이동 — 태블릿·모바일 PERSON_BOXES는 그대로.
+// male-32만 추가로 x+15 y-30 더 이동.
 const DESKTOP_PERSON_BOXES = PERSON_BOXES.map((box) => {
-  const extraX = box.key === 'male-35-a' || box.key === 'female-39' ? -5 : 0
+  const extraX =
+    box.key === 'male-35-a' || box.key === 'female-39'
+      ? -5
+      : box.key === 'male-32'
+        ? 15
+        : 0
+  const extraY = box.key === 'male-32' ? -30 : 0
   return {
     ...box,
     left: box.left + 20 + extraX,
-    top: box.top - 10 - 20,
+    top: box.top - 10 - 20 + extraY,
     size: 200,
   }
 })
@@ -161,18 +168,25 @@ function DesktopSection6() {
 
   return (
     <section ref={sectionRef} className="relative h-[220dvh]">
-      <div className="sticky top-0 flex h-dvh items-start overflow-hidden">
-        <div
-          className="relative w-full overflow-hidden"
-          style={{ height: CONTAINER_HEIGHT }}
-        >
-          <img
-            ref={bgRef}
-            src={securityBg}
-            alt="Vision AI 얼굴 인식·블러 처리"
-            className="absolute inset-0 size-full translate-y-[30px] object-cover opacity-0"
-          />
-
+      {/* 높이: 캔버스를 CONTAINER_HEIGHT(900px)로 고정하면 뷰포트가 그보다
+          클 때(대부분의 데스크탑 화면) 이미지 아래로 빈 여백이 남았다 — h-full로
+          sticky 컨테이너(뷰포트 전체 높이)를 그대로 채우도록 바꾼다. 박스 %
+          좌표는 CONTAINER_HEIGHT를 기준값으로 그대로 재사용하므로(실제 렌더
+          높이가 달라져도 비율로 따라감) 별도 좌표 수정은 필요 없다.
+          폭: w-full로 뷰포트 폭에 그대로 비례하면 1440px를 넘어가면서 박스 %
+          좌표(CONTAINER_WIDTH=1200 기준)와 object-cover 크롭 지점이 벌어져
+          얼굴과 박스가 어긋난다 — max-w-[1440px]로 고정하고 Section3/4와
+          동일하게 mx-auto로 중앙 정렬해 그 이상은 좌우 여백만 늘어나게 한다.
+          다만 h-full(뷰포트 세로)은 그대로 유동적이라, 세로 비율이 바뀌면
+          똑같은 이유로 박스가 어긋난다 — 이미지+박스를 CONTAINER_WIDTH:HEIGHT와
+          동일한 aspect-[4/3] 비율로 고정한 래퍼로 묶고, 그 래퍼를
+          min-w-full min-h-full로 컨테이너보다 항상 크거나 같게 키운 뒤
+          flex로 중앙 정렬 + 바깥 overflow-hidden으로 잘라내는 방식으로
+          object-cover와 동일한 크롭을 흉내낸다 — 항상 4:3 비율을 유지하므로
+          박스 % 좌표가 컨테이너 크기와 무관하게 항상 정확하다. 타이틀은 이
+          래퍼 밖(원래 컨테이너 기준)에 그대로 둬 크롭 영향을 받지 않는다. */}
+      <div className="sticky top-0 h-dvh overflow-hidden">
+        <div className="relative mx-auto flex h-full w-full max-w-[1440px] items-center justify-center overflow-hidden">
           <div ref={titleRef} className="absolute left-[60px] top-[70px] z-10 opacity-0">
             <h2 className="text-display-3-medium text-text-primary-inverse shadow-normal-small">
               {TITLE}
@@ -182,18 +196,27 @@ function DesktopSection6() {
             </p>
           </div>
 
-          {DESKTOP_PERSON_BOXES.map((box, i) => (
-            <PersonTrackingBox
-              key={box.key}
-              box={box}
-              outlineRef={(el) => {
-                outlineRefs.current[i] = el
-              }}
-              blurRef={(el) => {
-                blurRefs.current[i] = el
-              }}
+          <div className="relative min-h-full min-w-full max-w-none aspect-[4/3]">
+            <img
+              ref={bgRef}
+              src={securityBg}
+              alt="Vision AI 얼굴 인식·블러 처리"
+              className="absolute inset-0 size-full translate-y-[30px] object-cover opacity-0"
             />
-          ))}
+
+            {DESKTOP_PERSON_BOXES.map((box, i) => (
+              <PersonTrackingBox
+                key={box.key}
+                box={box}
+                outlineRef={(el) => {
+                  outlineRefs.current[i] = el
+                }}
+                blurRef={(el) => {
+                  blurRefs.current[i] = el
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -213,7 +236,7 @@ function DesktopSection6() {
 // male-32 트래킹 박스만 태블릿에서 x10 y-20 이동(데스크탑·모바일 PERSON_BOXES는
 // 그대로 유지) — 공용 상수를 직접 바꾸지 않고 태블릿 전용으로 복제해 오프셋만 적용.
 const TABLET_PERSON_BOXES = PERSON_BOXES.map((box) => {
-  const extra = box.key === 'male-32' ? { left: 20, top: -45 } : { left: 0, top: 0 }
+  const extra = box.key === 'male-32' ? { left: 20, top: -65 } : { left: 0, top: 0 }
   return {
     ...box,
     size: 180,
@@ -291,39 +314,55 @@ function TabletSection6() {
 
   return (
     <section ref={sectionRef} className="relative h-[220dvh]">
-      <div className="sticky top-0 flex h-dvh items-start overflow-hidden">
+      {/* 높이는 DesktopSection6과 동일한 이유로 h-full(뷰포트 전체)로 채우고,
+          폭은 기존 결정대로 CONTAINER_WIDTH 고정 크기를 유지한다. 화면이
+          좁아지면 캔버스(1200px)가 뷰포트보다 커지는데, 부모에 flex
+          justify-center를 줘서 항상 화면 중앙에 배치하고 좌우를 대칭으로
+          넘치게(잘리게) 한다 — margin(mx-auto/ml-auto)이 아니라 flex
+          justify-content를 쓰는 이유: 박스가 컨테이너보다 클 때 단일 auto
+          마진(ml-auto)은 CSS 스펙상 "밀어줄 여유 공간 없음"으로 0에
+          클램프돼 아무 효과가 없다(직접 겪은 문제) — flex justify-content는
+          여유 공간이 음수여도 정상적으로 정렬을 적용한다.
+          타이틀은 캔버스가 움직여도 화면상 위치가 안 변해야 하므로 캔버스
+          안이 아니라 sticky 래퍼(뷰포트 기준) 바로 아래 형제로 둔다.
+          세로가 유동적인 이상 DesktopSection6과 동일하게 이미지+박스를
+          aspect-[4/3] 래퍼로 묶어야 세로 비율 변화에도 박스 정렬이 깨지지
+          않는다 — 자세한 이유는 DesktopSection6 주석 참고. */}
+      <div className="sticky top-0 flex h-dvh justify-center overflow-hidden">
+        <div ref={titleRef} className="absolute left-x6 top-x6 z-10 opacity-0">
+          <h2 className="text-title-1-medium text-text-primary-inverse shadow-normal-small">
+            {TITLE}
+          </h2>
+          <p className="mt-x2 text-heading-2-regular text-text-primary-inverse shadow-normal-small">
+            {BODY}
+          </p>
+        </div>
+
         <div
-          className="relative overflow-hidden"
-          style={{ width: CONTAINER_WIDTH, height: CONTAINER_HEIGHT }}
+          className="relative flex h-full shrink-0 items-center justify-center overflow-hidden"
+          style={{ width: CONTAINER_WIDTH }}
         >
-          <img
-            ref={bgRef}
-            src={securityBg}
-            alt="Vision AI 얼굴 인식·블러 처리"
-            className="absolute inset-0 size-full object-cover opacity-0"
-          />
-
-          <div ref={titleRef} className="absolute left-x6 top-x6 z-10 opacity-0">
-            <h2 className="text-title-1-medium text-text-primary-inverse shadow-normal-small">
-              {TITLE}
-            </h2>
-            <p className="mt-x2 text-heading-2-regular text-text-primary-inverse shadow-normal-small">
-              {BODY}
-            </p>
-          </div>
-
-          {TABLET_PERSON_BOXES.map((box, i) => (
-            <PersonTrackingBox
-              key={box.key}
-              box={box}
-              outlineRef={(el) => {
-                outlineRefs.current[i] = el
-              }}
-              blurRef={(el) => {
-                blurRefs.current[i] = el
-              }}
+          <div className="relative min-h-full min-w-full max-w-none aspect-[4/3]">
+            <img
+              ref={bgRef}
+              src={securityBg}
+              alt="Vision AI 얼굴 인식·블러 처리"
+              className="absolute inset-0 size-full object-cover opacity-0"
             />
-          ))}
+
+            {TABLET_PERSON_BOXES.map((box, i) => (
+              <PersonTrackingBox
+                key={box.key}
+                box={box}
+                outlineRef={(el) => {
+                  outlineRefs.current[i] = el
+                }}
+                blurRef={(el) => {
+                  blurRefs.current[i] = el
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
