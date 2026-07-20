@@ -205,7 +205,11 @@ function StaticSection4() {
 }
 
 export default function Section4() {
-  const isDesktop = useMediaQuery('(min-width: 1280px)') // tokens.css --breakpoint-lg
+  // Section3와 반드시 같은 임계값을 써야 한다 — DesktopSection4의
+  // -mt-[150dvh]가 DesktopSection3의 pin 구간(260dvh 기준)과 겹치도록 맞춰져
+  // 있어서, 둘이 서로 다른 시점에 Desktop/Tablet으로 갈리면 겹침 타이밍이
+  // 깨진다. 1440으로 올린 이유는 Section3와 동일(1280~1439 구간 레이아웃 깨짐).
+  const isDesktop = useMediaQuery('(min-width: 1440px)')
   const isTabletUp = useMediaQuery('(min-width: 768px)') // Tailwind 기본 --breakpoint-md
 
   if (isDesktop) {

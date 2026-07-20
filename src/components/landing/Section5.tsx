@@ -213,6 +213,7 @@ function DesktopSection5() {
   const sectionRef = useRef<HTMLElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const reduceMotion = useReducedMotion()
 
   // Section5는 페이지 최하단 섹션이라 뒤에 스크롤할 콘텐츠가 없다 — offset의
   // 두 번째 지점을 'start start'(섹션 상단이 뷰포트 상단에 닿음)로 두면, 섹션
@@ -232,7 +233,9 @@ function DesktopSection5() {
   // style={{opacity: motionValue}} 반응형 바인딩이 이 코드베이스에서 간헐적으로
   // 멈춰(원인 불명, ScrollHero·Section2·Section4에서도 겪음) 카드가 중간 값에
   // 고정된 채 반투명하게 굳어버리는 문제가 있어 ref로 직접 opacity를 써서 우회한다.
+  // StaticSection5와 동일하게 reduceMotion일 때는 건드리지 않는다(항상 보임).
   useMotionValueEvent(entranceOpacity, 'change', (v) => {
+    if (reduceMotion) return
     if (videoRef.current) videoRef.current.style.opacity = String(v)
     if (contentRef.current) contentRef.current.style.opacity = String(v)
   })
@@ -255,13 +258,17 @@ function DesktopSection5() {
         playsInline
         src={teamChoiceBgVideo}
         className="absolute left-0 top-0 h-[140%] w-[140%] object-cover"
-        style={{ opacity: entranceOpacity.get() }}
+        style={reduceMotion ? undefined : { opacity: entranceOpacity.get() }}
       />
 
       <motion.div
         ref={contentRef}
         className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-x10"
-        style={{ opacity: entranceOpacity.get(), y: entranceY }}
+        style={
+          reduceMotion
+            ? undefined
+            : { opacity: entranceOpacity.get(), y: entranceY }
+        }
       >
         <h2 className="text-center text-display-3-medium text-text-primary">
           {TITLE}
@@ -320,7 +327,7 @@ function StaticSection5() {
         muted
         playsInline
         src={teamChoiceBgVideo}
-        className="absolute left-1/2 top-1/2 h-[140%] w-[140%] -translate-x-1/2 -translate-y-1/2 object-cover"
+        className="absolute left-0 top-0 h-[140%] w-[140%] object-cover"
         style={reduceMotion ? undefined : { opacity: entranceOpacity.get() }}
       />
 

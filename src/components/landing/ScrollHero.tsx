@@ -1,6 +1,7 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   motion,
+  useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
@@ -75,6 +76,20 @@ function StaticHero() {
   )
 }
 
+/** 리사이즈될 때마다 갱신되는 실제 뷰포트 높이(px)를 모션 값으로 제공한다. */
+function useViewportHeightMotionValue() {
+  const height = useMotionValue(
+    typeof window !== 'undefined' ? window.innerHeight : 0,
+  )
+  useEffect(() => {
+    const update = () => height.set(window.innerHeight)
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [height])
+  return height
+}
+
 /**
  * 데스크탑 스크롤 인터랙션 전용 컴포넌트.
  *
@@ -95,7 +110,29 @@ function DesktopScrollHero() {
 
   // 섹션 높이 230dvh 기준: 등장(0~0.35, 배경·콘텐츠 모두 35%에 완전히 자리잡음) → 정지 유지(0.35~1)
   const visualScale = useTransform(scrollYProgress, [0, 0.35], [1, 0.78])
-  const visualY = useTransform(scrollYProgress, [0, 0.35], ['0vh', '21vh'])
+
+  // visualY: 원래 '0vh'→'21vh' 문자열로 translateY를 줬는데, vh는 실제 뷰포트
+  // 높이(H)에 그대로 비례한다. 그런데 scale이 origin-center로 박스 중심에서
+  // 줄어드는 것 자체도 위쪽을 (1-scale)/2 * H만큼 끌어올리는 효과가 있어서,
+  // "타이틀~콘텐츠 간격"은 두 항 모두 H에 비례해 1440px처럼 높은 뷰포트에서
+  // 필요 이상으로 벌어졌다. scale 쪽(origin-center)은 그대로 두고, translateY
+  // 만 "간격 = k(progress) * min(H, 1080)"이 되도록 역산해서 1080 이상에서는
+  // 간격이 더 벌어지지 않게 캡을 건다 — H<=1080에서는 기존 21vh와 동일한 값이
+  // 나오도록 수식을 짰다(즉 대부분 화면에서는 동작 변화 없음).
+  const VISUAL_HEIGHT_CAP = 1080
+  const viewportHeight = useViewportHeightMotionValue()
+  const baseTranslateFraction = useTransform(scrollYProgress, [0, 0.35], [0, 0.21])
+  const visualY = useTransform(
+    [visualScale, baseTranslateFraction, viewportHeight],
+    (values) => {
+      const [scale, baseFraction, height] = values as number[]
+      const cappedHeight = Math.min(height, VISUAL_HEIGHT_CAP)
+      const scaleOffsetFraction = (1 - scale) / 2
+      const desiredTotalOffset = (scaleOffsetFraction + baseFraction) * cappedHeight
+      const scaleOffsetActual = scaleOffsetFraction * height
+      return desiredTotalOffset - scaleOffsetActual
+    },
+  )
   const visualRadius = useTransform(
     scrollYProgress,
     [0, 0.35],
