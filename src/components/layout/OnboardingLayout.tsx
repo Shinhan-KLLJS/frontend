@@ -47,7 +47,10 @@ export default function OnboardingLayout() {
         className="relative min-w-0! max-w-none!"
       />
 
-      <main className="relative flex flex-1 items-center justify-center p-x5">
+      <main
+        id="onboarding-main"
+        className="relative flex flex-1 items-center justify-center p-x5"
+      >
         <Outlet />
       </main>
     </div>
