@@ -148,9 +148,14 @@ function DesktopScrollHero() {
   return (
     <section ref={sectionRef} className="relative h-[230dvh]">
       <div className="sticky top-0 min-h-dvh overflow-hidden">
+        {/* 가로 중앙정렬을 Tailwind의 -translate-x-1/2 클래스 대신 framer style의
+            x로 준다 — 같은 motion 요소에 y(transform 계열) motion value가
+            섞이면 framer가 transform 전체를 인라인으로 새로 써버려서
+            클래스 기반 translateX(-50%)가 지워지는 문제가 있었다(아래 대시보드
+            이미지처럼 x/y를 framer style로 함께 주면 정상적으로 합성된다). */}
         <motion.div
-          className="absolute left-1/2 top-x10 z-10 w-[min(900px,calc(100%-40px))] -translate-x-1/2"
-          style={{ opacity: copyFinalOpacity, y: copyY }}
+          className="absolute left-1/2 top-x10 z-10 w-[min(900px,calc(100%-40px))]"
+          style={{ opacity: copyFinalOpacity, x: '-50%', y: copyY }}
         >
           <HeroCopy />
         </motion.div>

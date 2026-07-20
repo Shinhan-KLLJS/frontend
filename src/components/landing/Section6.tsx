@@ -161,11 +161,17 @@ function DesktopSection6() {
 
   return (
     <section ref={sectionRef} className="relative h-[220dvh]">
-      <div className="sticky top-0 flex h-dvh items-start overflow-hidden">
-        <div
-          className="relative w-full overflow-hidden"
-          style={{ height: CONTAINER_HEIGHT }}
-        >
+      {/* 높이: 캔버스를 CONTAINER_HEIGHT(900px)로 고정하면 뷰포트가 그보다
+          클 때(대부분의 데스크탑 화면) 이미지 아래로 빈 여백이 남았다 — h-full로
+          sticky 컨테이너(뷰포트 전체 높이)를 그대로 채우도록 바꾼다. 박스 %
+          좌표는 CONTAINER_HEIGHT를 기준값으로 그대로 재사용하므로(실제 렌더
+          높이가 달라져도 비율로 따라감) 별도 좌표 수정은 필요 없다.
+          폭: w-full로 뷰포트 폭에 그대로 비례하면 1440px를 넘어가면서 박스 %
+          좌표(CONTAINER_WIDTH=1200 기준)와 object-cover 크롭 지점이 벌어져
+          얼굴과 박스가 어긋난다 — max-w-[1440px]로 고정하고 Section3/4와
+          동일하게 mx-auto로 중앙 정렬해 그 이상은 좌우 여백만 늘어나게 한다. */}
+      <div className="sticky top-0 h-dvh overflow-hidden">
+        <div className="relative mx-auto h-full w-full max-w-[1440px] overflow-hidden">
           <img
             ref={bgRef}
             src={securityBg}
@@ -291,10 +297,12 @@ function TabletSection6() {
 
   return (
     <section ref={sectionRef} className="relative h-[220dvh]">
-      <div className="sticky top-0 flex h-dvh items-start overflow-hidden">
+      {/* 높이는 DesktopSection6과 동일한 이유로 h-full(뷰포트 전체)로 채우고,
+          폭은 기존 결정대로 CONTAINER_WIDTH 고정 + 우측 crop을 유지한다. */}
+      <div className="sticky top-0 h-dvh overflow-hidden">
         <div
-          className="relative overflow-hidden"
-          style={{ width: CONTAINER_WIDTH, height: CONTAINER_HEIGHT }}
+          className="relative h-full overflow-hidden"
+          style={{ width: CONTAINER_WIDTH }}
         >
           <img
             ref={bgRef}

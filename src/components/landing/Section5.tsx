@@ -1,5 +1,11 @@
 import { useRef, useState } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
+import {
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from 'motion/react'
 import { Check } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Icon from '@/components/ui/Icon'
@@ -205,34 +211,57 @@ const TITLE = (
 /** 데스크탑(lg 이상): 488px 고정폭 카드 2개를 가로로 배치, 화면이 넓어져도 폭 고정. */
 function DesktopSection5() {
   const sectionRef = useRef<HTMLElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
 
+  // Section5는 페이지 최하단 섹션이라 뒤에 스크롤할 콘텐츠가 없다 — offset의
+  // 두 번째 지점을 'start start'(섹션 상단이 뷰포트 상단에 닿음)로 두면, 섹션
+  // 자체 높이가 뷰포트 높이보다 짧을 때(=거의 모든 데스크탑 화면) 그 지점에
+  // 도달하기 전에 문서 끝(최대 스크롤)에 먼저 도달해버려 progress가 1에 영영
+  // 도달하지 못하고 카드가 항상 반투명한 채로 멈춰 있었다(스크롤 애니메이션
+  // 프리즈가 아니라 애초에 도달 불가능한 임계값이 원인). 'end end'(섹션
+  // 하단이 뷰포트 하단에 닿음)는 마지막 섹션에서도 최대 스크롤 시점에 항상
+  // 정확히 도달하므로 이 문제가 없다.
   const { scrollYProgress: entranceProgress } = useScroll({
     target: sectionRef,
-    offset: ['start end', 'start start'],
+    offset: ['start end', 'end end'],
   })
   const entranceOpacity = useTransform(entranceProgress, [0.4, 1], [0, 1])
   const entranceY = useTransform(entranceProgress, [0.4, 1], [40, 0])
 
+  // style={{opacity: motionValue}} 반응형 바인딩이 이 코드베이스에서 간헐적으로
+  // 멈춰(원인 불명, ScrollHero·Section2·Section4에서도 겪음) 카드가 중간 값에
+  // 고정된 채 반투명하게 굳어버리는 문제가 있어 ref로 직접 opacity를 써서 우회한다.
+  useMotionValueEvent(entranceOpacity, 'change', (v) => {
+    if (videoRef.current) videoRef.current.style.opacity = String(v)
+    if (contentRef.current) contentRef.current.style.opacity = String(v)
+  })
+
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden px-x10 py-[100px]"
+      className="relative mt-x10 overflow-hidden px-x10 pb-[100px] pt-x10"
     >
-      {/* h-[116%]/-8% 오프셋으로 실제 프레임보다 크게 깔고 우측 하단으로
-          밀어내서, 영상 우측 하단의 AI 워터마크가 화면 밖으로 잘려나가게 한다. */}
+      {/* 좌상단(top-0 left-0)에 고정한 채 140% 크기로 깔아서, 초과분 40%가
+          전부 우측·하단으로만 넘치게 한다 — 중앙정렬(대칭 크롭)이면 섹션
+          가로세로 비율이 바뀔 때마다 크롭 지점이 움직여서 우측 하단의 AI
+          워터마크가 화면 안으로 들어올 수 있는데, 좌상단 고정은 비율이
+          바뀌어도 우측 하단이 항상 컨테이너 밖으로 밀려나 있어 안전하다. */}
       <motion.video
+        ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
         src={teamChoiceBgVideo}
-        className="absolute left-1/2 top-1/2 h-[140%] w-[140%] -translate-x-1/2 -translate-y-1/2 object-cover"
-        style={{ opacity: entranceOpacity }}
+        className="absolute left-0 top-0 h-[140%] w-[140%] object-cover"
+        style={{ opacity: entranceOpacity.get() }}
       />
 
       <motion.div
+        ref={contentRef}
         className="relative mx-auto flex w-full max-w-[1200px] flex-col items-center gap-x10"
-        style={{ opacity: entranceOpacity, y: entranceY }}
+        style={{ opacity: entranceOpacity.get(), y: entranceY }}
       >
         <h2 className="text-center text-display-3-medium text-text-primary">
           {TITLE}
@@ -251,6 +280,8 @@ function DesktopSection5() {
 /** lg 미만(태블릿·모바일): 세로 스택, 카드 폭은 화면에 맞게 유동적(최대 488px). */
 function StaticSection5() {
   const sectionRef = useRef<HTMLElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const reduceMotion = useReducedMotion()
   // 화면 폭이 아니라 실제 호버 가능 여부(마우스·트랙패드)로 판단한다 —
   // 터치 전용 기기에서 onMouseEnter/Leave 기반 호버는 탭 후 상태가 안
@@ -258,32 +289,48 @@ function StaticSection5() {
   // (트랙패드 달린 태블릿 등)에서만 데스크탑과 동일한 호버 효과를 켠다.
   const canHover = useMediaQuery('(hover: hover) and (pointer: fine)')
 
+  // 마지막 섹션이라 'start start' 지점(섹션 상단=뷰포트 상단)에 도달하기 전에
+  // 문서 끝(최대 스크롤)에 먼저 닿아버리는 문제 — DesktopSection5와 동일한
+  // 이유로 'end end'를 쓴다.
   const { scrollYProgress: entranceProgress } = useScroll({
     target: sectionRef,
-    offset: ['start end', 'start start'],
+    offset: ['start end', 'end end'],
   })
   const entranceOpacity = useTransform(entranceProgress, [0.5, 1], [0, 1])
   const entranceY = useTransform(entranceProgress, [0.5, 1], [40, 0])
 
+  // style={{opacity: motionValue}} 반응형 바인딩이 이 코드베이스에서 간헐적으로
+  // 멈추는 문제가 있어(DesktopSection5와 동일 원인) ref로 우회한다.
+  // reduceMotion일 때는 style 자체를 안 걸어 항상 보이므로 여기서도 건드리지 않는다.
+  useMotionValueEvent(entranceOpacity, 'change', (v) => {
+    if (reduceMotion) return
+    if (videoRef.current) videoRef.current.style.opacity = String(v)
+    if (contentRef.current) contentRef.current.style.opacity = String(v)
+  })
+
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden px-x5 py-[100px]"
+      className="relative mt-x10 overflow-hidden px-x5 pb-[100px] pt-x10"
     >
       <motion.video
+        ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
         src={teamChoiceBgVideo}
         className="absolute left-1/2 top-1/2 h-[140%] w-[140%] -translate-x-1/2 -translate-y-1/2 object-cover"
-        style={reduceMotion ? undefined : { opacity: entranceOpacity }}
+        style={reduceMotion ? undefined : { opacity: entranceOpacity.get() }}
       />
 
       <motion.div
+        ref={contentRef}
         className="relative mx-auto flex w-full max-w-[488px] flex-col items-center gap-x10 md:max-w-[900px]"
         style={
-          reduceMotion ? undefined : { opacity: entranceOpacity, y: entranceY }
+          reduceMotion
+            ? undefined
+            : { opacity: entranceOpacity.get(), y: entranceY }
         }
       >
         <h2 className="text-center text-title-2-medium text-text-primary md:text-title-1-medium">
