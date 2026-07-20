@@ -63,11 +63,21 @@ export default function CampaignInfoModal({
         </div>
       ) : (
         <div className="flex flex-1 gap-x5">
-          <CampaignInfoCard title="캠페인 정보" fields={campaignFields} />
+          <CampaignInfoCard
+            title="캠페인 정보"
+            fields={campaignFields}
+            imageUrl={
+              detail.creativeType === 'IMAGE' ? detail.creativeUrl : undefined
+            }
+            videoUrl={
+              detail.creativeType === 'VIDEO' ? detail.creativeUrl : undefined
+            }
+          />
           <CampaignInfoCard
             title="매체 정보"
             fields={mediaFields}
             tags={detail.mediaTags}
+            imageUrl={detail.mediaPhotoUrl}
           />
         </div>
       )}

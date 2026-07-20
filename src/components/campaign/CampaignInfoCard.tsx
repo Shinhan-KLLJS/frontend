@@ -5,6 +5,10 @@ interface CampaignInfoCardProps {
   title: string
   fields: { label: string; value: string }[]
   tags?: string[]
+  /** 미리보기 이미지 URL (없으면 플레이스홀더) */
+  imageUrl?: string
+  /** 미리보기 영상 URL — 있으면 이미지 대신 영상을 렌더 */
+  videoUrl?: string
 }
 
 /** 피그마의 정보 확인 모달에서 공통으로 쓰는 카드형 정보 묶음입니다. */
@@ -12,11 +16,24 @@ export default function CampaignInfoCard({
   title,
   fields,
   tags = [],
+  imageUrl,
+  videoUrl,
 }: CampaignInfoCardProps) {
   return (
     <article className="flex min-w-0 flex-1 flex-col gap-x4 rounded-[16px] bg-bg-primary p-x4">
-      <div className="flex h-[168px] items-center justify-center rounded-x3 bg-bg-tertiary text-text-caption">
-        <Icon icon={Image} size="large" />
+      <div className="flex h-[168px] items-center justify-center overflow-hidden rounded-x3 bg-bg-tertiary text-text-caption">
+        {videoUrl ? (
+          <video
+            src={videoUrl}
+            muted
+            playsInline
+            className="size-full object-cover"
+          />
+        ) : imageUrl ? (
+          <img src={imageUrl} alt="" className="size-full object-cover" />
+        ) : (
+          <Icon icon={Image} size="large" />
+        )}
       </div>
       <span className="w-fit rounded-x2 bg-[var(--blue-100)] px-x2 py-xs text-body-1-normal-bold text-[var(--blue-400)]">
         {title}

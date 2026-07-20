@@ -159,6 +159,7 @@ interface CampaignDetailDto {
   creativeUrl: string
   mediaUnitId: number
   mediaName: string
+  mediaPhotoUrl: string
   mediaLocationAddress: string
   mediaWidthMm: number
   mediaHeightMm: number
@@ -179,6 +180,7 @@ export interface CampaignDetail {
   creativeType: 'IMAGE' | 'VIDEO'
   creativeUrl: string
   mediaName: string
+  mediaPhotoUrl: string
   mediaAddress: string
   /** 실물 규격 표기 (예: '81 X 20m') */
   mediaSize: string
@@ -200,6 +202,7 @@ function toCampaignDetail(dto: CampaignDetailDto): CampaignDetail {
     creativeType: dto.creativeType,
     creativeUrl: dto.creativeUrl,
     mediaName: dto.mediaName,
+    mediaPhotoUrl: dto.mediaPhotoUrl,
     mediaAddress: dto.mediaLocationAddress,
     mediaSize: `${mmToMeter(dto.mediaWidthMm)} X ${mmToMeter(dto.mediaHeightMm)}m`,
     mediaResolution: `${dto.mediaResolutionWidthPx} X ${dto.mediaResolutionHeightPx}px`,
