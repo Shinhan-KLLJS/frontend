@@ -20,7 +20,7 @@ export default function DashboardSectionHeader({
   cutoffLabel,
 }: DashboardSectionHeaderProps) {
   return (
-    <header className="flex w-full items-center justify-between gap-x4">
+    <header className="flex h-[28px] w-full items-center justify-between gap-x4">
       <h2 className="text-heading-2-bold text-text-primary">{title}</h2>
       <Tooltip content={cutoffLabel ?? formatCutoffLabel()}>
         <Icon icon={Info} size={16} color="secondary" label={description} />

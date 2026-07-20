@@ -50,7 +50,7 @@ function AxisTick({ x = 0, y = 0, index, payload }: AxisTickProps) {
       y={y}
       dy={16}
       textAnchor="middle"
-      fill="var(--color-chart-axis-label)"
+      fill="var(--color-text-secondary)"
       fontSize={14}
     >
       {value}
@@ -70,13 +70,13 @@ export default function RealtimeViewerChart({
   const gradientId = useId().replace(/:/g, '')
   const latest = data.at(-1)
 
-  // y축 동적(캠페인마다 값 크기가 달라 하드코딩 불가)
+  // y축: 데이터 최대값을 0~max로 5등분(눈금 6개), 각 눈금값은 소수점 버림(floor)
   const values = data.map((point) => point.viewers)
-  const dataMin = values.length ? Math.min(...values) : 0
   const dataMax = values.length ? Math.max(...values) : 0
-  const pad = Math.max((dataMax - dataMin) * 0.15, dataMax * 0.05, 10)
-  const axisMin = Math.max(0, Math.floor((dataMin - pad) / 10) * 10)
-  const axisMax = Math.ceil((dataMax + pad) / 10) * 10 || 100
+  const yMax = dataMax > 0 ? dataMax : 5
+  const yTicks = [
+    ...new Set(Array.from({ length: 6 }, (_, i) => Math.floor((yMax * i) / 5))),
+  ]
 
   // 오른쪽 빈 1칸(라벨 없는 트레일링 슬롯) → 라인/영역은 마지막 실데이터에서 끝남
   const series: { time: string; viewers: number | null }[] = [
@@ -121,8 +121,9 @@ export default function RealtimeViewerChart({
         <YAxis
           axisLine={{ stroke: 'var(--color-line-tertiary)' }}
           tickLine={false}
-          tick={{ fill: 'var(--color-chart-axis-label)', fontSize: 14 }}
-          domain={[axisMin, axisMax]}
+          tick={{ fill: 'var(--color-text-secondary)', fontSize: 14 }}
+          domain={[0, yMax]}
+          ticks={yTicks}
           width={48}
         />
         <Area
@@ -131,7 +132,7 @@ export default function RealtimeViewerChart({
           stroke="var(--color-chart-categorical-1)"
           strokeWidth={2}
           fill={`url(#${gradientId})`}
-          baseValue={axisMin}
+          baseValue={0}
           connectNulls={false}
           dot={false}
           activeDot={{ r: 4, strokeWidth: 2 }}
@@ -151,7 +152,7 @@ export default function RealtimeViewerChart({
   )
 
   return (
-    <DashboardPanel className="flex h-[328px] flex-col gap-x5 py-x5">
+    <DashboardPanel className="flex h-[328px] flex-col gap-x5">
       <DashboardSectionHeader
         title="실시간 시청 수"
         description="선택한 캠페인의 시간대별 시청 추이를 보여줍니다."
