@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import teamCreateImage from '@/assets/onboarding/team-create.png'
-import teamJoinImage from '@/assets/onboarding/team-join.png'
+import teamCreateImage from '@/assets/onboarding/Team_Make_Card_BG.png'
+import teamJoinImage from '@/assets/onboarding/Team_Join_Card_BG.png'
 import PlanCard from '@/components/team/PlanCard'
 import { ROUTES } from '@/lib/routes'
 
