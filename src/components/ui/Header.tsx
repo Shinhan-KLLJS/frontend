@@ -54,7 +54,7 @@ export default function Header({
   return (
     <header
       className={[
-        'flex h-[56px] w-full items-center border-b border-line-tertiary bg-bg-secondary py-[10px] font-sans justify-end border-l px-x10',
+        'flex h-[56px] w-full items-center border-b border-line-tertiary bg-bg-secondary py-[10px] font-sans justify-end px-x10',
         className,
       ]
         .filter(Boolean)
