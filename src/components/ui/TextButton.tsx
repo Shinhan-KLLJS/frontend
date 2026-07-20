@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import Icon from './Icon'
@@ -23,33 +24,35 @@ export interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   children?: ReactNode
 }
 
-/** 텍스트 버튼 — Size(Large/Medium) × Disable */
-export default function TextButton({
-  size = 'large',
-  leadingIcon,
-  trailingIcon,
-  className,
-  children,
-  ...props
-}: TextButtonProps) {
-  return (
-    <button
-      type="button"
-      className={[
-        'inline-flex items-center justify-center gap-x1 font-sans whitespace-nowrap',
-        'cursor-pointer disabled:cursor-not-allowed',
-        'rounded-x2 interaction-normal',
-        'text-text-primary disabled:text-text-disabled',
-        SIZE_CLASS[size],
-        className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      {...props}
-    >
-      {leadingIcon && <Icon icon={leadingIcon} size={ICON_PX[size]} />}
-      {children}
-      {trailingIcon && <Icon icon={trailingIcon} size={ICON_PX[size]} />}
-    </button>
-  )
-}
+/** 텍스트 버튼 — Size(Large/Medium) × Disable. ref 포워딩(DropdownMenu asChild 트리거 등). */
+const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
+  function TextButton(
+    { size = 'large', leadingIcon, trailingIcon, className, children, ...props },
+    ref,
+  ) {
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className={[
+          // justify는 기본(start) — 고정 폭에서 정렬 오버라이드(justify-end 등) 가능
+          'inline-flex items-center gap-x1 font-sans whitespace-nowrap',
+          'cursor-pointer disabled:cursor-not-allowed',
+          'rounded-x2 interaction-normal',
+          'text-text-primary disabled:text-text-disabled',
+          SIZE_CLASS[size],
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        {...props}
+      >
+        {leadingIcon && <Icon icon={leadingIcon} size={ICON_PX[size]} />}
+        {children}
+        {trailingIcon && <Icon icon={trailingIcon} size={ICON_PX[size]} />}
+      </button>
+    )
+  },
+)
+
+export default TextButton

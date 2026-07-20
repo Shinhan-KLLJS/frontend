@@ -23,8 +23,11 @@ export default function CampaignInfoCard({
       </span>
       <dl className="flex flex-col gap-x3">
         {fields.map((field) => (
-          <div key={field.label} className="flex items-center justify-between gap-x3">
-            <dt className="shrink-0 text-body-1-normal-regular text-text-secondary">
+          <div
+            key={field.label}
+            className="flex items-center justify-between gap-x1"
+          >
+            <dt className="shrink-0 text-body-1-normal-regular text-text-secondary w-[100px]">
               {field.label}
             </dt>
             <dd className="truncate text-right text-body-1-normal-medium text-text-primary">

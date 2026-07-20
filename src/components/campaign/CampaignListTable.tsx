@@ -38,7 +38,7 @@ export default function CampaignListTable({
         .join(' ')}
     >
       <div
-        className={`${GRID_CLASS} h-[48px] shrink-0 border-b border-line-secondary px-x5 text-label-1-normal-medium text-text-secondary`}
+        className={`${GRID_CLASS} shrink-0 border-b border-line-secondary px-x5 py-x3 text-label-1-normal-medium text-text-secondary`}
       >
         <span className="mr-x2">캠페인명</span>
         <span>상태</span>
@@ -57,19 +57,19 @@ export default function CampaignListTable({
           {campaigns.map((campaign) => (
             <div
               key={campaign.id}
-              className={`${GRID_CLASS} h-[64px] border-b border-line-tertiary px-x5 last:border-b-0`}
+              className={`${GRID_CLASS} border-b border-line-tertiary p-x5 last:border-b-0`}
             >
               <span className="mr-x2 min-w-0 truncate text-body-2-normal-medium text-text-primary">
                 {campaign.name}
               </span>
               <CampaignStatusTag status={campaign.status} />
-              <span className="text-body-2-normal-regular text-text-secondary">
+              <span className="text-body-2-normal-medium text-text-primary">
                 {campaign.startDate} - {campaign.endDate}
               </span>
-              <span className="truncate text-body-2-normal-regular text-text-secondary">
+              <span className="truncate text-body-2-normal-medium text-text-primary">
                 {campaign.mediaAddress}
               </span>
-              <span className="text-body-2-normal-regular text-text-secondary">
+              <span className="text-body-2-normal-medium text-text-primary">
                 {campaign.todayPlayCount}/{campaign.totalPlayCount}
               </span>
               <DropdownMenu

@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react'
-import type { KeyboardEvent, ReactNode } from 'react'
+import { cloneElement, isValidElement, useEffect, useId, useRef, useState } from 'react'
+import type { KeyboardEvent, ReactElement, ReactNode } from 'react'
 import DropdownMenuItems from './DropdownMenuItems'
 
 export interface DropdownMenuItem {
@@ -19,6 +19,9 @@ export interface DropdownMenuProps {
   maxVisible?: number
   menuAriaLabel?: string
   className?: string
+  /** true면 renderTrigger가 반환한 element 자체를 트리거 버튼으로 사용(별도 button으로 감싸지 않음).
+   *  트리거 컴포넌트는 ref 포워딩이 필요하다(예: TextButton). */
+  asChild?: boolean
 }
 
 const ITEM_HEIGHT = 36
@@ -33,6 +36,7 @@ export default function DropdownMenu({
   maxVisible = 8,
   menuAriaLabel,
   className,
+  asChild = false,
 }: DropdownMenuProps) {
   const autoId = useId()
   const menuId = `${autoId}-menu`
@@ -140,6 +144,42 @@ export default function DropdownMenu({
     }
   }
 
+  // 트리거 공통 props(ref·a11y·토글). asChild면 renderTrigger가 준 element에 주입해 그 자체를 버튼으로 쓴다.
+  const triggerProps = {
+    ref: triggerRef,
+    'aria-haspopup': 'menu' as const,
+    'aria-expanded': open,
+    'aria-controls': open ? menuId : undefined,
+    'aria-activedescendant':
+      open && activeIndex >= 0 ? itemId(activeIndex) : undefined,
+    'aria-label': triggerAriaLabel,
+    onClick: () => (open ? closeMenu() : openMenu()),
+    onKeyDown: handleTriggerKeyDown,
+  }
+  const triggerNode = renderTrigger(open)
+  const trigger =
+    asChild && isValidElement(triggerNode) ? (
+      cloneElement(triggerNode as ReactElement<{ className?: string }>, {
+        ...triggerProps,
+        className: [
+          (triggerNode as ReactElement<{ className?: string }>).props.className,
+          triggerClassName,
+        ]
+          .filter(Boolean)
+          .join(' '),
+      })
+    ) : (
+      <button
+        type="button"
+        {...triggerProps}
+        className={['cursor-pointer outline-none', triggerClassName]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {triggerNode}
+      </button>
+    )
+
   return (
     <div
       ref={rootRef}
@@ -147,24 +187,7 @@ export default function DropdownMenu({
         .filter(Boolean)
         .join(' ')}
     >
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-controls={open ? menuId : undefined}
-        aria-activedescendant={
-          open && activeIndex >= 0 ? itemId(activeIndex) : undefined
-        }
-        aria-label={triggerAriaLabel}
-        className={['cursor-pointer outline-none', triggerClassName]
-          .filter(Boolean)
-          .join(' ')}
-        onClick={() => (open ? closeMenu() : openMenu())}
-        onKeyDown={handleTriggerKeyDown}
-      >
-        {renderTrigger(open)}
-      </button>
+      {trigger}
 
       {open && (
         <div

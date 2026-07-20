@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { Chip, DropdownMenu, Icon, SearchBar } from '@/components/ui'
+import { Chip, DropdownMenu, SearchBar, TextButton } from '@/components/ui'
 import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
 
 interface CampaignListControlsProps {
@@ -52,14 +52,18 @@ export default function CampaignListControls({
           </Chip>
         ))}
       </div>
-      <div className="flex items-center gap-x3">
+      {/* 검색바(40)·정렬(32)을 하단 정렬(items-end) */}
+      <div className="flex items-end gap-x3">
         <SearchBar
           value={keyword}
           onChange={onKeywordChange}
           placeholder="캠페인명을 검색하세요"
+          variant="line"
           className="w-[307px] [&>div:first-child]:h-[40px] [&>div:first-child]:py-x2"
         />
+        {/* 정렬 트리거 = 공통 TextButton(medium). asChild로 TextButton 자체가 트리거 버튼이 됨 */}
         <DropdownMenu
+          asChild
           className="shrink-0"
           triggerAriaLabel="캠페인 정렬"
           menuAriaLabel="캠페인 정렬 옵션"
@@ -69,10 +73,13 @@ export default function CampaignListControls({
             onSelect: () => onSortChange(item.value),
           }))}
           renderTrigger={() => (
-            <span className="flex h-[40px] items-center gap-x1 whitespace-nowrap rounded-x2-5 px-x3 text-label-1-normal-bold text-text-primary interaction-normal">
+            <TextButton
+              size="medium"
+              trailingIcon={ChevronDown}
+              className="w-[120px] justify-end"
+            >
               {selectedSort.label}
-              <Icon icon={ChevronDown} size="small" />
-            </span>
+            </TextButton>
           )}
         />
       </div>

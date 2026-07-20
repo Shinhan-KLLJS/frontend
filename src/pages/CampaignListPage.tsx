@@ -100,8 +100,9 @@ export default function CampaignListPage() {
   }
 
   return (
-    <section className="flex min-h-full flex-col gap-x5 bg-bg-secondary p-x5">
-      <header className="flex items-center justify-between">
+    <section className="flex min-h-full flex-col bg-bg-secondary">
+      {/* 헤더 — p-x5, space-between */}
+      <header className="flex items-center justify-between p-x5">
         <div className="flex items-center gap-[6px]">
           <h1 className="text-title-2-medium text-text-primary">
             {data.teamName}
@@ -116,7 +117,7 @@ export default function CampaignListPage() {
             onClick={showPreparationToast}
           />
         </div>
-        <div className="flex items-center gap-x2">
+        <div className="flex items-center gap-[6px]">
           <Button
             variant="line"
             color="secondary"
@@ -128,6 +129,7 @@ export default function CampaignListPage() {
           <Button
             size="large"
             leadingIcon={Plus}
+            className="pl-x5"
             onClick={() => navigate(ROUTES.campaignsNew)}
           >
             캠페인 등록
@@ -135,20 +137,25 @@ export default function CampaignListPage() {
         </div>
       </header>
 
-      <CampaignListControls
-        filter={filter}
-        keyword={keyword}
-        sort={sort}
-        onFilterChange={setFilter}
-        onKeywordChange={setKeyword}
-        onSortChange={setSort}
-      />
-      <CampaignListTable
-        campaigns={campaigns}
-        onCampaignInfo={(campaign) => setSelectedCampaignId(Number(campaign.id))}
-        onCampaignMemo={(campaign) => setMemoCampaignId(Number(campaign.id))}
-        onCampaignDelete={setCampaignToDelete}
-      />
+      {/* 컨텐츠 — px-x5, gap-x5 */}
+      <div className="flex flex-1 flex-col gap-x5 px-x5 pb-x5">
+        <CampaignListControls
+          filter={filter}
+          keyword={keyword}
+          sort={sort}
+          onFilterChange={setFilter}
+          onKeywordChange={setKeyword}
+          onSortChange={setSort}
+        />
+        <CampaignListTable
+          campaigns={campaigns}
+          onCampaignInfo={(campaign) =>
+            setSelectedCampaignId(Number(campaign.id))
+          }
+          onCampaignMemo={(campaign) => setMemoCampaignId(Number(campaign.id))}
+          onCampaignDelete={setCampaignToDelete}
+        />
+      </div>
 
       <CampaignInfoModal
         teamId={teamId}

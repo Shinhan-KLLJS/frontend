@@ -44,21 +44,26 @@ export default function CampaignInfoModal({
     <Modal
       open
       scoped
+      dismissible={false}
       aria-label="캠페인 정보"
-      className="w-[796px] rounded-[24px]"
-      footer={<Button className="w-full" onClick={onClose}>확인</Button>}
+      className="h-[536px] w-[796px] rounded-[24px] border border-line-secondary shadow-normal-small"
+      footer={
+        <Button className="w-full" onClick={onClose}>
+          확인
+        </Button>
+      }
       onClose={onClose}
     >
       {isPending ? (
-        <div className="flex h-[360px] items-center justify-center">
+        <div className="flex flex-1 items-center justify-center">
           <LoadingSpinner progress={0} showLabel={false} />
         </div>
       ) : isError || !detail ? (
-        <div className="flex h-[360px] items-center justify-center text-body-2-normal-regular text-text-tertiary">
+        <div className="flex flex-1 items-center justify-center text-body-2-normal-regular text-text-tertiary">
           캠페인 정보를 불러오지 못했습니다.
         </div>
       ) : (
-        <div className="flex gap-x5">
+        <div className="flex flex-1 gap-x5">
           <CampaignInfoCard title="캠페인 정보" fields={campaignFields} />
           <CampaignInfoCard
             title="매체 정보"
