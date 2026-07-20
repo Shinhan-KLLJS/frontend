@@ -25,8 +25,8 @@ export interface SearchBarProps extends Omit<
   onSelect?: (result: SearchResultItem) => void
   defaultOpen?: boolean
   listMaxHeight?: CSSProperties['maxHeight']
-  /** fill=채운 배경(bg-primary), line=테두리형(border) */
-  variant?: 'fill' | 'line'
+  /** solid=채운 배경(bg-primary) · line=테두리형(border). 기본 solid */
+  variant?: 'solid' | 'line'
   className?: string
 }
 
@@ -42,7 +42,7 @@ export default function SearchBar({
   placeholder,
   defaultOpen = false,
   listMaxHeight = 148,
-  variant = 'fill',
+  variant = 'solid',
   className,
   id,
   onFocus,
@@ -190,7 +190,7 @@ export default function SearchBar({
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="min-w-0 flex-1 bg-transparent text-body-1-normal-regular text-text-primary caret-[var(--cool-neutral-800)] outline-none placeholder:text-text-secondary"
+          className="min-w-0 flex-1 bg-transparent text-body-1-normal-regular text-text-primary caret-[var(--cool-neutral-800)] outline-none placeholder:text-text-tertiary"
           {...inputProps}
         />
       </div>
