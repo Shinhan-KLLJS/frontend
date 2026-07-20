@@ -94,7 +94,7 @@ export default function CampaignListTable({
                   },
                 ]}
                 renderTrigger={() => <Icon icon={Ellipsis} size={20} />}
-                triggerClassName="flex size-[24px] items-center justify-center rounded-x2 text-text-primary interaction-normal"
+                triggerClassName="flex size-[24px] items-center justify-center rounded-x2 text-text-primary"
               />
             </div>
           ))}

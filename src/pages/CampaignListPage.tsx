@@ -35,11 +35,17 @@ export default function CampaignListPage() {
     null,
   )
   const [memoCampaignId, setMemoCampaignId] = useState<number | null>(null)
-  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null)
+  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(
+    null,
+  )
 
-  const campaigns = useCampaignList(data?.campaigns ?? [], filter, keyword, sort)
+  const campaigns = useCampaignList(
+    data?.campaigns ?? [],
+    filter,
+    keyword,
+    sort,
+  )
 
-  const showPreparationToast = () => toast('다음 작업에서 기능을 연결합니다.')
   const confirmCampaignDelete = () => {
     if (!campaignToDelete) return
     const campaign = campaignToDelete
@@ -114,7 +120,6 @@ export default function CampaignListPage() {
             size="small"
             leadingIcon={Pencil}
             aria-label="팀 이름 편집"
-            onClick={showPreparationToast}
           />
         </div>
         <div className="flex items-center gap-[6px]">
@@ -122,17 +127,18 @@ export default function CampaignListPage() {
             variant="line"
             color="secondary"
             size="large"
-            onClick={showPreparationToast}
           >
-            리포트 추출
+            리포트 추출하기
           </Button>
           <Button
+            variant="default"
+            color="primary"
             size="large"
             leadingIcon={Plus}
             className="pl-x5"
             onClick={() => navigate(ROUTES.campaignsNew)}
           >
-            캠페인 등록
+            캠페인 등록하기
           </Button>
         </div>
       </header>
