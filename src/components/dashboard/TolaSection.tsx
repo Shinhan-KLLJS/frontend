@@ -47,9 +47,10 @@ export default function TolaSection({
         {metrics.map((metric) => (
           <article
             key={metric.key}
-            className="flex min-w-0 flex-col justify-between pl-x2 pr-x4 "
+            className="flex min-w-0 flex-col gap-x3 pl-x2 pr-x4"
           >
-            <div>
+            {/* 타이틀↔값 gap-x1 */}
+            <div className="flex flex-col gap-x1">
               <div className="flex items-center justify-between gap-x3">
                 <span className="truncate text-label-1-normal-medium text-text-secondary">
                   {metric.label}
