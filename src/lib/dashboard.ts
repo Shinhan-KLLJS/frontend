@@ -524,6 +524,9 @@ export function useExposure(
 
 // ── 실시간 그래프(5초·커서 폴링) ─────────────────────────────────────────────
 
+/** 최초 로드 시 한 번에 받아올 포인트 수 — 5초×720 = 최근 1시간(백엔드 max). */
+const REALTIME_INITIAL_LIMIT = 720
+
 /** 실시간 그래프 1회 조회. afterEventTime 커서 이후의 신규 포인트만 반환. */
 async function fetchRealtimeGraph(
   campaignId: number,
@@ -531,7 +534,12 @@ async function fetchRealtimeGraph(
 ): Promise<CampaignRealtimeGraph> {
   const { data } = await api.get<ApiResponse<CampaignRealtimeGraph>>(
     API_ENDPOINTS.dashboardCampaignRealtime(campaignId),
-    { params: afterEventTime ? { after_event_time: afterEventTime } : {} },
+    {
+      // 최초(커서 없음)엔 최근 1시간치(720)를 한 번에, 이후 폴링은 커서 이후 신규 포인트만
+      params: afterEventTime
+        ? { after_event_time: afterEventTime }
+        : { limit: REALTIME_INITIAL_LIMIT },
+    },
   )
   return data.result
 }
