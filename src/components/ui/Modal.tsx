@@ -67,10 +67,7 @@ export default function Modal({
       document.body.style.overflow = 'hidden'
     }
     const onKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key === 'Escape' &&
-        modalStack[modalStack.length - 1] === stackId
-      ) {
+      if (e.key === 'Escape' && modalStack[modalStack.length - 1] === stackId) {
         onCloseRef.current?.()
       }
     }
@@ -160,7 +157,7 @@ export default function Modal({
             {body && (
               <p
                 id={bodyId}
-                className="text-body-2-normal-regular text-text-primary"
+                className="text-label-1-normal-regular text-text-primary"
               >
                 {body}
               </p>

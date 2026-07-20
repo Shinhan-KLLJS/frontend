@@ -51,7 +51,7 @@ export default function DateTrigger({
   const end = value?.end
   const isRange = Boolean(start && end && !isSameDay(start, end))
   const emptyText =
-    placeholder ?? (range ? 'YYYY.MM.DD-YYYY.MM.DD' : 'YYYY.MM.DD')
+    placeholder ?? (range ? 'YYYY.MM.DD - YYYY.MM.DD' : 'YYYY.MM.DD')
   const textClass = start
     ? DATE_TEXT_CLASS[variant].filled
     : DATE_TEXT_CLASS[variant].empty
