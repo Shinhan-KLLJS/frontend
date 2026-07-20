@@ -1,4 +1,10 @@
-import { Button, LoadingSpinner, Modal } from '@/components/ui'
+import {
+  Button,
+  InputField,
+  LoadingSpinner,
+  Modal,
+  Textarea,
+} from '@/components/ui'
 import { useCampaignDetail } from '@/lib/campaigns'
 
 interface CampaignMemoModalProps {
@@ -8,7 +14,7 @@ interface CampaignMemoModalProps {
   onClose: () => void
 }
 
-/** 선택한 캠페인의 메모를 상세 API로 조회해 보여줍니다. */
+/** 선택한 캠페인의 캠페인명·메모를 상세 API로 조회해 읽기 전용으로 보여줍니다. */
 export default function CampaignMemoModal({
   teamId,
   campaignId,
@@ -26,7 +32,8 @@ export default function CampaignMemoModal({
       open
       scoped
       aria-label="캠페인 메모"
-      className="w-[460px] rounded-[24px]"
+      // 470×352 고정, p-x6, 세로 정렬(gap-x5는 Modal children 기본)
+      className="h-[352px] w-[470px] !p-x6"
       footer={
         <Button className="w-full" onClick={onClose}>
           확인
@@ -35,19 +42,33 @@ export default function CampaignMemoModal({
       onClose={onClose}
     >
       {isPending ? (
-        <div className="flex h-[200px] items-center justify-center">
+        <div className="flex flex-1 items-center justify-center">
           <LoadingSpinner progress={0} showLabel={false} />
         </div>
       ) : isError || !detail ? (
-        <div className="flex h-[200px] items-center justify-center text-body-2-normal-regular text-text-tertiary">
+        <div className="flex flex-1 items-center justify-center text-body-2-normal-regular text-text-tertiary">
           메모를 불러오지 못했습니다.
         </div>
       ) : (
-        <div className="flex flex-col gap-x3">
-          <h2 className="text-headline-2-bold text-text-primary">메모</h2>
-          <p className="whitespace-pre-wrap text-body-1-normal-regular text-text-secondary">
-            {detail.memo?.trim() ? detail.memo : '작성된 메모가 없습니다.'}
-          </p>
+        <div className="flex flex-1 flex-col gap-x5">
+          <h2 className="text-title-3-bold text-text-primary">메모</h2>
+          <div className="flex flex-1 flex-col gap-x2">
+            {/* 표시 전용 — 클릭·포커스 불가(pointer-events-none + tabIndex -1), 데이터만 보여줌 */}
+            <InputField
+              label="캠페인명"
+              value={detail.name}
+              readOnly
+              tabIndex={-1}
+              className="pointer-events-none"
+            />
+            <Textarea
+              value={detail.memo}
+              readOnly
+              aria-label="메모"
+              tabIndex={-1}
+              className="flex-1 pointer-events-none"
+            />
+          </div>
         </div>
       )}
     </Modal>
