@@ -56,7 +56,7 @@ export default function AgeExposureHeatmap({
   )
 
   return (
-    <DashboardPanel className="flex h-[472px] flex-col gap-x4 py-x5">
+    <DashboardPanel className="flex h-[472px] flex-col gap-x4">
       <DashboardSectionHeader
         title="시간・연령별 노출도"
         description="시간대와 연령대별 상대적인 캠페인 노출 강도를 보여줍니다."
