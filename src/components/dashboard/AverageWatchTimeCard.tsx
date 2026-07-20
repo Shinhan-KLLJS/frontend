@@ -1,4 +1,5 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
+import ellipseDotted from '@/assets/Ellipse.svg'
 import DashboardPanel from './DashboardPanel'
 import DashboardSectionHeader from './DashboardSectionHeader'
 
@@ -30,7 +31,7 @@ export default function AverageWatchTimeCard({
       />
       <div className="flex min-h-0 flex-1 flex-col items-center gap-x5">
         <div
-          className="relative h-[168px] w-full overflow-hidden"
+          className="pointer-events-none relative h-[168px] w-full overflow-hidden"
           aria-hidden="true"
         >
           <ResponsiveContainer width="100%" height="100%">
@@ -55,18 +56,12 @@ export default function AverageWatchTimeCard({
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          <svg
-            className="pointer-events-none absolute bottom-0 left-1/2 h-[107px] w-[214px] -translate-x-1/2"
-            viewBox="0 0 214 107"
-          >
-            <path
-              d="M1 107A106 106 0 0 1 213 107"
-              fill="none"
-              stroke="var(--color-chart-sequential-1)"
-              strokeWidth="3"
-              strokeDasharray="1 4"
-            />
-          </svg>
+          {/* 파이차트 안쪽 점선 반원(214×107 고정). 파이와의 간격은 아래 Pie의 innerRadius로 조절. */}
+          <img
+            src={ellipseDotted}
+            alt=""
+            className="absolute bottom-0 left-1/2 w-[190px] -translate-x-1/2"
+          />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center">
             <strong className="text-title-2-bold text-text-primary">
               {averageSeconds.toFixed(1)} 초

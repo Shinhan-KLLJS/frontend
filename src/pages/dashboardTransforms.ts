@@ -172,18 +172,30 @@ export function bucketRealtimeToMinutes(
     }))
 }
 
+// 데이터 없음(0초 등)일 때도 범례가 유지되도록 항상 노출할 기본 4구간 라벨
+const WATCH_BUCKET_LABELS = ['1-2초', '2-3초', '3-4초', '4초 이상']
+
 /** 평균 시청시간 → 카드 props. ratio는 0~100(%). */
 export function toWatchTime(a: CampaignAverageWatchTime): {
   averageSeconds: number
   buckets: WatchTimeBucket[]
 } {
+  const src = a.watchTimeBuckets ?? []
+  // 서버가 구간을 주지 않으면(0초 등) 값 0의 기본 4구간으로 채워 범례가 사라지지 않게 한다
+  const buckets: WatchTimeBucket[] = src.length
+    ? src.map((b, i) => ({
+        label: b.label,
+        value: Math.round(b.ratio * 10) / 10,
+        color: WATCH_COLORS[i % WATCH_COLORS.length],
+      }))
+    : WATCH_BUCKET_LABELS.map((label, i) => ({
+        label,
+        value: 0,
+        color: WATCH_COLORS[i % WATCH_COLORS.length],
+      }))
   return {
     averageSeconds: a.averageWatchTimeSec ?? 0,
-    buckets: (a.watchTimeBuckets ?? []).map((b, i) => ({
-      label: b.label,
-      value: Math.round(b.ratio * 10) / 10,
-      color: WATCH_COLORS[i % WATCH_COLORS.length],
-    })),
+    buckets,
   }
 }
 
