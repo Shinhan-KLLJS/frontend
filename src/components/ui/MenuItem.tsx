@@ -26,28 +26,40 @@ export default function MenuItem({
   const textLabel = children
 
   return (
+    // 옵션 — px-x2 py-x1, 폭 풀, 높이 52(py-x1 8 + 내부 p-x3 24 + 아이콘 20)
     <button
       type="button"
       disabled={disabled}
       aria-current={selected ? 'page' : undefined}
       aria-label={short ? (ariaLabel ?? textLabel) : ariaLabel}
       className={[
-        'inline-flex items-center rounded-x2 p-x3 font-sans text-label-1-normal-bold whitespace-nowrap',
-        short ? '' : 'w-full gap-x2 text-left',
-        disabled
-          ? 'cursor-not-allowed text-text-disabled-secondary'
-          : selected
-            ? 'text-text-brand'
-            : 'text-text-primary-brand-solid-hover',
-        !disabled && INTERACTION_CLASS,
+        'flex items-center px-x2 py-x1 font-sans',
+        short ? 'justify-center' : 'w-full',
+        disabled ? 'cursor-not-allowed' : 'cursor-pointer',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
       {...props}
     >
-      <Icon icon={icon} size={20} />
-      {!short && <span className="min-w-0 flex-1 truncate">{children}</span>}
+      {/* 내부 콘텐츠 — p-x3, 아이콘 20 + gap-x2 + 텍스트. hover/선택 배경은 이 pill에 */}
+      <span
+        className={[
+          'flex items-center gap-x2 rounded-x2 p-x3 text-label-1-normal-bold whitespace-nowrap',
+          short ? '' : 'w-full text-left',
+          disabled
+            ? 'text-text-disabled-secondary'
+            : selected
+              ? 'text-text-brand'
+              : 'text-text-primary-brand-solid-hover',
+          !disabled && INTERACTION_CLASS,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        <Icon icon={icon} size={20} />
+        {!short && <span className="min-w-0 flex-1 truncate">{children}</span>}
+      </span>
     </button>
   )
 }

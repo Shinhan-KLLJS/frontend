@@ -40,7 +40,8 @@ export default function AppShell({
           menus={menus}
           selectedKey={selectedKey}
           onSelect={onSelect}
-          className="shrink-0"
+          // relative z-10: LNB를 오른쪽 컬럼 위 레이어로 올려 오른쪽면 그림자가 헤더까지 덮이게
+          className="relative z-10 shrink-0"
         />
         <div
           id="app-content-area"
