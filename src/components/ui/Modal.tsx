@@ -160,7 +160,7 @@ export default function Modal({
             {body && (
               <p
                 id={bodyId}
-                className="text-body-2-normal-regular text-text-primary"
+                className="text-label-1-normal-regular text-text-primary"
               >
                 {body}
               </p>
