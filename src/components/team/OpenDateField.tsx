@@ -1,6 +1,5 @@
 import { useId, useState } from 'react'
-import { Calendar, ChevronDown } from 'lucide-react'
-import { DatePicker, Icon } from '@/components/ui'
+import { DatePicker, DateTrigger } from '@/components/ui'
 import { formatDate, parseDate } from '@/components/ui/date'
 
 export interface OpenDateFieldProps {
@@ -38,38 +37,21 @@ export default function OpenDateField({
         </span>
       </span>
 
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
+      {/* 공통 DateTrigger(단일 날짜) — 폼 필드용 border/full-width는 className으로 */}
+      <DateTrigger
+        value={selected ? { start: selected } : undefined}
+        open={open}
         aria-labelledby={labelId}
         aria-describedby={errorMessage ? errorId : undefined}
+        aria-invalid={errorMessage ? true : undefined}
         onClick={() => setOpen((prev) => !prev)}
         className={[
-          'flex w-full cursor-pointer items-center justify-between gap-x2 rounded-x2 border bg-bg-secondary px-x4 py-x3 transition-colors',
+          'w-full justify-between border transition-colors',
           errorMessage
             ? 'border-line-negative'
             : 'border-line-secondary focus-visible:border-line-brand',
         ].join(' ')}
-      >
-        <span className="flex min-w-0 items-center gap-x2">
-          <Icon icon={Calendar} size={24} color="secondary" />
-          <span
-            className={[
-              'truncate text-body-1-normal-regular',
-              value ? 'text-text-primary' : 'text-text-placeholder',
-            ].join(' ')}
-          >
-            {value || 'YYYY.MM.DD'}
-          </span>
-        </span>
-        <Icon
-          icon={ChevronDown}
-          size={20}
-          color="secondary"
-          className={`transition-transform ${open ? 'rotate-180' : ''}`}
-        />
-      </button>
+      />
 
       {errorMessage && (
         <p id={errorId} className="text-caption-1-regular text-text-negative">

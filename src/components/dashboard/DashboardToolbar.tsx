@@ -69,8 +69,10 @@ export default function DashboardToolbar({
       />
       <DateTrigger
         value={dateRange}
+        range
+        variant="toolbar"
         open={dateOpen}
-        className="h-[48px] min-w-[164px] shrink-0 justify-center px-x4 py-x3"
+        className="min-w-[164px] shrink-0 justify-center"
         onClick={() => (dateOpen ? setDateOpen(false) : openDatePicker())}
       />
       {dateOpen && (

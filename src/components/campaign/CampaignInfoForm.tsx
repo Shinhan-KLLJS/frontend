@@ -105,7 +105,7 @@ export default function CampaignInfoForm({
                 <DateTrigger
                   value={field.value}
                   open={pickerOpen}
-                  placeholder="YYYY.MM.DD - YYYY.MM.DD"
+                  range
                   onClick={() => setPickerOpen((prev) => !prev)}
                   onBlur={field.onBlur}
                   aria-labelledby={periodLabelId}
