@@ -94,7 +94,7 @@ export default function TeamMemberRow({
       ) : (
         <DropdownMenu
           triggerAriaLabel={`${member.name} 관리 메뉴`}
-          triggerClassName="rounded-x1 interaction-normal"
+          triggerClassName="rounded-x1"
           items={menuItems}
           renderTrigger={() => (
             <span className="flex size-[24px] items-center justify-center text-text-primary">
