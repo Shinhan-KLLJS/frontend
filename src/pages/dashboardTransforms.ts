@@ -38,14 +38,21 @@ const formatPercent = (v: number | null | undefined): string => {
   return Number.isInteger(r) ? String(r) : r.toFixed(1)
 }
 
-/** 송출정보 → KPI 카드 4종. */
-export function toKpiMetrics(d: CampaignDelivery): KpiMetric[] {
+/** 송출정보 → KPI 카드 4종. multiDay(2일 이상 조회)면 분모를 기간 목표로. */
+export function toKpiMetrics(
+  d: CampaignDelivery,
+  multiDay = false,
+): KpiMetric[] {
+  // 2일 이상 기간이면 일 목표(dailyTargetPlayCount)로 나누면 가분수가 되므로 기간 목표를 분모로
+  const targetPlayCount = multiDay
+    ? d.periodTargetPlayCount
+    : d.dailyTargetPlayCount
   return [
     {
       key: 'play-count',
       label: '현재 송출 회수',
       value: formatCount(d.currentPlayCount),
-      guide: `/${formatCount(d.dailyTargetPlayCount)}`,
+      guide: `/${formatCount(targetPlayCount)}`,
       icon: DEFAULT_KPI_ICONS.currentPlayCount,
     },
     {

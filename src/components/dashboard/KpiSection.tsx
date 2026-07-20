@@ -7,8 +7,7 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import kpiObject from '@/assets/dashboard/kpi-object.png'
-import { Icon, Tooltip } from '@/components/ui'
-import { formatCutoffLabel } from '@/lib/dashboardTime'
+import { Icon } from '@/components/ui'
 
 export interface KpiMetric {
   key: string
@@ -22,8 +21,6 @@ export interface KpiSectionProps {
   metrics: KpiMetric[]
   toolbar?: ReactNode
   estimatedDowntime?: boolean
-  /** 집계 기준 시각 라벨(예: "14:37 기준") — 지표 아이콘 호버 툴팁 */
-  cutoffLabel?: string
 }
 
 export const DEFAULT_KPI_ICONS = {
@@ -38,7 +35,6 @@ export default function KpiSection({
   metrics,
   toolbar,
   estimatedDowntime = false,
-  cutoffLabel,
 }: KpiSectionProps) {
   return (
     <section aria-label="캠페인 핵심 지표" className="relative min-w-0 p-x5">
@@ -58,20 +54,25 @@ export default function KpiSection({
           {metrics.map((metric) => (
             <article
               key={metric.key}
-              className="flex aspect-[2.25/1] min-w-0 items-start justify-between rounded-x3 bg-bg-secondary p-x5"
+              className="flex h-[96px] min-w-0 flex-col justify-between rounded-x3 bg-bg-secondary p-x5"
             >
-              <div className="flex h-full min-w-0 flex-col justify-between">
-                <span className="text-label-1-normal-regular text-text-secondary">
+              {/* 상단: 텍스트 + 아이콘(20), space-between */}
+              <div className="flex items-center justify-between gap-x2">
+                <span className="min-w-0 truncate text-label-1-normal-regular text-text-secondary">
                   {metric.label}
                 </span>
-                <strong className="truncate text-title-3-medium text-text-primary">
-                  {metric.value}
-                  {metric.guide && <span>{metric.guide}</span>}
-                </strong>
+                <Icon
+                  icon={metric.icon}
+                  size="medium"
+                  color="caption"
+                  className="shrink-0"
+                />
               </div>
-              <Tooltip content={cutoffLabel ?? formatCutoffLabel()}>
-                <Icon icon={metric.icon} size="medium" color="caption" />
-              </Tooltip>
+              {/* 데이터 */}
+              <strong className="truncate text-title-3-medium text-text-primary">
+                {metric.value}
+                {metric.guide && <span>{metric.guide}</span>}
+              </strong>
             </article>
           ))}
         </div>

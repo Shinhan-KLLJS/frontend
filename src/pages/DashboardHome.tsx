@@ -6,6 +6,7 @@ import type { CampaignOption } from '@/components/dashboard/DashboardToolbar'
 import { Button, LoadingSpinner } from '@/components/ui'
 import { ROUTES } from '@/lib/routes'
 import type { DateRange } from '@/components/ui'
+import { isSameDay } from '@/components/ui/date'
 import HomePage from '@/pages/HomePage'
 import {
   fromApiDate,
@@ -119,7 +120,13 @@ function RealDashboard() {
   )
 
   const { data: delivery } = useCampaignDelivery(selected?.campaignId, dateRange)
-  const kpiMetrics = delivery ? toKpiMetrics(delivery) : undefined
+  // 조회 기간이 2일 이상(시작·종료가 다른 날)이면 KPI 분모를 기간 목표로
+  const isMultiDay = Boolean(
+    dateRange.start &&
+      dateRange.end &&
+      !isSameDay(dateRange.start, dateRange.end),
+  )
+  const kpiMetrics = delivery ? toKpiMetrics(delivery, isMultiDay) : undefined
 
   const { data: funnel } = useCampaignFunnel(selected?.campaignId, dateRange)
   const tolaMetrics = funnel ? toTolaMetrics(funnel) : undefined
@@ -158,10 +165,7 @@ function RealDashboard() {
   const { data: exposureData } = useExposure(selected?.campaignId, dateRange)
   const exposureCells = exposureData ? toExposure(exposureData) : undefined
 
-  // 섹션별 (i) 툴팁 기준시각. KPI는 cutoff 필드가 없어 serverTime 사용.
-  const kpiCutoffLabel = delivery
-    ? formatCutoffLabel(delivery.serverTime)
-    : undefined
+  // 섹션별 (i) 툴팁 기준시각.
   const realtimeCutoffLabel = isTodayView
     ? realtimePoints.length
       ? formatCutoffLabel(realtimePoints[realtimePoints.length - 1].eventTime)
@@ -229,7 +233,6 @@ function RealDashboard() {
       watchBuckets={watchTime?.buckets}
       demographics={demographics}
       exposureCells={exposureCells}
-      kpiCutoffLabel={kpiCutoffLabel}
       realtimeCutoffLabel={realtimeCutoffLabel}
       averageCutoffLabel={averageCutoffLabel}
       demographicCutoffLabel={demographicCutoffLabel}

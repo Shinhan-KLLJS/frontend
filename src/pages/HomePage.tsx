@@ -53,7 +53,6 @@ export interface HomePageProps {
   /** 실 시간·연령별 노출도 셀(축·행은 히트맵이 06~24시×7연령대로 고정) */
   exposureCells?: ExposureCell[]
   /** 각 섹션 (i) 툴팁의 집계 기준 시각 라벨(예: "14:37 기준"/"14시 기준") */
-  kpiCutoffLabel?: string
   realtimeCutoffLabel?: string
   averageCutoffLabel?: string
   demographicCutoffLabel?: string
@@ -85,7 +84,6 @@ export default function HomePage({
   watchBuckets,
   demographics,
   exposureCells,
-  kpiCutoffLabel,
   realtimeCutoffLabel,
   averageCutoffLabel,
   demographicCutoffLabel,
@@ -113,7 +111,6 @@ export default function HomePage({
         <KpiSection
           metrics={kpiMetrics ?? []}
           estimatedDowntime={estimatedDowntime}
-          cutoffLabel={kpiCutoffLabel}
           toolbar={
             <DashboardToolbar
               campaigns={campaigns}
