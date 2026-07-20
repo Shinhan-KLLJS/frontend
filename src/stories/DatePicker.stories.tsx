@@ -30,32 +30,37 @@ type Story = StoryObj<typeof DatePicker>
 
 const JULY = new Date(2026, 6, 1)
 
-/** Default(미선택) · 1 Day(하루) · More Day(기간) */
+/** status(Default/1 Day/2 Days) × type(Default/No_Input) 6종 매트릭스 */
 export const Modes: Story = {
-  render: () => (
-    <div className="font-sans flex flex-col gap-8">
-      {(
-        [
-          ['Default — 미선택', {}],
-          [
-            '1 Day — 하루 (시작=종료)',
-            { start: new Date(2026, 6, 5), end: new Date(2026, 6, 5) },
-          ],
-          [
-            'More Day — 기간',
-            { start: new Date(2026, 6, 7), end: new Date(2026, 6, 9) },
-          ],
-        ] as const satisfies readonly (readonly [string, DateRange])[]
-      ).map(([label, value]) => (
-        <div key={label} className="flex flex-col gap-2">
-          <h2 className="text-label-1-normal-bold text-text-secondary">
-            {label}
-          </h2>
-          <DatePicker value={value} defaultMonth={JULY} />
-        </div>
-      ))}
-    </div>
-  ),
+  render: () => {
+    const statuses = [
+      ['Default — 미선택', {}],
+      [
+        '1 Day — 하루 (시작=종료)',
+        { start: new Date(2026, 6, 5), end: new Date(2026, 6, 5) },
+      ],
+      [
+        '2 Days — 기간',
+        { start: new Date(2026, 6, 7), end: new Date(2026, 6, 9) },
+      ],
+    ] as const satisfies readonly (readonly [string, DateRange])[]
+
+    return (
+      <div className="font-sans flex flex-col gap-10">
+        {statuses.map(([label, value]) => (
+          <div key={label} className="flex flex-col gap-2">
+            <h2 className="text-label-1-normal-bold text-text-secondary">
+              {label}
+            </h2>
+            <div className="flex flex-wrap items-start gap-6">
+              <DatePicker value={value} defaultMonth={JULY} />
+              <DatePicker value={value} defaultMonth={JULY} type="no_input" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  },
 }
 
 /* ── 트리거 + 피커 조합 ── */
