@@ -78,6 +78,8 @@ export default function DashboardToolbar({
       {dateOpen && (
         <DatePicker
           key={`${dateRange.start?.getTime()}-${dateRange.end?.getTime()}`}
+          type="no_input"
+          allowSingleDay
           value={draftRange}
           minDate={minDate}
           maxDate={maxDate}
@@ -87,7 +89,7 @@ export default function DashboardToolbar({
             onDateRangeChange(range)
             setDateOpen(false)
           }}
-          className="absolute right-0 top-[56px] z-50"
+          className="absolute right-0 top-[52px] z-50"
         />
       )}
     </div>

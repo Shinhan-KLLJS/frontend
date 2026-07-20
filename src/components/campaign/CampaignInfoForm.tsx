@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import type { UseFormReturn } from 'react-hook-form'
 import {
@@ -6,6 +6,7 @@ import {
   DatePicker,
   DateTrigger,
   InputField,
+  MainOverlay,
   Textarea,
 } from '@/components/ui'
 import { campaignInfoSchema } from '@/lib/campaign'
@@ -36,22 +37,6 @@ export default function CampaignInfoForm({
   // 송출기간 트리거(버튼)에 라벨·오류를 연결하기 위한 id (스크린리더 접근성)
   const periodLabelId = useId()
   const periodErrorId = useId()
-  const periodRef = useRef<HTMLDivElement>(null)
-
-  // DatePicker 오버레이 외부 클릭 닫기 (Dropdown 패턴)
-  useEffect(() => {
-    if (!pickerOpen) return
-    const handlePointerDown = (event: PointerEvent) => {
-      if (
-        periodRef.current &&
-        !periodRef.current.contains(event.target as Node)
-      ) {
-        setPickerOpen(false)
-      }
-    }
-    document.addEventListener('pointerdown', handlePointerDown)
-    return () => document.removeEventListener('pointerdown', handlePointerDown)
-  }, [pickerOpen])
 
   // 입력값 구독 — 다음 활성 판단 + 값이 비면 에러 대신 기본 상태로 되돌리는 데 사용
   const values = watch()
@@ -89,10 +74,7 @@ export default function CampaignInfoForm({
               ? fieldState.error
               : undefined
             return (
-              <div
-                ref={periodRef}
-                className="relative flex w-full flex-col gap-x2"
-              >
+              <div className="flex w-full flex-col gap-x2">
                 <span
                   id={periodLabelId}
                   className="flex items-center gap-xs text-label-1-normal-bold text-text-secondary"
@@ -127,16 +109,17 @@ export default function CampaignInfoForm({
                   </p>
                 )}
                 {pickerOpen && (
-                  // 패널(480px)이 카드 내부 폭(430px)보다 넓어 필드 오른쪽 끝 기준으로 왼쪽으로 넘치게 띄운다
-                  <DatePicker
-                    className="absolute right-0 top-full z-50 mt-x2"
-                    value={field.value}
-                    onApply={(range) => {
-                      field.onChange(range)
-                      setPickerOpen(false)
-                    }}
-                    onClose={() => setPickerOpen(false)}
-                  />
+                  // LNB·헤더 제외한 본문 영역 중앙에 딤머(Dimer_Black)와 함께 렌더
+                  <MainOverlay>
+                    <DatePicker
+                      value={field.value}
+                      onApply={(range) => {
+                        field.onChange(range)
+                        setPickerOpen(false)
+                      }}
+                      onClose={() => setPickerOpen(false)}
+                    />
+                  </MainOverlay>
                 )}
               </div>
             )

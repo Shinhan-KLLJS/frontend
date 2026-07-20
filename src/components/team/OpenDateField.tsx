@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { DatePicker, DateTrigger } from '@/components/ui'
+import { DatePicker, DateTrigger, MainOverlay } from '@/components/ui'
 import { formatDate, parseDate } from '@/components/ui/date'
 
 export interface OpenDateFieldProps {
@@ -10,9 +10,8 @@ export interface OpenDateFieldProps {
 }
 
 /**
- * 개업일 입력 필드 — 클릭 시 DatePicker 드롭다운을 열고, 날짜 선택 시 'YYYY.MM.DD'로 반영한다.
- * 드롭다운은 카드 흐름 밖(absolute)에 떠서 카드를 늘리지 않고, 래퍼의 pb-[80px]가 피커 아래 80px 여백을 만든다.
- * (이 여백까지 뷰포트를 넘으면 온보딩 루트의 세로 오버플로로 페이지 전체가 스크롤된다)
+ * 개업일 입력 필드 — 클릭 시 DatePicker(no_input)를 본문 중앙에 딤머와 함께 띄우고,
+ * '선택 완료' 시 'YYYY.MM.DD'로 반영한다. 하루만 클릭해도 선택 완료가 활성(allowSingleDay).
  */
 export default function OpenDateField({
   value,
@@ -60,20 +59,21 @@ export default function OpenDateField({
       )}
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-20 pb-[80px]">
+        // LNB·헤더 제외한 본문 영역 중앙에 딤머(Dimer_Black)와 함께 렌더
+        <MainOverlay>
           <DatePicker
+            type="no_input"
+            allowSingleDay
             value={selected ? { start: selected } : undefined}
             defaultMonth={selected}
             maxDate={new Date()}
-            onChange={(range) => {
-              if (range.start) {
-                onChange(formatDate(range.start))
-                setOpen(false)
-              }
+            onApply={(range) => {
+              if (range.start) onChange(formatDate(range.start))
+              setOpen(false)
             }}
             onClose={() => setOpen(false)}
           />
-        </div>
+        </MainOverlay>
       )}
     </div>
   )
