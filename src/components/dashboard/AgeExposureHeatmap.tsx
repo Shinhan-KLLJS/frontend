@@ -20,10 +20,10 @@ export interface AgeExposureHeatmapProps {
   cutoffLabel?: string
 }
 
-// 히트맵 축·행은 데이터 유무와 무관하게 항상 고정: 06~24시(19칸) × 7개 연령대.
+// 히트맵 축·행은 데이터 유무와 무관하게 항상 고정: 06~23시(18칸) × 7개 연령대.
 // 서버가 현재 시각까지의 시간만 내려줘도 레이아웃이 흔들리지 않게 여기서 고정한다.
 // cells에 없는 (연령대,시간) 조합은 0(빈 셀)으로 렌더된다.
-const HEATMAP_HOURS: string[] = Array.from({ length: 19 }, (_, i) =>
+const HEATMAP_HOURS: string[] = Array.from({ length: 18 }, (_, i) =>
   String(i + 6).padStart(2, '0'),
 )
 const HEATMAP_AGE_GROUPS: string[] = [
