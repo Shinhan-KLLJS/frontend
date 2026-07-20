@@ -104,12 +104,7 @@ export default function TeamInviteModal({
   }
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--cool-neutral-1000)]/40"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !sending) onClose()
-      }}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--cool-neutral-1000)]/40">
       <div
         ref={panelRef}
         role="dialog"

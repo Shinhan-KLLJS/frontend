@@ -44,7 +44,6 @@ export default function CampaignInfoModal({
     <Modal
       open
       scoped
-      dismissible={false}
       aria-label="캠페인 정보"
       className="h-[536px] w-[796px] rounded-[24px] border border-line-secondary shadow-normal-small"
       footer={

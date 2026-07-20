@@ -22,8 +22,6 @@ export interface ModalProps extends Omit<
   onConfirm?: () => void
   /** true면 딤머가 앱 콘텐츠 영역(사이드바 제외)만 덮는다. 앱 셸 내부 모달용. */
   scoped?: boolean
-  /** false면 딤머 클릭·ESC로 닫히지 않는다(확인 버튼 등 명시 액션으로만 닫힘). 기본 true */
-  dismissible?: boolean
 }
 
 // 열린 모달 스택 — 최상단 모달만 ESC를 처리하고, 마지막 모달이 닫힐 때만 스크롤 잠금을 해제
@@ -46,7 +44,6 @@ export default function Modal({
   onConfirm,
   className,
   scoped = false,
-  dismissible = true,
   ...props
 }: ModalProps) {
   const titleId = useId()
@@ -60,12 +57,6 @@ export default function Modal({
     onCloseRef.current = onClose
   }, [onClose])
 
-  // ESC 핸들러(스택 effect)가 재구독되지 않게 dismissible도 ref로 참조
-  const dismissibleRef = useRef(dismissible)
-  useEffect(() => {
-    dismissibleRef.current = dismissible
-  }, [dismissible])
-
   // 열려 있는 동안: 모달 스택 등록 + 최상단만 ESC 닫기 + 배경 스크롤 잠금(중첩 안전)
   useEffect(() => {
     if (!open) return
@@ -78,7 +69,6 @@ export default function Modal({
     const onKeyDown = (e: KeyboardEvent) => {
       if (
         e.key === 'Escape' &&
-        dismissibleRef.current &&
         modalStack[modalStack.length - 1] === stackId
       ) {
         onCloseRef.current?.()
@@ -134,13 +124,6 @@ export default function Modal({
         scopedRoot ? 'absolute' : 'fixed',
         'inset-0 z-50 flex items-center justify-center bg-[var(--Dimer_Black)]',
       ].join(' ')}
-      onMouseDown={
-        dismissible
-          ? (e) => {
-              if (e.target === e.currentTarget) onClose?.()
-            }
-          : undefined
-      }
     >
       <div
         ref={panelRef}
@@ -177,7 +160,7 @@ export default function Modal({
             {body && (
               <p
                 id={bodyId}
-                className="text-label-1-normal-regular text-text-primary"
+                className="text-body-2-normal-regular text-text-primary"
               >
                 {body}
               </p>
