@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import TeamInviteModal from '@/components/team/TeamInviteModal'
 import TeamMemberList from '@/components/team/TeamMemberList'
@@ -13,6 +13,7 @@ import { ROUTES } from '@/lib/routes'
  * 데이터 조회와 상태 변경은 useTeamManagement로 분리해 화면 구성에만 집중한다.
  */
 export default function TeamPage() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const teamId = user?.teamId ?? null
   const teamManagement = useTeamManagement({ teamId })
@@ -45,10 +46,34 @@ export default function TeamPage() {
   // 소속 팀이 없으면 팀 생성·합류 분기점으로 이동해 딥링크 접근을 방어한다.
   if (user && !user.hasTeam) return <Navigate to={ROUTES.welcome} replace />
 
+  // 팀 데이터가 비어 있으면(조회 실패·팀 없음) 대시보드 빈 상태처럼 생성/합류 안내 화면을 보여준다.
+  if (!loading && !team) {
+    return (
+      <div className="flex min-h-full flex-1 flex-col items-center justify-center gap-x5 p-x5">
+        <div className="flex flex-col items-center gap-x2 text-center">
+          <h2 className="text-title-3-medium text-text-primary">
+            아직 팀이 없어요
+          </h2>
+          <p className="text-heading-2-regular text-text-secondary">
+            팀을 생성하거나 합류해보세요.
+          </p>
+        </div>
+        <div className="flex items-center gap-x3">
+          <Button size="large" onClick={() => navigate(ROUTES.welcomeCreate)}>
+            팀 생성하기
+          </Button>
+          <Button size="large" onClick={() => navigate(ROUTES.welcomeJoin)}>
+            팀 합류하기
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <section className="flex min-h-full flex-col p-x5 pb-[80px]">
-      {/* Leading — 팀명과 액션 버튼(Figma 패딩 좌우 40·상하 20) */}
-      <header className="flex min-h-[88px] items-center justify-between gap-x5 px-x10 py-x5">
+    <section className="flex min-h-full flex-col">
+      {/* 헤더 — p-x5, space-between */}
+      <header className="flex items-center justify-between gap-x5 p-x5">
         {team ? (
           <TeamNameTitle name={team.name} onSave={handleSaveTeamName} />
         ) : (
@@ -72,8 +97,8 @@ export default function TeamPage() {
         </div>
       </header>
 
-      {/* Trailing — 검색과 팀원 리스트(Figma 패딩 좌우 40·상하 20) */}
-      <div className="flex flex-1 flex-col gap-x5 px-x10 py-x5">
+      {/* 본문 — 헤더 하단 p-x5가 상단 여백을 대신하므로 px-x5 pb-x5, gap-x5 */}
+      <div className="flex flex-1 flex-col gap-x5 px-x5 pb-x5">
         {/* SearchBar 루트가 w-full이라 래퍼로 307px 고정 */}
         <div className="w-[307px]">
           <SearchBar
