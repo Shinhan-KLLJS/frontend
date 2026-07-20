@@ -72,10 +72,11 @@ export default function CampaignListControls({
             label: item.label,
             onSelect: () => onSortChange(item.value),
           }))}
-          renderTrigger={() => (
+          renderTrigger={(open) => (
             <TextButton
               size="medium"
               trailingIcon={ChevronDown}
+              trailingIconClassName={`transition-transform ${open ? 'rotate-180' : ''}`}
               className="w-[120px] justify-end"
             >
               {selectedSort.label}

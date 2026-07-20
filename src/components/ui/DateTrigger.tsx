@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes } from 'react'
-import { Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react'
+import { Calendar as CalendarIcon, ChevronDown } from 'lucide-react'
 import Icon from './Icon'
 import { formatDate, isSameDay } from './date'
 import type { DateRange } from './Calendar'
@@ -52,9 +52,10 @@ export default function DateTrigger({
         </span>
       </span>
       <Icon
-        icon={open ? ChevronUp : ChevronDown}
+        icon={ChevronDown}
         size="large"
         color="secondary"
+        className={`transition-transform ${open ? 'rotate-180' : ''}`}
       />
     </button>
   )

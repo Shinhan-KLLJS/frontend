@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { DatePicker, DateTrigger, DropdownMenu, Icon } from '@/components/ui'
 import type { DateRange, DropdownMenuItem } from '@/components/ui'
 
@@ -59,10 +59,10 @@ export default function DashboardToolbar({
               {selected?.name ?? '캠페인을 선택해 주세요'}
             </span>
             <Icon
-              icon={open ? ChevronUp : ChevronDown}
+              icon={ChevronDown}
               size={32}
               color="secondary"
-              className="shrink-0"
+              className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
             />
           </>
         )}

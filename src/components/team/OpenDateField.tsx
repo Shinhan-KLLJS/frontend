@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { Calendar, ChevronDown, ChevronUp } from 'lucide-react'
+import { Calendar, ChevronDown } from 'lucide-react'
 import { DatePicker, Icon } from '@/components/ui'
 import { formatDate, parseDate } from '@/components/ui/date'
 
@@ -64,9 +64,10 @@ export default function OpenDateField({
           </span>
         </span>
         <Icon
-          icon={open ? ChevronUp : ChevronDown}
+          icon={ChevronDown}
           size={20}
           color="secondary"
+          className={`transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </button>
 

@@ -21,13 +21,25 @@ export interface TextButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
   size?: TextButtonSize
   leadingIcon?: LucideIcon
   trailingIcon?: LucideIcon
+  /** 아이콘에 얹을 클래스(예: 드롭다운 open 시 쉐브론 회전 transition-transform rotate-180) */
+  leadingIconClassName?: string
+  trailingIconClassName?: string
   children?: ReactNode
 }
 
 /** 텍스트 버튼 — Size(Large/Medium) × Disable. ref 포워딩(DropdownMenu asChild 트리거 등). */
 const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
   function TextButton(
-    { size = 'large', leadingIcon, trailingIcon, className, children, ...props },
+    {
+      size = 'large',
+      leadingIcon,
+      trailingIcon,
+      leadingIconClassName,
+      trailingIconClassName,
+      className,
+      children,
+      ...props
+    },
     ref,
   ) {
     return (
@@ -48,9 +60,21 @@ const TextButton = forwardRef<HTMLButtonElement, TextButtonProps>(
           .join(' ')}
         {...props}
       >
-        {leadingIcon && <Icon icon={leadingIcon} size={ICON_PX[size]} />}
+        {leadingIcon && (
+          <Icon
+            icon={leadingIcon}
+            size={ICON_PX[size]}
+            className={leadingIconClassName}
+          />
+        )}
         {children}
-        {trailingIcon && <Icon icon={trailingIcon} size={ICON_PX[size]} />}
+        {trailingIcon && (
+          <Icon
+            icon={trailingIcon}
+            size={ICON_PX[size]}
+            className={trailingIconClassName}
+          />
+        )}
       </button>
     )
   },
