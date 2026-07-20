@@ -10,7 +10,7 @@ import MediaListSideTab from '@/components/campaign/MediaListSideTab'
 import MediaMap from '@/components/campaign/MediaMap'
 import VideoUploadCard from '@/components/campaign/VideoUploadCard'
 import type { UploadStatus } from '@/components/campaign/VideoUploadCard'
-import { Icon, ProgressBar, useToast } from '@/components/ui'
+import { Icon, Modal, ProgressBar, useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
 import { ROUTES } from '@/lib/routes'
 import {
@@ -115,6 +115,8 @@ export default function CampaignRegisterPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [step, setStep] = useState<RegisterStep>(1)
+  // 1단계에서 입력 내용이 있는 채로 나가려 할 때 확인 모달
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
   // Step1 기본 정보 폼 — 단계를 오가도 값이 유지되도록 페이지가 인스턴스를 소유
   const form = useForm<CampaignInfoValues>({
@@ -128,6 +130,8 @@ export default function CampaignRegisterPage() {
       memo: '',
     },
   })
+  // isDirty는 렌더 중 읽어야 RHF proxy가 추적·갱신한다(콜백 안에서만 읽으면 초기값 유지)
+  const isFormDirty = form.formState.isDirty
 
   // 영상 업로드 — 단계 이동 후에도 진행·토스트가 이어지도록 페이지가 상태를 소유
   const { toast } = useToast()
@@ -280,8 +284,16 @@ export default function CampaignRegisterPage() {
 
   // 뒤로가기: 2·3단계는 이전 단계로, 1단계는 위저드를 벗어나 캠페인 리스트로
   const handleBack = () => {
-    if (step > 1) setStep((step - 1) as RegisterStep)
-    else navigate(ROUTES.campaigns)
+    if (step > 1) {
+      setStep((step - 1) as RegisterStep)
+      return
+    }
+    // 1단계: 입력했거나 영상을 올린 상태면 이탈 확인 모달, 아무것도 없으면 바로 나감
+    if (isFormDirty || upload.status !== 'idle') {
+      setShowLeaveConfirm(true)
+    } else {
+      navigate(ROUTES.campaigns)
+    }
   }
 
   return (
@@ -389,6 +401,24 @@ export default function CampaignRegisterPage() {
           />
         )}
       </div>
+
+      <Modal
+        open={showLeaveConfirm}
+        scoped
+        title="캠페인 등록을 그만두시겠어요?"
+        body={
+          <>
+            등록을 마치면 옥외광고 성과를 바로 확인할 수 있어요.
+            <br />
+            지금 나가면 입력한 내용은 저장되지 않습니다.
+          </>
+        }
+        cancelText="계속 작성하기"
+        confirmText="나가기"
+        onClose={() => setShowLeaveConfirm(false)}
+        onConfirm={() => navigate(ROUTES.campaigns)}
+        className="!px-x5 !py-x8 !w-[360px]"
+      />
     </section>
   )
 }
