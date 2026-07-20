@@ -58,7 +58,7 @@ export default function Textarea({
       .join(' ') || undefined
 
   const boxClass = [
-    'flex w-full flex-1 flex-col gap-x3 rounded-x2 border p-x3 transition-colors',
+    'flex w-full flex-1 flex-col gap-x3 rounded-x3 border p-x3 transition-colors',
     disabled
       ? 'border-line-secondary bg-bg-disabled text-text-disabled-secondary'
       : isError
