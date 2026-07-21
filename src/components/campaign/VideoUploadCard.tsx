@@ -97,7 +97,7 @@ export default function VideoUploadCard({
           className="absolute inset-0 bg-[var(--cool-neutral-1000)]"
         >
           <img src={thumbnailUrl} alt="" className="size-full object-contain" />
-          <div className="absolute inset-0 bg-[rgba(0,0,0,0.7)]" />
+          <div className="absolute inset-0 bg-[var(--Dimer_Black)]" />
         </div>
       )}
 

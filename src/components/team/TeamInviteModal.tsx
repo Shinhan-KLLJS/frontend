@@ -103,8 +103,17 @@ export default function TeamInviteModal({
     }
   }
 
+  // 딤머는 LNB를 제외한 앱 콘텐츠 영역만 덮는다(없으면 body 전체 — fallback).
+  const scopedRoot = document.getElementById('app-content-area')
+  const portalTarget = scopedRoot ?? document.body
+
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--cool-neutral-1000)]/40">
+    <div
+      className={[
+        scopedRoot ? 'absolute' : 'fixed',
+        'inset-0 z-50 flex items-center justify-center bg-[var(--Dimer_Black)]',
+      ].join(' ')}
+    >
       <div
         ref={panelRef}
         role="dialog"
@@ -142,6 +151,6 @@ export default function TeamInviteModal({
         </Button>
       </div>
     </div>,
-    document.body,
+    portalTarget,
   )
 }

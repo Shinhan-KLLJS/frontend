@@ -564,7 +564,6 @@ export default function CampaignRegisterPage() {
 
       <Modal
         open={showLeaveConfirm}
-        scoped
         title="캠페인 등록을 그만두시겠어요?"
         body={
           <>
