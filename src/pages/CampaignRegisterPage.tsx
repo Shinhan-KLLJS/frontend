@@ -252,6 +252,9 @@ export default function CampaignRegisterPage() {
     uploadRef.current = upload
     saveDraft(form.getValues(), upload)
   }, [upload, form])
+  // 등록 라우트를 떠날 때(로그아웃·다른 라우터 이동·'그만두기' 모달로 나가기) 초안을 비운다.
+  // 새로고침은 언마운트가 아니라 페이지 리로드라 이 cleanup이 돌지 않아 초안이 유지된다.
+  useEffect(() => () => clearDraft(), [])
 
   const handleFileSelect = (file: File) => {
     // accept="video/*"는 드래그&드롭을 막지 못하므로 형식을 재검증
