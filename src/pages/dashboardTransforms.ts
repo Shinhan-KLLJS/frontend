@@ -94,6 +94,15 @@ export function toTolaMetrics(f: CampaignFunnel): TolaMetric[] {
   // 인원 지표: value가 null이면 '-'(단위 없이), 값이 있으면 'N명'.
   const formatPopulation = (v: number | null | undefined): string =>
     v == null ? NO_DATA : `${v.toLocaleString()}명`
+  // 전환률: 값이 있으면 'N%'. null이어도 유동인구 데이터가 있으면(집계는 됐으나 주목 0)
+  // '0%'로 표기하고, 데이터 자체가 없을 때만 '-'.
+  const formatConversion = (
+    rate: number | null | undefined,
+    traffic: number | null | undefined,
+  ): string => {
+    if (rate != null) return `${formatPercent(rate)}%`
+    return traffic != null ? '0%' : NO_DATA
+  }
   return [
     {
       key: 'traffic',
@@ -119,10 +128,10 @@ export function toTolaMetrics(f: CampaignFunnel): TolaMetric[] {
     {
       key: 'conversion',
       label: '주목 전환률',
-      value:
-        m.attentionConversionRate?.value == null
-          ? NO_DATA
-          : `${formatPercent(m.attentionConversionRate.value)}%`,
+      value: formatConversion(
+        m.attentionConversionRate?.value,
+        m.totalTrafficCount?.value,
+      ),
       comparison: m.attentionConversionRate?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.conversion,
     },
