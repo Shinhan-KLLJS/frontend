@@ -1,13 +1,6 @@
 import { useId } from 'react'
-import {
-  Area,
-  AreaChart,
-  ReferenceDot,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from 'recharts'
-import { ScrollArea, SCROLLBAR_SIZE } from '@/components/ui'
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { ScrollArea } from '@/components/ui'
 import DashboardPanel from './DashboardPanel'
 import DashboardSectionHeader from './DashboardSectionHeader'
 
@@ -24,60 +17,51 @@ export interface RealtimeViewerChartProps {
   scrollable?: boolean
 }
 
-/** x축 라벨 1개 폭(px) — 숫자값 width. */
-const X_LABEL_WIDTH = 40
-/** x축 라벨 사이 간격(px) — spacing-x5. */
-const X_LABEL_GAP = 20
-/** 라벨 슬롯 폭 = 숫자(40) + 간격(20). 이 폭 미만으로는 라벨을 겹쳐 그리지 않는다. */
-const X_LABEL_SLOT = X_LABEL_WIDTH + X_LABEL_GAP
-/** 플롯 좌측 시작 여백(px) — 그래프/첫 라벨을 y축에서 살짝 띄워 시작. */
-const PLOT_LEFT_PAD = 24
-/** 가로 스크롤 모드에서 포인트 1개당 폭(px) = 라벨 슬롯(40+20). 컨테이너보다 넓어지면 스크롤. */
-const SCROLL_POINT_WIDTH = X_LABEL_SLOT
-/** y축(숫자) 영역 폭(px) = 숫자 40 + 그래프와 간격 8. */
-const AXIS_W = X_LABEL_WIDTH + 8
-/** 차트 여백 — 상단 10(6눈금 40px 균등), x축 하단 28. */
-const CHART_MARGIN = { top: 10, right: 0, bottom: 0, left: 0 }
-/** 차트 높이(px) — 플롯 200px(=높이 238 - 상단10 - x축28)로 눈금 40px 균등. */
-const CHART_HEIGHT = 238
-/**
- * 값 0~max가 매핑되는 플롯 높이(px)와 상단 오프셋 — 고정 y축 라벨 위치 계산에 사용.
- * 스크롤 모드의 플롯은 하단 가로 스크롤바(9px)만큼 높이가 줄어드니 이를 뺀다.
- */
-const PLOT_TOP = CHART_MARGIN.top
-const PLOT_H = CHART_HEIGHT - CHART_MARGIN.top - 28 - SCROLLBAR_SIZE.small
+/** 플롯(그래프)·y축 높이(px) — Figma Live Viewer Graph 실측. */
+const PLOT_HEIGHT = 212
+/** x축 라벨 행 높이(px). */
+const X_AXIS_HEIGHT = 28
+/** y축 라벨 숫자 폭(px). 라벨 40 + pr-x2(8) = 축 폭 48(x축 좌측 빈 공간과 동일). */
+const Y_LABEL_WIDTH = 40
+/** 가로 스크롤 모드에서 포인트 1개당 폭(px) = 라벨 40 + 간격 x5(20). */
+const SCROLL_POINT_WIDTH = Y_LABEL_WIDTH + 20
+/** 플롯 좌우 인셋(px) — 라인이 축 테두리에 붙지 않도록(Figma Graph 콘텐츠 px-x5). */
+const PLOT_X_PAD = 20
+/** y축 눈금 개수(0 제외) — 값이 바뀌어도 항상 5개 고정. */
+const Y_TICKS = 5
+/** 당일(비스크롤) x축 라벨 최대 개수 — 넘으면 균등 솎음(라인·도트는 전부 유지). */
+const MAX_X_LABELS = 13
 
-interface AxisTickProps {
-  x?: number
-  y?: number
-  index?: number
-  payload?: { value?: string; index?: number }
+/** 라벨 겹침 방지용 균등 샘플링 — 첫·끝 포함, 최대 MAX_X_LABELS개. */
+function sampleLabels(data: ViewerPoint[]): ViewerPoint[] {
+  if (data.length <= MAX_X_LABELS) return data
+  const step = (data.length - 1) / (MAX_X_LABELS - 1)
+  return Array.from(
+    { length: MAX_X_LABELS },
+    (_, k) => data[Math.round(k * step)],
+  )
 }
 
-/** ISO/에폭 대신 시각 문자열을 그대로 쓰되, 첫 라벨만 20px 안쪽으로. 빈 슬롯은 숨김. */
-function AxisTick({ x = 0, y = 0, payload }: AxisTickProps) {
-  const value = payload?.value
-  if (!value) return <g />
-  return (
-    <text
-      x={x}
-      y={y}
-      // py-x1(4px) 아래로 내려 라벨 배치
-      dy={16}
-      textAnchor="middle"
-      fill="var(--color-text-secondary)"
-      fontSize={14}
-      fontWeight={400}
-      letterSpacing="0.0145em"
-    >
-      {value}
-    </text>
-  )
+/** rough 값을 1·2·5·10 계열의 깔끔한 눈금 간격으로 올림. */
+function niceStep(rough: number): number {
+  const mag = 10 ** Math.floor(Math.log10(rough))
+  const n = rough / mag
+  const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10
+  return nice * mag
+}
+
+/** 데이터 최댓값 → 5등분이 깔끔한 정수가 되는 y축 상한(최소 5). */
+function niceYMax(max: number): number {
+  if (max <= Y_TICKS) return Y_TICKS
+  return niceStep(max / Y_TICKS) * Y_TICKS
 }
 
 /**
  * 실시간 시청 수 — 증권 차트 스타일 영역 차트.
- * y축은 데이터 범위로 동적(max÷5, 6눈금), 왼쪽은 플롯 끝까지·첫 라벨만 20px 인셋, 오른쪽엔 빈 1칸(최신=오른쪽 두번째).
+ * 축은 recharts 자동 배치가 아니라 Figma대로 고정 위치 flexbox로 그린다.
+ * - y축: 값이 바뀌어도 항상 5개 라벨(0 제외)이 같은 위치.
+ * - x축: 라벨이 해상도로 솎이지 않고 항상 같은 위치.
+ * 기간(scrollable) 모드는 타이틀이 "시간별 누적 시청 수"로 바뀌고 포인트가 많으면 가로 스크롤한다.
  */
 export default function RealtimeViewerChart({
   data,
@@ -87,20 +71,12 @@ export default function RealtimeViewerChart({
   const gradientId = useId().replace(/:/g, '')
   const latest = data.at(-1)
 
-  // y축: 데이터 최대값을 0~max로 5등분(눈금 6개: 0·max/5·…·max), 각 눈금값은 소수점 버림(floor).
-  // 플롯 높이 200px(축 영역 210px)에서 6눈금이 균등 배치돼 아래에서부터 40·80·120·160·200px에 놓인다.
-  const values = data.map((point) => point.viewers)
-  const dataMax = values.length ? Math.max(...values) : 0
-  const yMax = dataMax > 0 ? dataMax : 5
-  const yTicks = [
-    ...new Set(Array.from({ length: 6 }, (_, i) => Math.floor((yMax * i) / 5))),
-  ]
-
-  // 오른쪽 빈 1칸(라벨 없는 트레일링 슬롯) → 라인/영역은 마지막 실데이터에서 끝남
-  const series: { time: string; viewers: number | null }[] = [
-    ...data,
-    { time: '', viewers: null },
-  ]
+  const dataMax = data.length ? Math.max(...data.map((p) => p.viewers)) : 0
+  const yMax = niceYMax(dataMax)
+  // 위에서부터 yMax, 4/5·yMax, …, 1/5·yMax (0은 축 바닥이라 라벨 생략)
+  const yLabels = Array.from({ length: Y_TICKS }, (_, i) =>
+    Math.round((yMax * (Y_TICKS - i)) / Y_TICKS),
+  )
 
   const gradient = (
     <defs>
@@ -119,139 +95,117 @@ export default function RealtimeViewerChart({
     </defs>
   )
 
-  const xAxis = (
-    <XAxis
-      dataKey="time"
-      axisLine={{ stroke: 'var(--color-line-tertiary)' }}
-      tickLine={false}
-      height={28}
-      // 스크롤(기간)은 매 시간 전부, 비스크롤(당일)은 슬롯 40+20(minTickGap)으로 자동 솎음
-      interval={scrollable ? 0 : 'preserveStartEnd'}
-      minTickGap={X_LABEL_GAP}
-      padding={{ left: PLOT_LEFT_PAD, right: 0 }}
-      tick={<AxisTick />}
-    />
-  )
-
   // 시각마다 포인트(dot) + 꺾은선(직선 구간)
-  const area = (
-    <Area
-      type="linear"
-      dataKey="viewers"
-      stroke="var(--color-chart-categorical-1)"
-      strokeWidth={2}
-      fill={`url(#${gradientId})`}
-      baseValue={0}
-      connectNulls={false}
-      dot={{
-        r: 3,
-        fill: 'var(--color-chart-categorical-1)',
-        stroke: 'var(--color-bg-secondary)',
-        strokeWidth: 1.5,
-      }}
-      activeDot={{ r: 4, strokeWidth: 2 }}
-      isAnimationActive={false}
-    />
-  )
-
-  // hide면 렌더 없이 도메인만 유지(스크롤 플롯용) — 실제 라벨은 고정 y축 오버레이가 그린다.
-  const renderYAxis = (hide: boolean) => (
-    <YAxis
-      hide={hide}
-      axisLine={{ stroke: 'var(--color-line-tertiary)' }}
-      tickLine={false}
-      // 숫자값 label-1-normal-regular(14·400)·text-secondary, 그래프와 간격 x2(8px)
-      tick={{
-        fill: 'var(--color-text-secondary)',
-        fontSize: 14,
-        fontWeight: 400,
-        letterSpacing: '0.0145em',
-      }}
-      tickMargin={8}
-      domain={[0, yMax]}
-      ticks={yTicks}
-      width={AXIS_W}
-    />
-  )
-
-  const plot = (withYAxis: boolean) => (
+  const plot = (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={series} margin={CHART_MARGIN}>
+      <AreaChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
         {gradient}
-        {xAxis}
-        {renderYAxis(!withYAxis)}
-        {area}
-        {latest && (
-          <ReferenceDot
-            x={latest.time}
-            y={latest.viewers}
-            r={3}
-            fill="var(--color-chart-categorical-1)"
-            stroke="none"
-          />
-        )}
+        <XAxis
+          dataKey="time"
+          hide
+          padding={{ left: PLOT_X_PAD, right: PLOT_X_PAD }}
+        />
+        <YAxis hide domain={[0, yMax]} />
+        <Area
+          type="linear"
+          dataKey="viewers"
+          stroke="var(--color-chart-categorical-1)"
+          strokeWidth={2}
+          fill={`url(#${gradientId})`}
+          baseValue={0}
+          connectNulls={false}
+          dot={{
+            r: 3,
+            fill: 'var(--color-chart-categorical-1)',
+            stroke: 'var(--color-bg-secondary)',
+            strokeWidth: 1.5,
+          }}
+          activeDot={{ r: 4, strokeWidth: 2 }}
+          isAnimationActive={false}
+        />
       </AreaChart>
     </ResponsiveContainer>
+  )
+
+  // y축(0 제외 5개, 항상 같은 위치) — 그래프 왼쪽에 고정.
+  const yAxis = (
+    <div
+      className="flex shrink-0 items-end justify-center"
+      style={{ height: PLOT_HEIGHT }}
+    >
+      <div className="flex h-full flex-col justify-center gap-x6 py-x2 pr-x2">
+        {yLabels.map((v, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-end"
+            style={{ width: Y_LABEL_WIDTH }}
+          >
+            <span className="text-label-1-normal-regular text-text-secondary">
+              {v}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  // 그래프 박스(좌·하 테두리) — 안쪽에 recharts 플롯.
+  const graph = (
+    <div
+      className="overflow-hidden border-b border-l border-line-tertiary"
+      style={{ height: PLOT_HEIGHT }}
+    >
+      {plot}
+    </div>
+  )
+
+  // x축 라벨 한 줄(항상 같은 위치). scrollable이면 포인트당 고정 폭, 아니면 전폭 균등 분포.
+  const xLabels = (
+    <div
+      className={`flex items-center px-x2 py-x1 ${
+        scrollable ? 'gap-x5' : 'justify-between'
+      }`}
+      style={{ height: X_AXIS_HEIGHT }}
+    >
+      {(scrollable ? data : sampleLabels(data)).map((p, i) => (
+        <span
+          key={i}
+          className="shrink-0 text-center text-label-1-normal-regular text-text-secondary"
+          style={scrollable ? { width: Y_LABEL_WIDTH } : undefined}
+        >
+          {p.time}
+        </span>
+      ))}
+    </div>
   )
 
   return (
     <DashboardPanel className="flex h-[328px] flex-col gap-x5">
       <DashboardSectionHeader
-        title="실시간 시청 수"
+        title={scrollable ? '시간별 누적 시청 수' : '실시간 시청 수'}
         description="선택한 캠페인의 시간대별 시청 추이를 보여줍니다."
         cutoffLabel={cutoffLabel}
       />
-      {scrollable ? (
-        <div
-          className="relative min-w-0"
-          style={{ height: CHART_HEIGHT }}
-          aria-hidden="true"
-        >
-          {/* 플롯만 가로 스크롤 — 왼쪽에 y축 폭만큼 패딩을 둬 고정 y축 자리를 비운다 */}
-          <ScrollArea axis="horizontal" size="small" className="absolute inset-0">
+      <div className="flex min-w-0 items-start" aria-hidden="true">
+        {yAxis}
+        {scrollable ? (
+          <ScrollArea axis="horizontal" size="small" className="min-w-0 flex-1">
             <div
-              className="h-full"
               style={{
-                minWidth: series.length * SCROLL_POINT_WIDTH + AXIS_W,
-                paddingLeft: AXIS_W,
+                minWidth: data.length * SCROLL_POINT_WIDTH + PLOT_X_PAD * 2,
               }}
             >
-              {plot(false)}
+              {graph}
+              {xLabels}
             </div>
           </ScrollArea>
-          {/* y축 고정 — 스크롤과 무관하게 항상 좌측 표시(플롯 스케일에 맞춰 라벨 배치) */}
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 z-10 bg-bg-secondary"
-            style={{ width: AXIS_W }}
-          >
-            {yTicks.map((t) => (
-              <span
-                key={t}
-                className="absolute text-label-1-normal-regular text-text-secondary"
-                style={{
-                  right: 8,
-                  top: PLOT_TOP + PLOT_H * (1 - t / yMax),
-                  transform: 'translateY(-50%)',
-                }}
-              >
-                {t}
-              </span>
-            ))}
-            <div
-              className="absolute right-0 bg-line-tertiary"
-              style={{ top: PLOT_TOP, height: PLOT_H, width: 1 }}
-            />
+        ) : (
+          <div className="flex min-w-0 flex-1 flex-col">
+            {graph}
+            {xLabels}
           </div>
-        </div>
-      ) : (
-        <div
-          className="min-w-0"
-          style={{ height: CHART_HEIGHT }}
-          aria-hidden="true"
-        >
-          {plot(true)}
-        </div>
-      )}
+        )}
+      </div>
       <p className="sr-only">
         {latest
           ? `최근 ${latest.time} 시청 수는 ${latest.viewers}명입니다.`
