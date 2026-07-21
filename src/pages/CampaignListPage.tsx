@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Plus } from 'lucide-react'
+import { Plus, SquarePen } from 'lucide-react'
 import { Button, LoadingSpinner, useToast } from '@/components/ui'
 import CampaignListControls from '@/components/campaign/CampaignListControls'
 import CampaignDeleteModal from '@/components/campaign/CampaignDeleteModal'
@@ -118,7 +118,7 @@ export default function CampaignListPage() {
             variant="ghost"
             color="secondary"
             size="small"
-            leadingIcon={Pencil}
+            leadingIcon={SquarePen}
             aria-label="팀 이름 편집"
           />
         </div>
