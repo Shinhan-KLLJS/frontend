@@ -157,10 +157,11 @@ export function toRealtimeData(r: CampaignRealtimeHourly): ViewerPoint[] {
 /**
  * 5초 실시간 포인트 → 1분 슬롯 시계열(분당 마지막=최신 값).
  * 현재 분은 5초마다 제자리 갱신, 분이 넘어가면 왼쪽으로 밀린다.
+ * 최근 1시간(60분)까지 넉넉히 반환하고, 폭에 맞춰 몇 개를 그릴지는 차트가 정한다.
  */
 export function bucketRealtimeToMinutes(
   points: RealtimeGraphPoint[],
-  windowMinutes = 30,
+  windowMinutes = 60,
 ): ViewerPoint[] {
   if (!points?.length) return []
   const byMinute = new Map<number, number>()

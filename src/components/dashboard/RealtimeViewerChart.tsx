@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { ScrollArea } from '@/components/ui'
 import DashboardPanel from './DashboardPanel'
@@ -23,24 +23,18 @@ const PLOT_HEIGHT = 212
 const X_AXIS_HEIGHT = 28
 /** y축 라벨 숫자 폭(px). 라벨 40 + pr-x2(8) = 축 폭 48(x축 좌측 빈 공간과 동일). */
 const Y_LABEL_WIDTH = 40
-/** 가로 스크롤 모드에서 포인트 1개당 폭(px) = 라벨 40 + 간격 x5(20). */
-const SCROLL_POINT_WIDTH = Y_LABEL_WIDTH + 20
+/** x축 라벨 텍스트 슬롯 폭(px). */
+const X_LABEL_WIDTH = 40
+/** x축 라벨 사이 간격(px) = spacing-x5. */
+const X_LABEL_GAP = 20
+/** x축 라벨 1개당 차지 폭(px) = 슬롯 40 + 간격 20. 이 폭 단위로 몇 분치를 그릴지 정한다. */
+const X_LABEL_PITCH = X_LABEL_WIDTH + X_LABEL_GAP
+/** 가로 스크롤 모드에서 포인트 1개당 폭(px). */
+const SCROLL_POINT_WIDTH = X_LABEL_PITCH
 /** 플롯 좌우 인셋(px) — 라인이 축 테두리에 붙지 않도록(Figma Graph 콘텐츠 px-x5). */
 const PLOT_X_PAD = 20
 /** y축 눈금 개수(0 제외) — 값이 바뀌어도 항상 5개 고정. */
 const Y_TICKS = 5
-/** 당일(비스크롤) x축 라벨 최대 개수 — 넘으면 균등 솎음(라인·도트는 전부 유지). */
-const MAX_X_LABELS = 13
-
-/** 라벨 겹침 방지용 균등 샘플링 — 첫·끝 포함, 최대 MAX_X_LABELS개. */
-function sampleLabels(data: ViewerPoint[]): ViewerPoint[] {
-  if (data.length <= MAX_X_LABELS) return data
-  const step = (data.length - 1) / (MAX_X_LABELS - 1)
-  return Array.from(
-    { length: MAX_X_LABELS },
-    (_, k) => data[Math.round(k * step)],
-  )
-}
 
 /** rough 값을 1·2·5·10 계열의 깔끔한 눈금 간격으로 올림. */
 function niceStep(rough: number): number {
@@ -56,11 +50,58 @@ function niceYMax(max: number): number {
   return niceStep(max / Y_TICKS) * Y_TICKS
 }
 
+const LINE = 'var(--color-line-tertiary)'
+const CAT_1 = 'var(--color-chart-categorical-1)'
+
+/** x축 눈금 라벨(14·Regular·secondary) — recharts가 계산한 x에 그려 포인트와 정렬한다. */
+function XTick({
+  x = 0,
+  y = 0,
+  payload,
+}: {
+  x?: number
+  y?: number
+  payload?: { value?: string }
+}) {
+  if (!payload?.value) return <g />
+  return (
+    <text
+      x={x}
+      y={y}
+      dy={16}
+      textAnchor="middle"
+      fill="var(--color-text-secondary)"
+      fontSize={14}
+      fontWeight={400}
+      letterSpacing="0.0145em"
+    >
+      {payload.value}
+    </text>
+  )
+}
+
+/** 컨테이너 폭을 관찰해 반환(ResizeObserver). */
+function useElementWidth<T extends HTMLElement>() {
+  const ref = useRef<T>(null)
+  const [width, setWidth] = useState(0)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    setWidth(el.clientWidth)
+    const ro = new ResizeObserver((entries) => {
+      setWidth(entries[0].contentRect.width)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  return [ref, width] as const
+}
+
 /**
  * 실시간 시청 수 — 증권 차트 스타일 영역 차트.
- * 축은 recharts 자동 배치가 아니라 Figma대로 고정 위치 flexbox로 그린다.
- * - y축: 값이 바뀌어도 항상 5개 라벨(0 제외)이 같은 위치.
- * - x축: 라벨이 해상도로 솎이지 않고 항상 같은 위치.
+ * - y축: 값이 바뀌어도 항상 5개 라벨(0 제외)이 같은 위치(Figma flexbox 실측).
+ * - x축(당일): 라벨은 1분마다, 슬롯 40 + 간격 x5(20)로 고정. 그래프 폭에 들어가는 만큼만
+ *   가장 최신 분부터 보여주고(폭이 넓으면 더 많이), 라벨은 실제 포인트 위치에 그려진다.
  * 기간(scrollable) 모드는 타이틀이 "시간별 누적 시청 수"로 바뀌고 포인트가 많으면 가로 스크롤한다.
  */
 export default function RealtimeViewerChart({
@@ -69,9 +110,19 @@ export default function RealtimeViewerChart({
   scrollable = false,
 }: RealtimeViewerChartProps) {
   const gradientId = useId().replace(/:/g, '')
-  const latest = data.at(-1)
+  const [plotRef, plotWidth] = useElementWidth<HTMLDivElement>()
 
-  const dataMax = data.length ? Math.max(...data.map((p) => p.viewers)) : 0
+  // 당일: 그래프 폭에 들어가는 라벨 수 = floor((폭+간격)/피치). 그만큼 최신 분부터 보여준다.
+  const fitCount =
+    plotWidth > 0
+      ? Math.max(1, Math.floor((plotWidth + X_LABEL_GAP) / X_LABEL_PITCH))
+      : data.length
+  const visibleData = scrollable ? data : data.slice(-fitCount)
+  const latest = visibleData.at(-1)
+
+  const dataMax = visibleData.length
+    ? Math.max(...visibleData.map((p) => p.viewers))
+    : 0
   const yMax = niceYMax(dataMax)
   // 위에서부터 yMax, 4/5·yMax, …, 1/5·yMax (0은 축 바닥이라 라벨 생략)
   const yLabels = Array.from({ length: Y_TICKS }, (_, i) =>
@@ -81,50 +132,31 @@ export default function RealtimeViewerChart({
   const gradient = (
     <defs>
       <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-        <stop
-          offset="0%"
-          stopColor="var(--color-chart-categorical-1)"
-          stopOpacity={0.24}
-        />
-        <stop
-          offset="100%"
-          stopColor="var(--color-chart-categorical-1)"
-          stopOpacity={0}
-        />
+        <stop offset="0%" stopColor={CAT_1} stopOpacity={0.24} />
+        <stop offset="100%" stopColor={CAT_1} stopOpacity={0} />
       </linearGradient>
     </defs>
   )
 
   // 시각마다 포인트(dot) + 꺾은선(직선 구간)
-  const plot = (
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-        {gradient}
-        <XAxis
-          dataKey="time"
-          hide
-          padding={{ left: PLOT_X_PAD, right: PLOT_X_PAD }}
-        />
-        <YAxis hide domain={[0, yMax]} />
-        <Area
-          type="linear"
-          dataKey="viewers"
-          stroke="var(--color-chart-categorical-1)"
-          strokeWidth={2}
-          fill={`url(#${gradientId})`}
-          baseValue={0}
-          connectNulls={false}
-          dot={{
-            r: 3,
-            fill: 'var(--color-chart-categorical-1)',
-            stroke: 'var(--color-bg-secondary)',
-            strokeWidth: 1.5,
-          }}
-          activeDot={{ r: 4, strokeWidth: 2 }}
-          isAnimationActive={false}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+  const area = (
+    <Area
+      type="linear"
+      dataKey="viewers"
+      stroke={CAT_1}
+      strokeWidth={2}
+      fill={`url(#${gradientId})`}
+      baseValue={0}
+      connectNulls={false}
+      dot={{
+        r: 3,
+        fill: CAT_1,
+        stroke: 'var(--color-bg-secondary)',
+        strokeWidth: 1.5,
+      }}
+      activeDot={{ r: 4, strokeWidth: 2 }}
+      isAnimationActive={false}
+    />
   )
 
   // y축(0 제외 5개, 항상 같은 위치) — 그래프 왼쪽에 고정.
@@ -149,62 +181,112 @@ export default function RealtimeViewerChart({
     </div>
   )
 
-  // 그래프 박스(좌·하 테두리) — 안쪽에 recharts 플롯.
-  const graph = (
-    <div
-      className="overflow-hidden border-b border-l border-line-tertiary"
-      style={{ height: PLOT_HEIGHT }}
-    >
-      {plot}
-    </div>
-  )
+  // 당일(비스크롤): 폭에 맞춰 최신 N분만, 라벨은 1분마다 실제 포인트 위치에.
+  // 축선(좌·하)도 recharts로 그려 플롯 영역(212px)에만 L자로 표시.
+  if (!scrollable) {
+    return (
+      <DashboardPanel className="flex h-[328px] flex-col gap-x5">
+        <DashboardSectionHeader
+          title="실시간 시청 수"
+          description="선택한 캠페인의 시간대별 시청 추이를 보여줍니다."
+          cutoffLabel={cutoffLabel}
+        />
+        <div className="flex min-w-0 items-start" aria-hidden="true">
+          {yAxis}
+          <div
+            ref={plotRef}
+            className="min-w-0 flex-1"
+            style={{ height: PLOT_HEIGHT + X_AXIS_HEIGHT }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={visibleData}
+                margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+              >
+                {gradient}
+                <YAxis
+                  domain={[0, yMax]}
+                  width={1}
+                  tick={false}
+                  tickLine={false}
+                  axisLine={{ stroke: LINE }}
+                />
+                <XAxis
+                  dataKey="time"
+                  height={X_AXIS_HEIGHT}
+                  axisLine={{ stroke: LINE }}
+                  tickLine={false}
+                  interval={0}
+                  padding={{ left: PLOT_X_PAD, right: PLOT_X_PAD }}
+                  tick={<XTick />}
+                />
+                {area}
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <p className="sr-only">
+          {latest
+            ? `최근 ${latest.time} 시청 수는 ${latest.viewers}명입니다.`
+            : '표시할 시청 데이터가 없습니다.'}
+        </p>
+      </DashboardPanel>
+    )
+  }
 
-  // x축 라벨 한 줄(항상 같은 위치). scrollable이면 포인트당 고정 폭, 아니면 전폭 균등 분포.
-  const xLabels = (
-    <div
-      className={`flex items-center px-x2 py-x1 ${
-        scrollable ? 'gap-x5' : 'justify-between'
-      }`}
-      style={{ height: X_AXIS_HEIGHT }}
-    >
-      {(scrollable ? data : sampleLabels(data)).map((p, i) => (
-        <span
-          key={i}
-          className="shrink-0 text-center text-label-1-normal-regular text-text-secondary"
-          style={scrollable ? { width: Y_LABEL_WIDTH } : undefined}
-        >
-          {p.time}
-        </span>
-      ))}
-    </div>
+  // 기간(스크롤): 플롯은 포인트당 고정 폭으로 가로 스크롤, y축은 왼쪽에 고정.
+  const plot = (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+        {gradient}
+        <XAxis
+          dataKey="time"
+          hide
+          padding={{ left: PLOT_X_PAD, right: PLOT_X_PAD }}
+        />
+        <YAxis hide domain={[0, yMax]} />
+        {area}
+      </AreaChart>
+    </ResponsiveContainer>
   )
 
   return (
     <DashboardPanel className="flex h-[328px] flex-col gap-x5">
       <DashboardSectionHeader
-        title={scrollable ? '시간별 누적 시청 수' : '실시간 시청 수'}
+        title="시간별 누적 시청 수"
         description="선택한 캠페인의 시간대별 시청 추이를 보여줍니다."
         cutoffLabel={cutoffLabel}
       />
       <div className="flex min-w-0 items-start" aria-hidden="true">
         {yAxis}
-        {scrollable ? (
-          <ScrollArea axis="horizontal" size="small" className="min-w-0 flex-1">
+        <ScrollArea axis="horizontal" size="small" className="min-w-0 flex-1">
+          <div
+            style={{
+              minWidth: data.length * SCROLL_POINT_WIDTH + PLOT_X_PAD * 2,
+            }}
+          >
             <div
-              style={{
-                minWidth: data.length * SCROLL_POINT_WIDTH + PLOT_X_PAD * 2,
-              }}
+              className="overflow-hidden border-b border-l border-line-tertiary"
+              style={{ height: PLOT_HEIGHT }}
             >
-              {graph}
-              {xLabels}
+              {plot}
             </div>
-          </ScrollArea>
-        ) : (
-          <div className="flex min-w-0 flex-1 flex-col">
-            {graph}
-            {xLabels}
+            <div
+              className="flex items-center gap-x5 px-x2 py-x1"
+              style={{ height: X_AXIS_HEIGHT }}
+            >
+              {data.map((p, i) => (
+                <span
+                  key={i}
+                  className="shrink-0 text-center text-label-1-normal-regular text-text-secondary"
+                  style={{ width: X_LABEL_WIDTH }}
+                >
+                  {p.time}
+                </span>
+              ))}
+            </div>
           </div>
-        )}
+        </ScrollArea>
       </div>
       <p className="sr-only">
         {latest
