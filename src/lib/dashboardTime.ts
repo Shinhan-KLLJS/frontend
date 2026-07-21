@@ -19,3 +19,9 @@ export function formatCutoffLabel(value?: string | Date | null): string {
   const t = formatKstTime(value ?? new Date())
   return t ? `${t} 기준` : ''
 }
+
+/**
+ * 다중일(기간) 조회 시 (i) 툴팁 문구.
+ * 시각 기준("HH:mm 기준")은 당일 조회에만 유효하므로, 기간을 걸면 누적임을 안내한다.
+ */
+export const PERIOD_CUMULATIVE_TOOLTIP = '선택 기간의 누적 데이터입니다'

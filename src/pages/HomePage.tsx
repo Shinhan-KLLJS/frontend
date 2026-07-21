@@ -17,6 +17,8 @@ import type { WatchTimeBucket } from '@/components/dashboard/AverageWatchTimeCar
 import TolaSection from '@/components/dashboard/TolaSection'
 import type { TolaMetric } from '@/components/dashboard/TolaSection'
 import type { DateRange } from '@/components/ui'
+import { isSameDay } from '@/components/ui/date'
+import { PERIOD_CUMULATIVE_TOOLTIP } from '@/lib/dashboardTime'
 
 export interface HomePageProps {
   /** 캠페인 선택 드롭다운 옵션(실 API의 campaignId·campaignName). */
@@ -102,6 +104,15 @@ export default function HomePage({
   const dateRange = controlledRange ?? innerRange
   const setDateRange = onDateRangeChange ?? setInnerRange
 
+  // 다중일(기간) 조회면 모든 섹션 (i) 툴팁을 '기간 누적' 안내로 통일한다(시각 기준은 당일에만 유효).
+  // dateRange를 아는 프레젠테이셔널 계층에서 판단해, 실 API·로컬 목 어느 경로든 동일하게 동작한다.
+  const isMultiDay = Boolean(
+    dateRange.start &&
+      dateRange.end &&
+      !isSameDay(dateRange.start, dateRange.end),
+  )
+  const cumulativeTooltip = isMultiDay ? PERIOD_CUMULATIVE_TOOLTIP : undefined
+
   const [demographicFilter, setDemographicFilter] =
     useState<GenderFilter>('all')
   const [heatmapFilter, setHeatmapFilter] = useState<GenderFilter>('all')
@@ -125,20 +136,20 @@ export default function HomePage({
         />
         <TolaSection
           metrics={tolaMetrics ?? []}
-          cutoffLabel={tolaCutoffLabel}
+          cutoffLabel={cumulativeTooltip ?? tolaCutoffLabel}
           showComparison={showTolaComparison}
         />
         {/* 실시간 시청수(좌)는 가변, 평균 시청시간(우)은 376px 고정 */}
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_376px] gap-x5">
           <RealtimeViewerChart
             data={realtimeData ?? []}
-            cutoffLabel={realtimeCutoffLabel}
+            cutoffLabel={cumulativeTooltip ?? realtimeCutoffLabel}
             scrollable={realtimeScrollable}
           />
           <AverageWatchTimeCard
             averageSeconds={averageSeconds ?? 0}
             buckets={watchBuckets ?? []}
-            cutoffLabel={averageCutoffLabel}
+            cutoffLabel={cumulativeTooltip ?? averageCutoffLabel}
           />
         </div>
         {/* 동선 카드는 고정하고 성별·연령 카드만 남는 가로 폭을 채웁니다. */}
@@ -148,14 +159,14 @@ export default function HomePage({
             data={demographics ?? []}
             filter={demographicFilter}
             onFilterChange={setDemographicFilter}
-            cutoffLabel={demographicCutoffLabel}
+            cutoffLabel={cumulativeTooltip ?? demographicCutoffLabel}
           />
         </div>
         <AgeExposureHeatmap
           cells={exposureCells ?? []}
           filter={heatmapFilter}
           onFilterChange={setHeatmapFilter}
-          cutoffLabel={exposureCutoffLabel}
+          cutoffLabel={cumulativeTooltip ?? exposureCutoffLabel}
         />
       </div>
     </section>

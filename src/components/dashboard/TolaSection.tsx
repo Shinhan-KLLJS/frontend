@@ -16,7 +16,10 @@ export interface TolaMetric {
 
 export interface TolaSectionProps {
   metrics: TolaMetric[]
-  /** 데이터 집계 기준 시각 "HH:mm" — 툴팁에 "HH:mm 기준"으로 표기 */
+  /**
+   * (i) 툴팁 문구. 당일 조회 시 "HH:mm 기준", 기간 조회 시 누적 안내 문구.
+   * 없으면(Storybook·로딩 중) 현재 시각으로 "HH:mm 기준"을 표기한다.
+   */
   cutoffLabel?: string
   /** '어제 대비' 증감 표시 여부 — 기간 조회 시 false로 숨기고 빈 칸을 유지한다. 기본 true */
   showComparison?: boolean
@@ -55,11 +58,7 @@ export default function TolaSection({
                 <span className="truncate text-label-1-normal-medium text-text-secondary">
                   {metric.label}
                 </span>
-                <Tooltip
-                  content={
-                    cutoffLabel ? `${cutoffLabel} 기준` : formatCutoffLabel()
-                  }
-                >
+                <Tooltip content={cutoffLabel ?? formatCutoffLabel()}>
                   <Icon
                     icon={Info}
                     size={16}

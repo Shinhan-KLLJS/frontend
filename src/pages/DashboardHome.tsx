@@ -20,7 +20,7 @@ import {
   useRealtimeGraph,
   useRealtimeHourly,
 } from '@/lib/dashboard'
-import { formatCutoffLabel, formatKstTime } from '@/lib/dashboardTime'
+import { formatCutoffLabel } from '@/lib/dashboardTime'
 import {
   bucketRealtimeToMinutes,
   toDemographics,
@@ -131,7 +131,7 @@ function RealDashboard() {
   const { data: funnel } = useCampaignFunnel(selected?.campaignId, dateRange)
   const tolaMetrics = funnel ? toTolaMetrics(funnel) : undefined
   const tolaCutoffLabel = funnel
-    ? formatKstTime(funnel.aggregationCutoffTime)
+    ? formatCutoffLabel(funnel.aggregationCutoffTime)
     : undefined
 
   // 기간 미선택(오늘 단일 일자)=실시간(5-1, 5초 라이브·1분 슬롯), 기간 선택=시간별 누적(5-2)
@@ -165,7 +165,8 @@ function RealDashboard() {
   const { data: exposureData } = useExposure(selected?.campaignId, dateRange)
   const exposureCells = exposureData ? toExposure(exposureData) : undefined
 
-  // 섹션별 (i) 툴팁 기준시각.
+  // 섹션별 (i) 툴팁 기준시각(당일). 다중일(기간)일 때의 '기간 누적' 문구 전환은
+  // dateRange를 아는 HomePage에서 일괄 처리한다(실 API·로컬 목 공통).
   const realtimeCutoffLabel = isTodayView
     ? realtimePoints.length
       ? formatCutoffLabel(realtimePoints[realtimePoints.length - 1].eventTime)
