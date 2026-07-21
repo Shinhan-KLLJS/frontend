@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LNB_DEFAULT_MENUS } from '@/components/ui'
 import type { DropdownMenuItem, LNBMenu } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
@@ -57,6 +57,12 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
   const handleSelect = (key: string) => {
     const item = NAV_ITEMS.find((i) => i.key === key)
     if (item && item.path !== pathname) navigate(item.path)
+  }
+
+  // 앱 셸 전 경로에 팀 소속을 강제 — 로그인했지만 소속 팀이 없으면 온보딩으로 보낸다.
+  // (RequireAuth·RootRoute가 미로그인을 이미 걸러, 여기 도달 시 status는 authenticated)
+  if (user && !user.hasTeam) {
+    return <Navigate to={ROUTES.welcome} replace />
   }
 
   return (

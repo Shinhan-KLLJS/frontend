@@ -3,7 +3,6 @@
  * 함수는 ApiResponse 래퍼가 아닌 result 타입을 resolve하고, 실패는 TeamApiError로 throw한다(호출부는 message만 표시).
  *
  * 백엔드 미지원 기능은 목/로컬 처리한다(디자인 유지, 있는 API만 연결):
- * - 팀명 수정: 엔드포인트 없음 → updateTeamName은 로컬 반영만
  * - 이메일 초대 발송: 코드 공유 모델만 존재 → sendTeamInvites는 목 유지
  */
 import { isAxiosError } from 'axios'
@@ -218,6 +217,19 @@ export async function leaveTeam(teamId: number): Promise<void> {
   await unwrap<void>(api.delete(API_ENDPOINTS.teamLeave(teamId)))
 }
 
+/**
+ * 팀명 수정 (PATCH). OWNER/ADMIN만 가능 — MEMBER는 403.
+ * 실패(권한 없음·길이 초과 등)는 TeamApiError로 throw하며, 호출부가 message를 노출한다.
+ */
+export async function updateTeamName(
+  teamId: number,
+  name: string,
+): Promise<void> {
+  await unwrap<{ teamId: number; teamName: string }>(
+    api.patch(API_ENDPOINTS.teamRename(teamId), { teamName: name }),
+  )
+}
+
 // --- 온보딩 API ------------------------------------------------------------
 
 interface OcrResult {
@@ -313,14 +325,6 @@ export async function joinTeam(inviteCode: string): Promise<JoinedTeam> {
 }
 
 // --- 백엔드 미지원 — 디자인 유지를 위한 목/로컬 처리 (엔드포인트 확정 시 교체) ---
-
-/** 팀명 변경 — 백엔드 엔드포인트 없음. 호출부에서 로컬 낙관적 반영만 한다 */
-export async function updateTeamName(
-  _teamId: number,
-  _name: string,
-): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 200))
-}
 
 /**
  * 팀 코드 이메일 일괄 전송 — 백엔드에 대응 엔드포인트가 없어 임시 no-op(mock).

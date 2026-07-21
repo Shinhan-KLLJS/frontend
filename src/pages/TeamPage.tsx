@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import TeamInviteModal from '@/components/team/TeamInviteModal'
 import TeamMemberList from '@/components/team/TeamMemberList'
@@ -27,24 +27,23 @@ export default function TeamPage() {
     inviteCode,
     inviteSending,
     transferTarget,
+    removeTarget,
     leaveOpen,
     filteredMembers,
     myRole,
     setQuery,
     setInviteOpen,
     setTransferTarget,
+    setRemoveTarget,
     setLeaveOpen,
     handleOpenInvite,
     handleSendInvites,
     handleSelectRole,
-    handleRemoveMember,
+    handleConfirmRemove,
     handleSaveTeamName,
     handleTransferOwnership,
     handleLeaveTeam,
   } = teamManagement
-
-  // 소속 팀이 없으면 팀 생성·합류 분기점으로 이동해 딥링크 접근을 방어한다.
-  if (user && !user.hasTeam) return <Navigate to={ROUTES.welcome} replace />
 
   // 팀 데이터가 비어 있으면(조회 실패·팀 없음) 대시보드 빈 상태처럼 생성/합류 안내 화면을 보여준다.
   if (!loading && !team) {
@@ -75,7 +74,11 @@ export default function TeamPage() {
       {/* 헤더 — p-x5, space-between */}
       <header className="flex items-center justify-between gap-x5 p-x5">
         {team ? (
-          <TeamNameTitle name={team.name} onSave={handleSaveTeamName} />
+          <TeamNameTitle
+            name={team.name}
+            onSave={handleSaveTeamName}
+            canEdit={myRole !== 'MEMBER'}
+          />
         ) : (
           <span aria-hidden="true" />
         )}
@@ -115,7 +118,7 @@ export default function TeamPage() {
           myRole={myRole}
           loading={loading}
           onSelectRole={handleSelectRole}
-          onRemoveMember={handleRemoveMember}
+          onRemoveMember={setRemoveTarget}
         />
       </div>
 
@@ -125,6 +128,21 @@ export default function TeamPage() {
         body="부여하면 팀 관리 권한이 모두 이전돼요."
         onClose={() => setTransferTarget(null)}
         onConfirm={handleTransferOwnership}
+      />
+      <Modal
+        open={removeTarget !== null}
+        title={
+          <>
+            {removeTarget?.name} 님을
+            <br />
+            팀에서 삭제하시겠어요?
+          </>
+        }
+        body="삭제한 팀원은 팀 데이터에 다시 접근할 수 없어요."
+        cancelText="취소"
+        confirmText="삭제하기"
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={handleConfirmRemove}
       />
       <Modal
         open={leaveOpen}
