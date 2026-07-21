@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 import { ImageOff } from 'lucide-react'
 import type { CampaignMedia } from '@/lib/campaign'
 
@@ -8,18 +8,21 @@ export interface MediaCardProps {
   onSelect: () => void
 }
 
-/** 매체 카드 — 썸네일/매체명/주소/해상도/형태 태그. 호버·선택 스타일은 카드 자체에만 */
-export default function MediaCard({
-  media,
-  selected,
-  onSelect,
-}: MediaCardProps) {
+/**
+ * 매체 카드 — 썸네일/매체명/주소/해상도/형태 태그. 호버·선택 스타일은 카드 자체에만.
+ * 지도 핀 선택 시 목록에서 해당 카드로 스크롤하기 위해 버튼 ref를 전달받는다.
+ */
+const MediaCard = forwardRef<HTMLButtonElement, MediaCardProps>(function MediaCard(
+  { media, selected, onSelect },
+  ref,
+) {
   const [imgError, setImgError] = useState(false)
   // 썸네일 URL이 바뀌면(같은 카드 인스턴스 재사용) 이전 에러 상태를 리셋
   useEffect(() => setImgError(false), [media.thumbnail])
 
   return (
     <button
+      ref={ref}
       type="button"
       aria-pressed={selected}
       onClick={onSelect}
@@ -79,4 +82,6 @@ export default function MediaCard({
       </span>
     </button>
   )
-}
+})
+
+export default MediaCard
