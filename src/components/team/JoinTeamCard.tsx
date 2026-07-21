@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react'
 import { Button, InputField } from '@/components/ui'
 import OnboardingCard from '@/components/team/OnboardingCard'
+import teamJoinBg from '@/assets/onboarding/Team_Join_Card_BG.png'
 import { maskTeamCode } from '@/lib/team-format'
 
 export interface JoinTeamCardProps {
@@ -35,7 +36,10 @@ export default function JoinTeamCard({
       className="h-[584px] w-[590px] max-w-full p-x10"
     >
       <div className="flex flex-1 flex-col gap-x6">
-        <div className="flex flex-col items-center gap-x2 rounded-x4 bg-gradient-to-b from-[var(--blue-100)] via-[var(--blue-50)] to-bg-secondary p-x5 text-center">
+        <div
+          className="flex flex-col items-center gap-x2 rounded-x4 bg-cover bg-top bg-no-repeat p-x5 text-center"
+          style={{ backgroundImage: `url(${teamJoinBg})` }}
+        >
           <h1 className="text-title-3-bold text-text-primary pt-x10">팀 합류하기</h1>
           <p className="text-body-1-normal-regular text-text-primary pb-x10">
             팀 코드를 입력하세요. 코드가 확인되면 해당 팀에 합류합니다.

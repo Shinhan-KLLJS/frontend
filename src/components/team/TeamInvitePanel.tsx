@@ -157,7 +157,7 @@ export default function TeamInvitePanel({
           />
           <Button
             type="submit"
-            color="secondary"
+            color="primary"
             size="large"
             disabled={emailInput.trim() === ''}
           >
