@@ -65,7 +65,7 @@ export default function CampaignSummary({
     : '-'
 
   return (
-    <div className="flex w-full flex-col gap-x5 rounded-x6 border border-line-secondary bg-bg-secondary p-x5">
+    <div className="flex w-full flex-col gap-x5 self-start min-h-[640px] rounded-x6 border border-line-secondary bg-bg-secondary p-x5">
       <div className="flex items-stretch gap-x5">
         {/* 캠페인 정보 — 업로드 미완료(실패/진행/초기)면 업로드 카드로 대체 */}
         {uploadStatus === 'success' ? (
