@@ -53,17 +53,24 @@ function niceYMax(max: number): number {
 const LINE = 'var(--color-line-tertiary)'
 const CAT_1 = 'var(--color-chart-categorical-1)'
 
-/** x축 눈금 라벨(14·Regular·secondary) — recharts가 계산한 x에 그려 포인트와 정렬한다. */
+/**
+ * x축 눈금 라벨(14·Regular·secondary) — recharts가 계산한 x에 그려 포인트와 정렬한다.
+ * hideFirst면 index 0(커넥터 포인트)의 라벨은 그리지 않는다.
+ */
 function XTick({
   x = 0,
   y = 0,
+  index = 0,
+  hideFirst = false,
   payload,
 }: {
   x?: number
   y?: number
+  index?: number
+  hideFirst?: boolean
   payload?: { value?: string }
 }) {
-  if (!payload?.value) return <g />
+  if (!payload?.value || (hideFirst && index === 0)) return <g />
   return (
     <text
       x={x}
@@ -117,7 +124,14 @@ export default function RealtimeViewerChart({
     plotWidth > 0
       ? Math.max(1, Math.floor((plotWidth + X_LABEL_GAP) / X_LABEL_PITCH))
       : data.length
-  const visibleData = scrollable ? data : data.slice(-fitCount)
+  // 윈도우 밖에 이전 데이터가 있으면, 직전 포인트 1개를 커넥터로 앞에 붙여(왼쪽 끝에 배치)
+  // 라인이 축에서부터 이어져 보이게 한다. 커넥터의 점·라벨은 숨긴다.
+  const hasConnector = !scrollable && plotWidth > 0 && data.length > fitCount
+  const visibleData = scrollable
+    ? data
+    : hasConnector
+      ? data.slice(-(fitCount + 1))
+      : data.slice(-fitCount)
   const latest = visibleData.at(-1)
 
   const dataMax = visibleData.length
@@ -138,6 +152,23 @@ export default function RealtimeViewerChart({
     </defs>
   )
 
+  // 커넥터 포인트(index 0)는 라인만 잇고 점은 그리지 않는다.
+  const renderDot = (props: { cx?: number; cy?: number; index?: number }) => {
+    const key = `dot-${props.index}`
+    if (hasConnector && props.index === 0) return <g key={key} />
+    return (
+      <circle
+        key={key}
+        cx={props.cx}
+        cy={props.cy}
+        r={3}
+        fill={CAT_1}
+        stroke="var(--color-bg-secondary)"
+        strokeWidth={1.5}
+      />
+    )
+  }
+
   // 시각마다 포인트(dot) + 꺾은선(직선 구간)
   const area = (
     <Area
@@ -148,12 +179,7 @@ export default function RealtimeViewerChart({
       fill={`url(#${gradientId})`}
       baseValue={0}
       connectNulls={false}
-      dot={{
-        r: 3,
-        fill: CAT_1,
-        stroke: 'var(--color-bg-secondary)',
-        strokeWidth: 1.5,
-      }}
+      dot={renderDot}
       activeDot={{ r: 4, strokeWidth: 2 }}
       isAnimationActive={false}
     />
@@ -217,8 +243,9 @@ export default function RealtimeViewerChart({
                   axisLine={{ stroke: LINE }}
                   tickLine={false}
                   interval={0}
-                  padding={{ left: PLOT_X_PAD, right: PLOT_X_PAD }}
-                  tick={<XTick />}
+                  // 커넥터가 있으면 왼쪽 끝(0)까지 라인을 잇고, 없으면 첫 포인트를 살짝 띄운다.
+                  padding={{ left: hasConnector ? 0 : PLOT_X_PAD, right: PLOT_X_PAD }}
+                  tick={<XTick hideFirst={hasConnector} />}
                 />
                 {area}
               </AreaChart>
