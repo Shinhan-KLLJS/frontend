@@ -29,8 +29,17 @@ declare namespace kakao.maps {
     /** 현재 확대 레벨 (확대/축소 버튼에서 ±1 조정용) */
     getLevel(): number
     panTo(latlng: LatLng): void
-    /** 주어진 영역이 모두 보이도록 중심·레벨을 자동 조정 */
-    setBounds(bounds: LatLngBounds): void
+    /**
+     * 주어진 영역이 모두 보이도록 중심·레벨을 자동 조정.
+     * padding(px)을 주면 해당 방향 여백을 확보한다(순서: top, right, bottom, left).
+     */
+    setBounds(
+      bounds: LatLngBounds,
+      paddingTop?: number,
+      paddingRight?: number,
+      paddingBottom?: number,
+      paddingLeft?: number,
+    ): void
   }
 
   interface CustomOverlayOptions {

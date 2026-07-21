@@ -4,7 +4,7 @@
  */
 import axios, { isAxiosError } from 'axios'
 import type { AxiosResponse } from 'axios'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import type { DateRange } from '@/components/ui'
 import { api } from './api'
@@ -108,6 +108,8 @@ interface MediaUnitDto {
 
 interface MediaUnitsResult {
   mediaUnits: MediaUnitDto[]
+  /** 다음 페이지(더 받을 매체)가 남았는지 */
+  hasMore: boolean
 }
 
 /** 화면에서 소비하는 매체 모델 (카드·지도·최종 확인 공용) */
@@ -167,10 +169,25 @@ export interface MediaUnitsQuery {
   executionEndDate?: string
 }
 
-/** 송출 매체 리스트 조회 — keyword/sido/sigungu 필터 + 송출기간별 available 계산 */
+/** 매체 목록 한 페이지 — 화면 모델 + 다음 페이지 존재 여부 */
+export interface MediaPage {
+  items: CampaignMedia[]
+  hasMore: boolean
+}
+
+// 지도·리스트를 한 번에 다 받지 않고 점진 로드: 첫 페이지 10개, 이후 6개씩.
+const FIRST_PAGE_SIZE = 10
+const NEXT_PAGE_SIZE = 6
+
+/**
+ * 송출 매체 한 페이지 조회 — keyword/sido/sigungu 필터 + 송출기간별 available 계산.
+ * offset/limit 오프셋 페이지네이션(백엔드 getMediaUnits).
+ */
 export async function fetchCampaignMedia(
-  query: MediaUnitsQuery = {},
-): Promise<CampaignMedia[]> {
+  query: MediaUnitsQuery,
+  offset: number,
+  limit: number,
+): Promise<MediaPage> {
   const result = await unwrap(
     api.get<ApiResponse<MediaUnitsResult>>(API_ENDPOINTS.mediaUnits, {
       params: {
@@ -179,10 +196,12 @@ export async function fetchCampaignMedia(
         sigungu: query.sigungu || undefined,
         executionStartDate: query.executionStartDate || undefined,
         executionEndDate: query.executionEndDate || undefined,
+        offset,
+        limit,
       },
     }),
   )
-  return result.mediaUnits.map(toCampaignMedia)
+  return { items: result.mediaUnits.map(toCampaignMedia), hasMore: result.hasMore }
 }
 
 export const mediaUnitKeys = {
@@ -191,14 +210,24 @@ export const mediaUnitKeys = {
 }
 
 /**
- * 매체 목록 react-query 훅 — 대시보드(useCampaigns)와 동일 패턴 (캐싱·loading/error).
- * enabled=false면 조회를 미룬다 (매체 선택 단계 진입 전 불필요한 호출 방지).
- * query가 바뀌면 자동 재조회한다.
+ * 매체 목록 무한 스크롤 훅 — 첫 페이지 10개, 이후 6개씩 서버에서 이어 받는다.
+ * enabled=false면 조회를 미룬다(매체 선택 단계 진입 전). 필터(query)가 바뀌면 처음부터 다시 받는다.
  */
 export function useMediaUnits(enabled = true, query: MediaUnitsQuery = {}) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: mediaUnitKeys.list(query),
-    queryFn: () => fetchCampaignMedia(query),
+    queryFn: ({ pageParam }) =>
+      fetchCampaignMedia(
+        query,
+        pageParam,
+        pageParam === 0 ? FIRST_PAGE_SIZE : NEXT_PAGE_SIZE,
+      ),
+    initialPageParam: 0,
+    // 다음 offset = 지금까지 받은 개수(실제 수신량 기준). hasMore=false거나 빈 페이지면 종료.
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.hasMore || lastPage.items.length === 0) return undefined
+      return allPages.reduce((total, page) => total + page.items.length, 0)
+    },
     enabled,
   })
 }

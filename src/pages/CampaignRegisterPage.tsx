@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
@@ -190,8 +190,8 @@ export default function CampaignRegisterPage() {
   const onStep2 = step >= 2
   const { data: regions = [] } = useMediaRegions(onStep2)
   const [sido, setSido] = useState('서울특별시')
-  // 진입 기본: 서울특별시 전체 매체 (지도는 중구 부근에서 시작해 결과로 맞춰짐)
-  const [sigungu, setSigungu] = useState(ALL_SIGUNGU)
+  // 진입 기본: 서울특별시 중구 (사용자 위치 기반의 대체값 — 결과를 좁혀 초기 로딩을 가볍게)
+  const [sigungu, setSigungu] = useState('중구')
   const [keyword, setKeyword] = useState('')
 
   // 검색어 디바운스 — 키 입력마다 재조회하지 않도록
@@ -213,9 +213,18 @@ export default function CampaignRegisterPage() {
     executionEndDate: period.end ? toApiDate(period.end) : undefined,
   }
 
-  const { data: mediaList = [], isPending: mediaLoading } = useMediaUnits(
-    onStep2,
-    mediaQuery,
+  const {
+    data: mediaData,
+    isPending: mediaLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useMediaUnits(onStep2, mediaQuery)
+  // 무한 스크롤 페이지들을 하나의 목록으로 펼친다(지도 마커·리스트 공통).
+  // useMemo로 참조를 안정화 — 매 렌더 새 배열이면 MediaMap 이펙트(핀 동기화·setBounds)가 과하게 재실행됨.
+  const mediaList = useMemo(
+    () => mediaData?.pages.flatMap((page) => page.items) ?? [],
+    [mediaData],
   )
 
   // 매체 목록 패널 접기/펴기 (사이드 탭)
@@ -371,6 +380,9 @@ export default function CampaignRegisterPage() {
                 className="h-full w-[372px] overflow-hidden rounded-x3 border border-line-secondary"
                 mediaList={mediaList}
                 loading={mediaLoading}
+                hasMore={hasNextPage}
+                loadingMore={isFetchingNextPage}
+                onLoadMore={() => void fetchNextPage()}
                 keyword={keyword}
                 onKeywordChange={setKeyword}
                 selectedMediaId={selectedMediaId}
