@@ -29,13 +29,16 @@ export default function DemographicRatioCard({
   const values = data.map(({ total, male, female }) =>
     filter === 'all' ? total : filter === 'male' ? male : female,
   )
-  // 전체·남성·여성 받아온 값 전부 기준 — 전부 50% 이하면 50%를 최대치로 잡아 막대 2배 확대,
-  // 하나라도 50% 초과면 100% 기준(비율 그대로). 필터를 바꿔도 스케일이 일관되게 유지된다.
-  const maxValue = Math.max(
-    0,
-    ...data.flatMap(({ total, male, female }) => [total, male, female]),
-  )
-  const maximum = maxValue > 50 ? 100 : 50
+  // 스케일 상한은 실제로 그려지는 막대의 최댓값 바로 위 10 단위 눈금.
+  // all은 남+여 스택 합, male/female은 각 값 기준으로 잡아 값이 작아도 막대가 충분히 채워진다.
+  // 절대 %는 우측 값 라벨로 확인한다.
+  const drawnTotals =
+    filter === 'male'
+      ? data.map((d) => d.male)
+      : filter === 'female'
+        ? data.map((d) => d.female)
+        : data.map((d) => d.male + d.female)
+  const scaleMax = Math.max(10, Math.ceil(Math.max(0, ...drawnTotals) / 10) * 10)
 
   return (
     <DashboardPanel className="flex h-full min-w-[564px] flex-1 flex-col gap-x4">
@@ -75,15 +78,15 @@ export default function DemographicRatioCard({
                     {male > 0 && (
                       <span
                         className="absolute inset-y-0 left-0 rounded-x1 bg-chart-sequential-3"
-                        style={{ width: `${(male / maximum) * 100}%` }}
+                        style={{ width: `${(male / scaleMax) * 100}%` }}
                       />
                     )}
                     {female > 0 && (
                       <span
                         className="absolute inset-y-0 rounded-r-x1 bg-chart-sequential-1"
                         style={{
-                          left: `${(male / maximum) * 100}%`,
-                          width: `${(female / maximum) * 100}%`,
+                          left: `${(male / scaleMax) * 100}%`,
+                          width: `${(female / scaleMax) * 100}%`,
                         }}
                       />
                     )}
@@ -92,14 +95,14 @@ export default function DemographicRatioCard({
                   male > 0 && (
                     <span
                       className="absolute inset-y-0 left-0 rounded-x1 bg-chart-sequential-3"
-                      style={{ width: `${(male / maximum) * 100}%` }}
+                      style={{ width: `${(male / scaleMax) * 100}%` }}
                     />
                   )
                 ) : (
                   female > 0 && (
                     <span
                       className="absolute inset-y-0 left-0 rounded-x1 bg-chart-sequential-1"
-                      style={{ width: `${(female / maximum) * 100}%` }}
+                      style={{ width: `${(female / scaleMax) * 100}%` }}
                     />
                   )
                 )}
