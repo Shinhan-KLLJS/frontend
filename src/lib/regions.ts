@@ -27,6 +27,7 @@ export const REGIONS: Region[] = [
     lat: 37.5665,
     lng: 126.978,
     districts: [
+      { name: '중구', lat: 37.5638, lng: 126.9976 },
       { name: '강남구', lat: 37.5173, lng: 127.0473 },
       { name: '서초구', lat: 37.4837, lng: 127.0324 },
       { name: '송파구', lat: 37.5145, lng: 127.1059 },

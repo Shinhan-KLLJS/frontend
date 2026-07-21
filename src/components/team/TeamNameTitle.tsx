@@ -7,6 +7,8 @@ export interface TeamNameTitleProps {
   name: string
   /** 편집 확정 시에만 호출 — 빈 값/무변경은 컴포넌트가 걸러 원복한다 */
   onSave: (name: string) => void
+  /** 편집(펜) 노출 여부 — OWNER/ADMIN만 true. MEMBER는 서버가 403이라 펜을 숨긴다. 기본 true */
+  canEdit?: boolean
 }
 
 /**
@@ -14,7 +16,11 @@ export interface TeamNameTitleProps {
  * 디자인에 편집 상태 스펙이 없어 최소 구현: 펜 클릭 → 같은 자리 input 전환,
  * Enter/blur 저장 · Esc 취소
  */
-export default function TeamNameTitle({ name, onSave }: TeamNameTitleProps) {
+export default function TeamNameTitle({
+  name,
+  onSave,
+  canEdit = true,
+}: TeamNameTitleProps) {
   const [editing, setEditing] = useState(false)
   // 저장 경로를 blur 하나로 고정해 Enter→blur 이중 저장을 막고, Esc는 플래그로 저장만 건너뜀
   const cancelledRef = useRef(false)
@@ -39,7 +45,7 @@ export default function TeamNameTitle({ name, onSave }: TeamNameTitleProps) {
     }
   }
 
-  if (editing) {
+  if (editing && canEdit) {
     return (
       <input
         defaultValue={name}
@@ -58,14 +64,16 @@ export default function TeamNameTitle({ name, onSave }: TeamNameTitleProps) {
       <h1 className="min-w-0 truncate text-title-2-medium text-text-primary">
         {name}
       </h1>
-      <button
-        type="button"
-        aria-label="팀명 편집"
-        onClick={() => setEditing(true)}
-        className="shrink-0 cursor-pointer rounded-x1 p-x1 text-text-primary interaction-normal"
-      >
-        <Icon icon={SquarePen} size="small" />
-      </button>
+      {canEdit && (
+        <button
+          type="button"
+          aria-label="팀명 편집"
+          onClick={() => setEditing(true)}
+          className="shrink-0 cursor-pointer rounded-x1 p-x1 text-text-primary interaction-normal"
+        >
+          <Icon icon={SquarePen} size="small" />
+        </button>
+      )}
     </div>
   )
 }

@@ -14,6 +14,7 @@ import { api } from './api'
 import type { ApiResponse } from './api'
 import { CampaignApiError } from './campaign'
 import { API_ENDPOINTS } from './config'
+import { updateTeamName } from './team'
 
 // ── 공통: ApiResponse 언랩 ────────────────────────────────
 function toCampaignApiError(err: unknown): CampaignApiError {
@@ -159,6 +160,7 @@ interface CampaignDetailDto {
   creativeUrl: string
   mediaUnitId: number
   mediaName: string
+  mediaPhotoUrl: string
   mediaLocationAddress: string
   mediaWidthMm: number
   mediaHeightMm: number
@@ -179,6 +181,7 @@ export interface CampaignDetail {
   creativeType: 'IMAGE' | 'VIDEO'
   creativeUrl: string
   mediaName: string
+  mediaPhotoUrl: string
   mediaAddress: string
   /** 실물 규격 표기 (예: '81 X 20m') */
   mediaSize: string
@@ -200,6 +203,7 @@ function toCampaignDetail(dto: CampaignDetailDto): CampaignDetail {
     creativeType: dto.creativeType,
     creativeUrl: dto.creativeUrl,
     mediaName: dto.mediaName,
+    mediaPhotoUrl: dto.mediaPhotoUrl,
     mediaAddress: dto.mediaLocationAddress,
     mediaSize: `${mmToMeter(dto.mediaWidthMm)} X ${mmToMeter(dto.mediaHeightMm)}m`,
     mediaResolution: `${dto.mediaResolutionWidthPx} X ${dto.mediaResolutionHeightPx}px`,
@@ -271,6 +275,35 @@ export function useDeleteCampaign(teamId: number | undefined) {
     onSuccess: () => {
       if (teamId != null) {
         queryClient.invalidateQueries({ queryKey: campaignKeys.list(teamId) })
+      }
+    },
+  })
+}
+
+/**
+ * 팀명 변경 mutation(PATCH /teams/{teamId}) — 헤더의 팀명을 즉시 바꾸도록
+ * 목록 캐시의 teamName을 낙관적으로 갱신하고, 실패(권한·길이 등) 시 롤백한다.
+ * 성공 시 재조회하지 않는다(변경분은 teamName뿐이라 낙관적 값이 곧 서버 값 —
+ * 팀 관리 화면의 팀명 변경과 동일한 처리).
+ */
+export function useRenameTeam(teamId: number | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (teamName: string) =>
+      updateTeamName(teamId as number, teamName),
+    onMutate: async (teamName) => {
+      if (teamId == null) return
+      const key = campaignKeys.list(teamId)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData<TeamCampaigns>(key)
+      queryClient.setQueryData<TeamCampaigns>(key, (old) =>
+        old ? { ...old, teamName } : old,
+      )
+      return { previous }
+    },
+    onError: (_err, _name, context) => {
+      if (teamId != null && context?.previous) {
+        queryClient.setQueryData(campaignKeys.list(teamId), context.previous)
       }
     },
   })

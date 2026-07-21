@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import JoinTeamCard from '@/components/team/JoinTeamCard'
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
+import { fetchTeamCampaigns } from '@/lib/campaigns'
 import { ROUTES } from '@/lib/routes'
 import { joinTeam, TeamApiError } from '@/lib/team'
 
 type JoinState = 'idle' | 'submitting' | 'error'
 
 /**
- * 팀 합류하기 — 팀 코드 입력. 코드가 확인되면 해당 팀에 합류하고 홈으로 이동.
+ * 팀 합류하기 — 팀 코드 입력. 코드가 확인되면 합류 후,
+ * 그 팀에 캠페인이 있으면 캠페인 관리로, 없으면 홈으로 이동한다.
  */
 export default function JoinTeamPage() {
   const navigate = useNavigate()
@@ -38,7 +40,15 @@ export default function JoinTeamPage() {
       const team = await joinTeam(code.trim())
       updateUser({ hasTeam: true, teamId: team.id })
       toast(`${team.name} 팀에 합류했습니다.`, { status: 'success' })
-      navigate(ROUTES.home, { replace: true })
+      // 합류한 팀에 캠페인이 있으면 캠페인 관리로, 없으면(또는 조회 실패 시) 홈으로
+      let destination: string = ROUTES.home
+      try {
+        const { campaigns } = await fetchTeamCampaigns(team.id)
+        if (campaigns.length > 0) destination = ROUTES.campaigns
+      } catch {
+        // 캠페인 조회 실패는 합류 성공에 영향 없음 — 홈으로 폴백
+      }
+      navigate(destination, { replace: true })
     } catch (err) {
       setJoinState('error')
       setErrorMessage(

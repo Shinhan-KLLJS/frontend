@@ -111,7 +111,7 @@ export default function VideoUploadCard({
                   파일 업로드
                 </p>
                 <p className="text-label-1-normal-regular text-text-caption">
-                  광고를 송출할 파일을 업로드하세요.
+                  광고를 송출할 파일을 업로드해주세요.
                 </p>
               </div>
             </div>
@@ -156,7 +156,8 @@ export default function VideoUploadCard({
               variant="line"
               color="secondary"
               size="medium"
-              className="w-full"
+              // 업로드 중 어두운 미리보기 배경 위에서는 '취소' 글씨를 흰색으로
+              className={`w-full ${hasPreview ? '!text-text-primary-inverse' : ''}`}
               onClick={onCancel}
             >
               취소

@@ -18,7 +18,7 @@ export default function PlanCard({
 }: PlanCardProps) {
   return (
     <div
-      className={`relative flex h-[400px] w-[408px] items-end overflow-hidden rounded-x4 bg-bg-secondary p-x5 shadow-normal-xlarge`}
+      className={`relative flex h-[400px] w-[388px] min-w-[348px] items-end overflow-hidden rounded-x4 bg-bg-secondary p-x5 shadow-normal-xlarge`}
     >
       <img
         alt=""

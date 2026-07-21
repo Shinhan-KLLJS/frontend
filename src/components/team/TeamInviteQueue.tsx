@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react'
-import { ChevronDown, ChevronUp, X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import {
   Button,
   DropdownMenu,
@@ -77,8 +77,9 @@ export default function TeamInviteQueue({
                     <span className="flex items-center gap-x1 px-x2 py-[6px] text-label-1-normal-regular text-text-secondary">
                       {TEAM_ROLE_LABEL[entry.role]}
                       <Icon
-                        icon={menuOpen ? ChevronUp : ChevronDown}
+                        icon={ChevronDown}
                         size="small"
+                        className={`transition-transform ${menuOpen ? 'rotate-180' : ''}`}
                       />
                     </span>
                   )}

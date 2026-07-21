@@ -23,6 +23,10 @@ export interface MediaMapProps {
 const SIDO_LEVEL = 8
 const SIGUNGU_LEVEL = 5
 
+// 좌측 리스트 패널(372px + 여백 12px)만큼 왼쪽 여백을 확보해, 결과 매체가 패널에 가리지 않고
+// 지도의 보이는(패널 오른쪽) 영역 중앙에 오도록 한다. (드롭다운 left-[384px]와 정렬)
+const LIST_PANEL_PADDING = 384
+
 /**
  * 핀 스타일 — CustomOverlay content는 React 밖 DOM이라 클래스 문자열로 관리.
  * 24px 이미지 + border-4(기본 cool-neutral-700, 선택 line-brand, 미가용 line-disabled).
@@ -152,7 +156,8 @@ export default function MediaMap({
     if (status !== 'ready' || !map || !sdk?.maps || mediaList.length === 0) return
     const bounds = new sdk.maps.LatLngBounds()
     mediaList.forEach((m) => bounds.extend(new sdk.maps.LatLng(m.lat, m.lng)))
-    map.setBounds(bounds)
+    // 왼쪽 리스트 패널에 가리지 않도록 좌측 여백을 주고 범위를 맞춘다
+    map.setBounds(bounds, 0, 0, 0, LIST_PANEL_PADDING)
   }, [status, mediaList])
 
   // unmount 시 오버레이 정리

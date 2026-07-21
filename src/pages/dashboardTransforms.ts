@@ -24,19 +24,35 @@ import { formatKstTime } from '@/lib/dashboardTime'
  * (조회·상태는 DashboardHome 컨테이너 담당)
  */
 
-const formatPercent = (v: number): string => {
+// API 숫자 필드는 타입상 number지만, 집행 전·집계 데이터 없음 상태에서
+// 실제로 null이 내려온다. 방어 없이 포맷하면 렌더 중 예외로 대시보드 전체가
+// 죽으므로, null/undefined는 '-'(데이터 없음)로 대체한다.
+const NO_DATA = '-'
+
+const formatCount = (v: number | null | undefined): string =>
+  v == null ? NO_DATA : v.toLocaleString()
+
+const formatPercent = (v: number | null | undefined): string => {
+  if (v == null) return NO_DATA
   const r = Math.round(v * 10) / 10
   return Number.isInteger(r) ? String(r) : r.toFixed(1)
 }
 
-/** 송출정보 → KPI 카드 4종. */
-export function toKpiMetrics(d: CampaignDelivery): KpiMetric[] {
+/** 송출정보 → KPI 카드 4종. multiDay(2일 이상 조회)면 분모를 기간 목표로. */
+export function toKpiMetrics(
+  d: CampaignDelivery,
+  multiDay = false,
+): KpiMetric[] {
+  // 2일 이상 기간이면 일 목표(dailyTargetPlayCount)로 나누면 가분수가 되므로 기간 목표를 분모로
+  const targetPlayCount = multiDay
+    ? d.periodTargetPlayCount
+    : d.dailyTargetPlayCount
   return [
     {
       key: 'play-count',
       label: '현재 송출 회수',
-      value: d.currentPlayCount.toLocaleString(),
-      guide: `/${d.dailyTargetPlayCount.toLocaleString()}`,
+      value: formatCount(d.currentPlayCount),
+      guide: `/${formatCount(targetPlayCount)}`,
       icon: DEFAULT_KPI_ICONS.currentPlayCount,
     },
     {
@@ -49,7 +65,7 @@ export function toKpiMetrics(d: CampaignDelivery): KpiMetric[] {
     {
       key: 'play-time',
       label: '총 플레이 타임',
-      value: d.totalPlayTimeMin.toLocaleString(),
+      value: formatCount(d.totalPlayTimeMin),
       guide: '분',
       icon: DEFAULT_KPI_ICONS.totalPlayTime,
     },
@@ -75,33 +91,48 @@ const TOLA_DESCRIPTIONS = {
 /** 깔때기 응답 → TOLA 카드 4종(유동 → 주목 → 전환률 → 노출). */
 export function toTolaMetrics(f: CampaignFunnel): TolaMetric[] {
   const m = f.metrics
+  // 인원 지표: value가 null이면 '-'(단위 없이), 값이 있으면 'N명'.
+  const formatPopulation = (v: number | null | undefined): string =>
+    v == null ? NO_DATA : `${v.toLocaleString()}명`
+  // 전환률: 값이 있으면 'N%'. null이어도 유동인구 데이터가 있으면(집계는 됐으나 주목 0)
+  // '0%'로 표기하고, 데이터 자체가 없을 때만 '-'.
+  const formatConversion = (
+    rate: number | null | undefined,
+    traffic: number | null | undefined,
+  ): string => {
+    if (rate != null) return `${formatPercent(rate)}%`
+    return traffic != null ? '0%' : NO_DATA
+  }
   return [
     {
       key: 'traffic',
       label: '전체 유동인구',
-      value: `${m.totalTrafficCount.value.toLocaleString()}명`,
-      comparison: m.totalTrafficCount.yesterdayComparison?.increaseRate,
+      value: formatPopulation(m.totalTrafficCount?.value),
+      comparison: m.totalTrafficCount?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.traffic,
     },
     {
       key: 'exposure',
       label: '노출인구',
-      value: `${m.exposedPopulationCount.value.toLocaleString()}명`,
-      comparison: m.exposedPopulationCount.yesterdayComparison?.increaseRate,
+      value: formatPopulation(m.exposedPopulationCount?.value),
+      comparison: m.exposedPopulationCount?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.exposure,
     },
     {
       key: 'attention',
       label: '주목인구',
-      value: `${m.attentionPopulationCount.value.toLocaleString()}명`,
-      comparison: m.attentionPopulationCount.yesterdayComparison?.increaseRate,
+      value: formatPopulation(m.attentionPopulationCount?.value),
+      comparison: m.attentionPopulationCount?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.attention,
     },
     {
       key: 'conversion',
       label: '주목 전환률',
-      value: `${formatPercent(m.attentionConversionRate.value)}%`,
-      comparison: m.attentionConversionRate.yesterdayComparison?.increaseRate,
+      value: formatConversion(
+        m.attentionConversionRate?.value,
+        m.totalTrafficCount?.value,
+      ),
+      comparison: m.attentionConversionRate?.yesterdayComparison?.increaseRate,
       description: TOLA_DESCRIPTIONS.conversion,
     },
   ]
@@ -117,7 +148,7 @@ const WATCH_COLORS = [
 
 /** 실시간 시청수(시간별 누적) → 차트 시계열. viewers=attention(주목=실 시청). */
 export function toRealtimeData(r: CampaignRealtimeHourly): ViewerPoint[] {
-  return r.points.map((p) => ({
+  return (r.points ?? []).map((p) => ({
     time: formatKstTime(p.eventTime),
     viewers: p.attentionPopulationCount,
   }))
@@ -126,12 +157,13 @@ export function toRealtimeData(r: CampaignRealtimeHourly): ViewerPoint[] {
 /**
  * 5초 실시간 포인트 → 1분 슬롯 시계열(분당 마지막=최신 값).
  * 현재 분은 5초마다 제자리 갱신, 분이 넘어가면 왼쪽으로 밀린다.
+ * 최근 1시간(60분)까지 넉넉히 반환하고, 폭에 맞춰 몇 개를 그릴지는 차트가 정한다.
  */
 export function bucketRealtimeToMinutes(
   points: RealtimeGraphPoint[],
-  windowMinutes = 30,
+  windowMinutes = 60,
 ): ViewerPoint[] {
-  if (!points.length) return []
+  if (!points?.length) return []
   const byMinute = new Map<number, number>()
   const sorted = [...points].sort((a, b) =>
     a.eventTime.localeCompare(b.eventTime),
@@ -150,24 +182,36 @@ export function bucketRealtimeToMinutes(
     }))
 }
 
+// 데이터 없음(0초 등)일 때도 범례가 유지되도록 항상 노출할 기본 4구간 라벨
+const WATCH_BUCKET_LABELS = ['1-2초', '2-3초', '3-4초', '4초 이상']
+
 /** 평균 시청시간 → 카드 props. ratio는 0~100(%). */
 export function toWatchTime(a: CampaignAverageWatchTime): {
   averageSeconds: number
   buckets: WatchTimeBucket[]
 } {
+  const src = a.watchTimeBuckets ?? []
+  // 서버가 구간을 주지 않으면(0초 등) 값 0의 기본 4구간으로 채워 범례가 사라지지 않게 한다
+  const buckets: WatchTimeBucket[] = src.length
+    ? src.map((b, i) => ({
+        label: b.label,
+        value: Math.round(b.ratio * 10) / 10,
+        color: WATCH_COLORS[i % WATCH_COLORS.length],
+      }))
+    : WATCH_BUCKET_LABELS.map((label, i) => ({
+        label,
+        value: 0,
+        color: WATCH_COLORS[i % WATCH_COLORS.length],
+      }))
   return {
     averageSeconds: a.averageWatchTimeSec ?? 0,
-    buckets: a.watchTimeBuckets.map((b, i) => ({
-      label: b.label,
-      value: Math.round(b.ratio * 10) / 10,
-      color: WATCH_COLORS[i % WATCH_COLORS.length],
-    })),
+    buckets,
   }
 }
 
 /** 성별·연령 시청 비율 → 카드 데이터. ratio는 0~100(%). */
 export function toDemographics(d: CampaignDemographic): DemographicRatio[] {
-  return d.ageGroups.map((g) => ({
+  return (d.ageGroups ?? []).map((g) => ({
     ageGroup: g.label,
     total: Math.round(g.totalRatio * 10) / 10,
     male: Math.round(g.maleRatio * 10) / 10,
@@ -178,22 +222,28 @@ export function toDemographics(d: CampaignDemographic): DemographicRatio[] {
 const clampLevel = (n: number): ExposureLevel =>
   Math.min(4, Math.max(0, Math.round(n))) as ExposureLevel
 
-/** 시간·연령별 노출도 → 히트맵 props(연령 코드→라벨, 강도 0~4 클램프). */
-export function toExposure(e: CampaignExposure): {
-  hours: string[]
-  ageGroups: string[]
-  cells: ExposureCell[]
-} {
-  const labelByCode = new Map(e.ageGroups.map((g) => [g.ageGroup, g.label]))
-  return {
-    hours: e.hours,
-    ageGroups: e.ageGroups.map((g) => g.label),
-    cells: e.cells.map((c) => ({
-      ageGroup: labelByCode.get(c.ageGroup) ?? c.ageGroup,
-      hour: c.hour,
-      all: clampLevel(c.intensityLevel),
-      male: clampLevel(c.maleIntensityLevel),
-      female: clampLevel(c.femaleIntensityLevel),
-    })),
-  }
+// 연령 코드 → 히트맵 고정 행 라벨(HEATMAP_AGE_GROUPS와 일치해야 셀이 렌더된다).
+// 서버가 age group 목록을 부분적으로만 내려줘도 항상 정규 라벨로 매핑한다.
+const AGE_GROUP_LABEL: Record<string, string> = {
+  UNDER_10: '0-9세',
+  '10S': '10-19세',
+  '20S': '20-29세',
+  '30S': '30-39세',
+  '40S': '40-49세',
+  '50S': '50-59세',
+  '60_PLUS': '60세 이상',
+}
+
+/**
+ * 시간·연령별 노출도 → 히트맵 셀(연령 코드→고정 라벨, 시각 2자리 정규화, 강도 0~4 클램프).
+ * 축·행 레이아웃은 히트맵이 06~24시×7연령대로 고정하므로 여기선 셀만 만든다.
+ */
+export function toExposure(e: CampaignExposure): ExposureCell[] {
+  return (e.cells ?? []).map((c) => ({
+    ageGroup: AGE_GROUP_LABEL[c.ageGroup] ?? c.ageGroup,
+    hour: String(Number(c.hour)).padStart(2, '0'),
+    all: clampLevel(c.intensityLevel),
+    male: clampLevel(c.maleIntensityLevel),
+    female: clampLevel(c.femaleIntensityLevel),
+  }))
 }

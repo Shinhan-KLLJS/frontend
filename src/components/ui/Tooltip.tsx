@@ -27,7 +27,7 @@ export default function Tooltip({
       <span
         tabIndex={0}
         aria-describedby={open ? tooltipId : undefined}
-        className="inline-flex cursor-help outline-none"
+        className="inline-flex outline-none"
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)}

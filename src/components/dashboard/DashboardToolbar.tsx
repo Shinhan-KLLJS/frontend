@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { DatePicker, DateTrigger, DropdownMenu, Icon } from '@/components/ui'
 import type { DateRange, DropdownMenuItem } from '@/components/ui'
 
@@ -50,30 +50,35 @@ export default function DashboardToolbar({
         align="start"
         menuAriaLabel="캠페인 목록"
         triggerAriaLabel="캠페인 선택"
-        className="w-[462px] min-w-0"
-        triggerClassName="flex w-[462px] min-w-0 items-center text-left"
+        className="min-w-0"
+        triggerClassName="flex min-w-0 items-center gap-x1 text-left"
         renderTrigger={(open) => (
           <>
-            <span className="w-[430px] truncate text-title-1-medium text-text-primary">
+            {/* 이름 길이에 맞춰 폭을 잡고(최대 430px에서 말줄임), 쉐브론이 바로 옆에 붙는다 */}
+            <span className="min-w-0 max-w-[430px] truncate text-title-1-medium text-text-primary">
               {selected?.name ?? '캠페인을 선택해 주세요'}
             </span>
             <Icon
-              icon={open ? ChevronUp : ChevronDown}
+              icon={ChevronDown}
               size={32}
               color="secondary"
+              className={`shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
             />
           </>
         )}
       />
       <DateTrigger
         value={dateRange}
+        range
+        variant="toolbar"
         open={dateOpen}
-        className="h-[48px] min-w-[164px] shrink-0 justify-center px-x4 py-x3"
+        className="min-w-[164px] shrink-0 justify-center"
         onClick={() => (dateOpen ? setDateOpen(false) : openDatePicker())}
       />
       {dateOpen && (
         <DatePicker
           key={`${dateRange.start?.getTime()}-${dateRange.end?.getTime()}`}
+          type="no_input"
           value={draftRange}
           minDate={minDate}
           maxDate={maxDate}
@@ -83,7 +88,7 @@ export default function DashboardToolbar({
             onDateRangeChange(range)
             setDateOpen(false)
           }}
-          className="absolute right-0 top-[56px] z-50"
+          className="absolute right-0 top-[52px] z-50"
         />
       )}
     </div>

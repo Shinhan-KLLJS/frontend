@@ -34,7 +34,7 @@ export default function Checkbox({
       onClick={() => onChange?.(!checked)}
       className={[
         'inline-flex items-center gap-x1 font-sans',
-        disabled ? 'cursor-not-allowed' : 'cursor-pointer',
+        disabled ? '' : 'cursor-pointer',
         className,
       ]
         .filter(Boolean)

@@ -1,19 +1,22 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button, LoadingSpinner, useToast } from '@/components/ui'
 import CampaignListControls from '@/components/campaign/CampaignListControls'
 import CampaignDeleteModal from '@/components/campaign/CampaignDeleteModal'
 import CampaignInfoModal from '@/components/campaign/CampaignInfoModal'
 import CampaignMemoModal from '@/components/campaign/CampaignMemoModal'
 import CampaignListTable from '@/components/campaign/CampaignListTable'
+import TeamNameTitle from '@/components/team/TeamNameTitle'
 import { useAuth } from '@/lib/auth'
 import {
   useDeleteCampaign,
+  useRenameTeam,
   useTeamCampaigns,
   type Campaign,
 } from '@/lib/campaigns'
 import { CampaignApiError } from '@/lib/campaign'
+import { TeamApiError } from '@/lib/team'
 import { ROUTES } from '@/lib/routes'
 import { useCampaignList } from '@/hooks/useCampaignList'
 import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
@@ -27,6 +30,7 @@ export default function CampaignListPage() {
 
   const { data, isPending, isError, refetch } = useTeamCampaigns(teamId)
   const deleteCampaign = useDeleteCampaign(teamId)
+  const renameTeam = useRenameTeam(teamId)
 
   const [filter, setFilter] = useState<CampaignFilter>('all')
   const [keyword, setKeyword] = useState('')
@@ -35,11 +39,31 @@ export default function CampaignListPage() {
     null,
   )
   const [memoCampaignId, setMemoCampaignId] = useState<number | null>(null)
-  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null)
+  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(
+    null,
+  )
 
-  const campaigns = useCampaignList(data?.campaigns ?? [], filter, keyword, sort)
+  const campaigns = useCampaignList(
+    data?.campaigns ?? [],
+    filter,
+    keyword,
+    sort,
+  )
 
-  const showPreparationToast = () => toast('다음 작업에서 기능을 연결합니다.')
+  // 팀명 변경 — 낙관적 갱신은 mutation이 처리하고, 여기선 실패 메시지(권한·길이 등)만 노출.
+  const handleRenameTeam = (name: string) => {
+    renameTeam.mutate(name, {
+      onError: (error) => {
+        toast(
+          error instanceof TeamApiError
+            ? error.message
+            : '팀명 변경에 실패했습니다. 다시 시도하세요.',
+          { status: 'error' },
+        )
+      },
+    })
+  }
+
   const confirmCampaignDelete = () => {
     if (!campaignToDelete) return
     const campaign = campaignToDelete
@@ -100,55 +124,50 @@ export default function CampaignListPage() {
   }
 
   return (
-    <section className="flex min-h-full flex-col gap-x5 bg-bg-secondary p-x5">
-      <header className="flex items-center justify-between">
+    <section className="flex min-h-full flex-col bg-bg-secondary">
+      {/* 헤더 — p-x5, space-between */}
+      <header className="flex items-center justify-between p-x5">
+        <TeamNameTitle name={data.teamName} onSave={handleRenameTeam} />
         <div className="flex items-center gap-[6px]">
-          <h1 className="text-title-2-medium text-text-primary">
-            {data.teamName}
-          </h1>
-          <Button
-            iconOnly
-            variant="ghost"
-            color="secondary"
-            size="small"
-            leadingIcon={Pencil}
-            aria-label="팀 이름 편집"
-            onClick={showPreparationToast}
-          />
-        </div>
-        <div className="flex items-center gap-x2">
           <Button
             variant="line"
             color="secondary"
             size="large"
-            onClick={showPreparationToast}
           >
-            리포트 추출
+            리포트 추출하기
           </Button>
           <Button
+            variant="default"
+            color="primary"
             size="large"
             leadingIcon={Plus}
+            className="pl-x5"
             onClick={() => navigate(ROUTES.campaignsNew)}
           >
-            캠페인 등록
+            캠페인 등록하기
           </Button>
         </div>
       </header>
 
-      <CampaignListControls
-        filter={filter}
-        keyword={keyword}
-        sort={sort}
-        onFilterChange={setFilter}
-        onKeywordChange={setKeyword}
-        onSortChange={setSort}
-      />
-      <CampaignListTable
-        campaigns={campaigns}
-        onCampaignInfo={(campaign) => setSelectedCampaignId(Number(campaign.id))}
-        onCampaignMemo={(campaign) => setMemoCampaignId(Number(campaign.id))}
-        onCampaignDelete={setCampaignToDelete}
-      />
+      {/* 컨텐츠 — px-x5, gap-x5 */}
+      <div className="flex flex-1 flex-col gap-x5 px-x5 pb-x5">
+        <CampaignListControls
+          filter={filter}
+          keyword={keyword}
+          sort={sort}
+          onFilterChange={setFilter}
+          onKeywordChange={setKeyword}
+          onSortChange={setSort}
+        />
+        <CampaignListTable
+          campaigns={campaigns}
+          onCampaignInfo={(campaign) =>
+            setSelectedCampaignId(Number(campaign.id))
+          }
+          onCampaignMemo={(campaign) => setMemoCampaignId(Number(campaign.id))}
+          onCampaignDelete={setCampaignToDelete}
+        />
+      </div>
 
       <CampaignInfoModal
         teamId={teamId}

@@ -47,7 +47,7 @@ export default function InputField({
 
   const boxClass = [
     'flex w-full items-center rounded-x3 border transition-colors',
-    isDate ? 'gap-x2 px-x3 py-[14px]' : 'gap-x3 px-x4 py-x3',
+    isDate ? 'gap-x2 px-x3 py-[14px]' : 'gap-x1 px-x4 py-x3',
     disabled
       ? 'border-line-secondary bg-bg-disabled text-text-disabled-secondary'
       : isError
@@ -89,7 +89,7 @@ export default function InputField({
           required={required}
           aria-invalid={isError || undefined}
           aria-describedby={describedBy}
-          className={`min-w-0 flex-1 bg-transparent text-text-primary outline-none disabled:cursor-not-allowed disabled:text-text-disabled-secondary disabled:placeholder:text-text-disabled-secondary ${inputTypo}`}
+          className={`min-w-0 flex-1 bg-transparent text-text-primary outline-none disabled:text-text-disabled-secondary disabled:placeholder:text-text-disabled-secondary ${inputTypo}`}
           {...inputProps}
         />
         {trailingIcon && (

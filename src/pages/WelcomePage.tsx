@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import teamCreateImage from '@/assets/onboarding/team-create.png'
-import teamJoinImage from '@/assets/onboarding/team-join.png'
+import teamCreateImage from '@/assets/onboarding/Team_Make_Card_BG.png'
+import teamJoinImage from '@/assets/onboarding/Team_Join_Card_BG.png'
 import PlanCard from '@/components/team/PlanCard'
 import { ROUTES } from '@/lib/routes'
 
@@ -11,10 +11,16 @@ export default function WelcomePage() {
   const navigate = useNavigate()
 
   return (
-    <section className="flex flex-col items-center">
-      <div className="flex flex-col items-center gap-x2 p-x5 text-center">
+    <section className="flex flex-col items-center gap-x10">
+      <div className="flex flex-col items-center gap-x2 text-center">
         <h1 className="text-title-1-bold text-text-primary">
-          <span className="text-text-brand">Loovi</span>에 오신 것을 환영합니다
+          <span
+            className="text-text-brand"
+            style={{ fontFamily: '"SEBANG Gothic OTF", sans-serif' }}
+          >
+            Loovi
+          </span>
+          에 오신 것을 환영합니다
         </h1>
         <p className="text-body-1-normal-regular text-text-primary">
           현재 계정에 소속된 팀이 없습니다.
@@ -23,7 +29,7 @@ export default function WelcomePage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-x5 p-x5">
+      <div className="flex flex-wrap items-center justify-center gap-x5">
         <PlanCard
           image={teamCreateImage}
           title="새 팀을 만들고 싶다면?"

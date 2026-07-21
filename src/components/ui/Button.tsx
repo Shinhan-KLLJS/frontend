@@ -90,7 +90,7 @@ export default function Button({
       type="button"
       className={[
         'inline-flex items-center justify-center font-sans whitespace-nowrap',
-        'cursor-pointer disabled:cursor-not-allowed',
+        'cursor-pointer',
         iconOnly ? ICON_ONLY_SIZE_CLASS[size] : SIZE_CLASS[size],
         COLOR_CLASS[variant][color],
         className,

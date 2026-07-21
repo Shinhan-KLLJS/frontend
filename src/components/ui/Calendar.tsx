@@ -46,6 +46,8 @@ export interface CalendarDayProps extends Omit<
 > {
   state?: CalendarDayState
   selected?: boolean
+  /** 전체폭 모드 — 셀이 그리드 열 폭을 채운다(No_Input 타입). 기본은 40×40 고정 */
+  fullWidth?: boolean
   children?: ReactNode
 }
 
@@ -70,15 +72,19 @@ export function CalendarDay({
   state,
   selected = false,
   disabled,
+  fullWidth = false,
   className,
   children,
   ...props
 }: CalendarDayProps) {
+  // 전체폭이면 열 폭을 채우고(w-full), 아니면 40×40 고정
+  const cellSize = fullWidth ? 'h-[40px] w-full' : 'size-[40px]'
+
   if (state === 'day') {
     return (
       <div
         className={[
-          'flex size-[40px] items-center justify-center font-sans text-label-2-medium text-text-secondary',
+          `flex ${cellSize} items-center justify-center font-sans text-label-2-medium text-text-secondary`,
           className,
         ]
           .filter(Boolean)
@@ -119,7 +125,7 @@ export function CalendarDay({
       type="button"
       disabled={isDisabled}
       className={[
-        'group flex size-[40px] cursor-pointer items-center justify-center font-sans focus-visible:outline-none disabled:cursor-default',
+        `group flex ${cellSize} cursor-pointer items-center justify-center font-sans focus-visible:outline-none`,
         className,
       ]
         .filter(Boolean)
@@ -189,6 +195,8 @@ export interface CalendarProps {
   onSelectDay?: (day: Date) => void
   minDate?: Date
   maxDate?: Date
+  /** 전체폭 모드 — 그리드가 컨테이너 폭을 채운다(No_Input 타입). 기본은 280px 고정 */
+  fullWidth?: boolean
   className?: string
 }
 
@@ -201,6 +209,7 @@ export default function Calendar({
   onSelectDay,
   minDate,
   maxDate,
+  fullWidth = false,
   className,
 }: CalendarProps) {
   const weeks = getCalendarWeeks(month)
@@ -210,12 +219,15 @@ export default function Calendar({
 
   return (
     <div
-      className={['grid w-[280px] grid-cols-7 font-sans', className]
+      className={[
+        `grid grid-cols-7 font-sans ${fullWidth ? 'w-full' : 'w-[280px]'}`,
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
     >
       {WEEKDAY_LABELS.map((label) => (
-        <CalendarDay key={label} state="day">
+        <CalendarDay key={label} state="day" fullWidth={fullWidth}>
           {label}
         </CalendarDay>
       ))}
@@ -237,7 +249,7 @@ export default function Calendar({
         return (
           <div
             key={day.getTime()}
-            className="relative flex size-[40px] items-center justify-center"
+            className={`relative flex items-center justify-center ${fullWidth ? 'h-[40px]' : 'size-[40px]'}`}
           >
             {hasRange && (isStart || isEnd || inRange) && (
               <span
@@ -254,6 +266,7 @@ export default function Calendar({
             )}
             <CalendarDay
               className="relative"
+              fullWidth={fullWidth}
               aria-label={`${day.getFullYear()}년 ${day.getMonth() + 1}월 ${day.getDate()}일`}
               state={isDisabled ? 'disable' : undefined}
               selected={isStart || isEnd}

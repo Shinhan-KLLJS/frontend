@@ -25,6 +25,8 @@ export interface SearchBarProps extends Omit<
   onSelect?: (result: SearchResultItem) => void
   defaultOpen?: boolean
   listMaxHeight?: CSSProperties['maxHeight']
+  /** solid=채운 배경(bg-primary) · line=테두리형(border). 기본 solid */
+  variant?: 'solid' | 'line'
   className?: string
 }
 
@@ -40,6 +42,7 @@ export default function SearchBar({
   placeholder,
   defaultOpen = false,
   listMaxHeight = 148,
+  variant = 'solid',
   className,
   id,
   onFocus,
@@ -152,7 +155,14 @@ export default function SearchBar({
       className={['relative w-full', className].filter(Boolean).join(' ')}
     >
       {/* 검색 인풋 */}
-      <div className="flex h-[36px] w-full items-center gap-[6px] rounded-x2 bg-bg-primary px-x3 py-x2">
+      <div
+        className={[
+          'flex h-[36px] w-full items-center gap-[6px] rounded-x2 px-x3 py-x2',
+          variant === 'line'
+            ? 'border border-line-secondary bg-bg-secondary focus-within:border-line-brand'
+            : 'bg-bg-primary',
+        ].join(' ')}
+      >
         <Icon
           icon={Search}
           size="medium"
@@ -180,7 +190,7 @@ export default function SearchBar({
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="min-w-0 flex-1 bg-transparent text-body-1-normal-regular text-text-primary caret-[var(--cool-neutral-800)] outline-none placeholder:text-text-secondary"
+          className="min-w-0 flex-1 bg-transparent text-body-1-normal-regular text-text-primary caret-[var(--cool-neutral-800)] outline-none placeholder:text-text-tertiary"
           {...inputProps}
         />
       </div>

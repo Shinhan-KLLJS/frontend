@@ -195,7 +195,7 @@ export default function Dropdown({
   // 트리거
   const triggerClass = [
     'flex w-full items-center rounded-x2 p-x2 border bg-bg-secondary text-left outline-none transition-colors',
-    'cursor-pointer disabled:cursor-not-allowed',
+    'cursor-pointer',
     TRIGGER_SIZE_CLASS[size],
     disabled
       ? 'border-line-disabled bg-bg-disabled text-text-disabled'
@@ -258,7 +258,7 @@ export default function Dropdown({
                 'flex w-full items-center rounded-x2 p-x2 select-none',
                 OPTION_SIZE_CLASS[size],
                 option.disabled
-                  ? 'cursor-not-allowed text-text-disabled'
+                  ? 'text-text-disabled'
                   : 'cursor-pointer interaction-normal text-text-secondary',
                 !option.disabled && isActive ? 'bg-bg-primary' : '',
               ]

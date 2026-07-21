@@ -35,7 +35,7 @@ export default function DropdownMenuItems({
         const itemClass = [
           'flex h-[36px] w-full items-center rounded-x2 p-x2 text-label-1-normal-regular select-none',
           item.disabled
-            ? 'cursor-not-allowed text-text-disabled'
+            ? 'text-text-disabled'
             : item.tone === 'negative'
               ? 'cursor-pointer text-text-negative interaction-normal'
               : 'cursor-pointer text-text-primary interaction-normal',

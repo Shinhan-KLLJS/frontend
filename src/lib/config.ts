@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
   teamJoin: '/api/v1/teams/join', // POST 팀 합류
   teamInviteCode: (teamId: number) => `/api/v1/teams/${teamId}/invite-code`, // POST 초대 코드 발급
   // 팀 관리 (DV-165)
+  teamRename: (teamId: number) => `/api/v1/teams/${teamId}`, // PATCH 팀명 수정(OWNER/ADMIN)
   teamMembers: (teamId: number) => `/api/v1/teams/${teamId}/members`, // GET 팀원 목록(+팀명)
   teamMemberRole: (teamId: number, userId: number) =>
     `/api/v1/teams/${teamId}/members/${userId}/role`, // PATCH 권한 변경·Owner 이전

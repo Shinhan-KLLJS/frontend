@@ -72,8 +72,11 @@ export type {
   DateRange,
 } from './Calendar'
 
-export { default as DatePicker } from './DatePicker'
-export type { DatePickerProps } from './DatePicker'
+export { default as DatePicker, DATE_PICKER_TYPE } from './DatePicker'
+export type { DatePickerProps, DatePickerType } from './DatePicker'
+
+export { default as MainOverlay } from './MainOverlay'
+export type { MainOverlayProps } from './MainOverlay'
 
 export { default as DateTrigger } from './DateTrigger'
 export type { DateTriggerProps } from './DateTrigger'

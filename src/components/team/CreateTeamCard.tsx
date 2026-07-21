@@ -5,7 +5,7 @@ import CreateTeamForm from '@/components/team/CreateTeamForm'
 import LicenseDropzone from '@/components/team/LicenseDropzone'
 import type { UploadStatus } from '@/components/team/LicenseDropzone'
 import OnboardingCard from '@/components/team/OnboardingCard'
-import { Button } from '@/components/ui'
+import { Icon } from '@/components/ui'
 import type { CreateTeamFormValues } from '@/lib/team-schema'
 
 export interface CreateTeamCardProps {
@@ -35,21 +35,19 @@ export default function CreateTeamCard({
   onBack,
 }: CreateTeamCardProps) {
   return (
-    <OnboardingCard className="w-[996px] max-w-full gap-x8 p-x10">
+    <OnboardingCard className="w-[996px] max-w-full gap-x8 p-x5">
       <header className="relative flex flex-col items-center gap-x2 text-center">
-        <Button
-          iconOnly
-          leadingIcon={ChevronLeft}
+        <button
+          type="button"
           aria-label="뒤로 가기"
-          variant="ghost"
-          color="secondary"
-          size="medium"
           onClick={onBack}
-          className="absolute left-0 top-0"
-        />
+          className="absolute left-0 top-0 flex size-[24px] shrink-0 cursor-pointer items-center justify-center rounded-x1 text-text-primary interaction-normal"
+        >
+          <Icon icon={ChevronLeft} size="large" />
+        </button>
         <h1 className="text-title-3-bold text-text-primary">팀 생성하기</h1>
-        <p className="text-body-1-normal-regular text-text-secondary">
-          옥외광고 효과를 함께 측정하고 관리할 팀을 만드세요.
+        <p className="text-body-1-normal-regular text-text-primary">
+          옥외광고 효과를 함께 측정하고 관리할 팀을 만들어주세요.
         </p>
       </header>
 

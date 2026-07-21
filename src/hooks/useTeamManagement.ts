@@ -9,6 +9,7 @@ import {
   leaveTeam,
   removeMember,
   sendTeamInvites,
+  TeamApiError,
   updateMemberRole,
   updateTeamName,
 } from '@/lib/team'
@@ -37,6 +38,7 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
   const [inviteCode, setInviteCode] = useState('')
   const [inviteSending, setInviteSending] = useState(false)
   const [transferTarget, setTransferTarget] = useState<TeamMember | null>(null)
+  const [removeTarget, setRemoveTarget] = useState<TeamMember | null>(null)
   const [leaveOpen, setLeaveOpen] = useState(false)
 
   useEffect(() => {
@@ -148,26 +150,34 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
     }
   }
 
-  const handleRemoveMember = async (member: TeamMember) => {
-    if (teamId == null) return
+  // 팀원 삭제는 되돌릴 수 없으므로 확인 모달(removeTarget)을 거친 뒤에만 실행한다.
+  const handleConfirmRemove = async () => {
+    const target = removeTarget
+    setRemoveTarget(null)
+    if (teamId == null || !target) return
     try {
-      await removeMember(teamId, member.userId)
-      setMembers((prev) => prev.filter((item) => item.userId !== member.userId))
+      await removeMember(teamId, target.userId)
+      setMembers((prev) => prev.filter((item) => item.userId !== target.userId))
     } catch {
       toast('팀원 삭제에 실패했습니다. 다시 시도하세요.', { status: 'error' })
     }
   }
 
-  // 팀명 변경은 백엔드 미지원 → 로컬 낙관적 반영만 한다(디자인 유지).
+  // 팀명 변경(PATCH) — 응답 대기 중엔 낙관적으로 반영하고, 실패 시 롤백 + 서버 메시지(권한·길이 등) 노출.
   const handleSaveTeamName = async (name: string) => {
     if (teamId == null || !team) return
     const previous = team
     setTeam({ ...team, name })
     try {
       await updateTeamName(teamId, name)
-    } catch {
+    } catch (err) {
       setTeam(previous)
-      toast('팀명 변경에 실패했습니다. 다시 시도하세요.', { status: 'error' })
+      toast(
+        err instanceof TeamApiError
+          ? err.message
+          : '팀명 변경에 실패했습니다. 다시 시도하세요.',
+        { status: 'error' },
+      )
     }
   }
 
@@ -204,17 +214,19 @@ export function useTeamManagement({ teamId }: UseTeamManagementParams) {
     inviteCode,
     inviteSending,
     transferTarget,
+    removeTarget,
     leaveOpen,
     filteredMembers,
     myRole,
     setQuery,
     setInviteOpen,
     setTransferTarget,
+    setRemoveTarget,
     setLeaveOpen,
     handleOpenInvite,
     handleSendInvites,
     handleSelectRole,
-    handleRemoveMember,
+    handleConfirmRemove,
     handleSaveTeamName,
     handleTransferOwnership,
     handleLeaveTeam,

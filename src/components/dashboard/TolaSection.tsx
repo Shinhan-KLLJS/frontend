@@ -16,7 +16,10 @@ export interface TolaMetric {
 
 export interface TolaSectionProps {
   metrics: TolaMetric[]
-  /** 데이터 집계 기준 시각 "HH:mm" — 툴팁에 "HH:mm 기준"으로 표기 */
+  /**
+   * (i) 툴팁 문구. 당일 조회 시 "HH:mm 기준", 기간 조회 시 누적 안내 문구.
+   * 없으면(Storybook·로딩 중) 현재 시각으로 "HH:mm 기준"을 표기한다.
+   */
   cutoffLabel?: string
   /** '어제 대비' 증감 표시 여부 — 기간 조회 시 false로 숨기고 빈 칸을 유지한다. 기본 true */
   showComparison?: boolean
@@ -47,18 +50,15 @@ export default function TolaSection({
         {metrics.map((metric) => (
           <article
             key={metric.key}
-            className="flex min-w-0 flex-col justify-between pl-x2 pr-x4 "
+            className="flex min-w-0 flex-col gap-x3 pl-x2 pr-x4"
           >
-            <div>
+            {/* 타이틀↔값 gap-x1 */}
+            <div className="flex flex-col gap-x1">
               <div className="flex items-center justify-between gap-x3">
                 <span className="truncate text-label-1-normal-medium text-text-secondary">
                   {metric.label}
                 </span>
-                <Tooltip
-                  content={
-                    cutoffLabel ? `${cutoffLabel} 기준` : formatCutoffLabel()
-                  }
-                >
+                <Tooltip content={cutoffLabel ?? formatCutoffLabel()}>
                   <Icon
                     icon={Info}
                     size={16}
@@ -78,7 +78,10 @@ export default function TolaSection({
                   <span className="text-label-1-normal-regular text-text-secondary">
                     어제 대비
                   </span>
-                  {metric.comparison === undefined ? (
+                  {/* 증감이 없거나 값이 0(문자열 "0.0" 포함)이면 뱃지 대신 '-' 표기.
+                      나머지는 백엔드가 준 값을 그대로 노출(프론트 추가 포맷 없음). */}
+                  {metric.comparison == null ||
+                  Number(metric.comparison) === 0 ? (
                     <span className="text-label-1-normal-medium text-text-caption">
                       -
                     </span>

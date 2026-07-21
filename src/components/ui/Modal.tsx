@@ -121,9 +121,6 @@ export default function Modal({
         scopedRoot ? 'absolute' : 'fixed',
         'inset-0 z-50 flex items-center justify-center bg-[var(--Dimer_Black)]',
       ].join(' ')}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose?.()
-      }}
     >
       <div
         ref={panelRef}
@@ -135,7 +132,7 @@ export default function Modal({
         className={[
           'font-sans flex flex-col rounded-2xl bg-bg-secondary shadow-normal-medium',
           children
-            ? 'w-auto gap-x5 p-x5'
+            ? 'gap-x5 p-x5'
             : 'w-[334px] items-center gap-x5 px-x5 py-x8',
           className,
         ]
@@ -144,7 +141,7 @@ export default function Modal({
         {...props}
       >
         {children ? (
-          <div id={bodyId} className="w-full">
+          <div id={bodyId} className="flex min-h-0 w-full flex-1 flex-col">
             {children}
           </div>
         ) : (
@@ -160,7 +157,7 @@ export default function Modal({
             {body && (
               <p
                 id={bodyId}
-                className="text-body-2-normal-regular text-text-primary"
+                className="text-label-1-normal-regular text-text-primary"
               >
                 {body}
               </p>

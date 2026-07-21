@@ -12,6 +12,8 @@ export interface AppShellProps {
   onSignUpClick?: () => void
   onLoginClick?: () => void
   profileMenu?: DropdownMenuItem[]
+  /** 컨텐츠 영역(main) 배경 — 대시보드=bg-bg-primary, 그 외=bg-bg-secondary */
+  mainClassName?: string
   children: ReactNode
 }
 
@@ -28,6 +30,7 @@ export default function AppShell({
   onSignUpClick,
   onLoginClick,
   profileMenu,
+  mainClassName,
   children,
 }: AppShellProps) {
   return (
@@ -37,7 +40,8 @@ export default function AppShell({
           menus={menus}
           selectedKey={selectedKey}
           onSelect={onSelect}
-          className="shrink-0"
+          // relative z-10: LNB를 오른쪽 컬럼 위 레이어로 올려 오른쪽면 그림자가 헤더까지 덮이게
+          className="relative z-10 shrink-0"
         />
         <div
           id="app-content-area"
@@ -51,8 +55,14 @@ export default function AppShell({
             onLoginClick={onLoginClick}
             profileMenu={profileMenu}
           />
-          <main className="min-h-0 flex-1 overflow-y-auto w-full">
-            <div className="mx-auto h-full min-w-[1040px] max-w-[1440px]">
+          {/* 컨텐츠 영역 배경 — 라우트에 따라 AppLayout이 결정(대시보드=primary, 그 외=secondary) */}
+          <main
+            className={['min-h-0 w-full flex-1 overflow-y-auto', mainClassName]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {/* 컨텐츠 영역: 1040~1220px + 상하좌우 패딩 x5(20). 그 안에서 각 페이지가 자체 20px로 컨텐츠 전개 */}
+            <div className="mx-auto h-full min-w-[1040px] max-w-[1220px] p-x5">
               {children}
             </div>
           </main>

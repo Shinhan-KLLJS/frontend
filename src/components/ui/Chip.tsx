@@ -35,7 +35,7 @@ export default function Chip({
   ...props
 }: ChipProps) {
   const statusClass = props.disabled
-    ? 'bg-bg-disabled text-text-disabled cursor-not-allowed'
+    ? 'bg-bg-disabled text-text-disabled'
     : selected
       ? 'bg-[var(--cool-neutral-800)] text-text-primary-inverse cursor-pointer'
       : 'border border-line-primary bg-bg-secondary text-text-primary cursor-pointer'

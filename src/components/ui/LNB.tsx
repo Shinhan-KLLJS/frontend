@@ -67,16 +67,19 @@ export default function LNB({
     <nav
       aria-label={ariaLabel}
       className={[
-        'flex h-full flex-col bg-bg-secondary font-sans shadow-normal-lnb',
+        // 상단(로고)↔하단(메뉴) gap-x2. 폭을 부드럽게 전환(접기/펴기).
+        // overflow-hidden: 폭 전환 중 텍스트가 새어나가지 않게 클립(nav 자신의 box-shadow는 안 잘림).
+        'flex h-full flex-col gap-x2 overflow-hidden bg-bg-secondary font-sans shadow-normal-lnb transition-[width] duration-300 ease-out',
         short ? 'w-[60px]' : 'w-[240px]',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
     >
+      {/* 상단(헤더) — 56px, 1px line-tertiary 테두리, bg-secondary */}
       <div
         className={[
-          'flex h-[54px] shrink-0 items-center border-b border-line-tertiary',
+          'flex h-[56px] shrink-0 items-center border border-line-tertiary bg-bg-secondary',
           short ? 'justify-center' : 'justify-between px-x5',
         ].join(' ')}
       >
@@ -103,15 +106,24 @@ export default function LNB({
                 onClick={() => setShort(false)}
                 className="inline-flex size-[40px] cursor-pointer items-center justify-center rounded-x2-5"
               >
-                <img src={looviLogo} alt="" className="size-x5" />
+                <img src={looviLogo} alt="" className="size-x6" />
               </button>
             )}
           </div>
         ) : (
           <>
             <span className="inline-flex items-center gap-x2">
-              <img src={looviLogo} alt="" className="size-x5" />
-              <span className="text-body-1-normal-bold text-text-primary">
+              <img src={looviLogo} alt="" className="size-x6" />
+              <span
+                className="text-text-primary"
+                style={{
+                  fontFamily: '"SEBANG Gothic OTF", sans-serif',
+                  fontSize: 17,
+                  fontWeight: 700,
+                  lineHeight: '140%',
+                  letterSpacing: '-0.003px',
+                }}
+              >
                 Loovi
               </span>
             </span>
@@ -134,10 +146,10 @@ export default function LNB({
         )}
       </div>
 
-      {/* 메뉴 리스트 */}
+      {/* 메뉴 리스트 — 각 옵션이 px-x2 py-x1을 가져 컨테이너는 여백 없이 */}
       <div
         className={[
-          'flex min-h-0 flex-1 flex-col gap-x1 overflow-y-auto px-x2 py-x4 text-text-caption',
+          'flex min-h-0 flex-1 flex-col overflow-y-auto text-text-caption',
           short ? 'items-center' : '',
         ]
           .filter(Boolean)

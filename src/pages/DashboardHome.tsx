@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react'
+import type { ReactElement } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import type { CampaignOption } from '@/components/dashboard/DashboardToolbar'
 import { Button, LoadingSpinner } from '@/components/ui'
+import { ROUTES } from '@/lib/routes'
 import type { DateRange } from '@/components/ui'
+import { isSameDay } from '@/components/ui/date'
 import HomePage from '@/pages/HomePage'
 import {
   fromApiDate,
@@ -15,7 +20,7 @@ import {
   useRealtimeGraph,
   useRealtimeHourly,
 } from '@/lib/dashboard'
-import { formatCutoffLabel, formatKstTime } from '@/lib/dashboardTime'
+import { formatCutoffLabel } from '@/lib/dashboardTime'
 import {
   bucketRealtimeToMinutes,
   toDemographics,
@@ -25,6 +30,11 @@ import {
   toTolaMetrics,
   toWatchTime,
 } from '@/pages/dashboardTransforms'
+
+// 백엔드 없이 대시보드를 확인하는 로컬 목 모드(VITE_MOCK_AUTH=true·DEV 전용).
+// 이땐 실 API 대신 픽스처로 렌더한다(세션이 없어 캠페인 조회가 실패하므로).
+const IS_MOCK =
+  import.meta.env.DEV && import.meta.env.VITE_MOCK_AUTH === 'true'
 
 /** 조회 기간이 오늘이면 실시간(5초), 아니면 시간별 누적을 쓴다. */
 function isToday(d?: Date): boolean {
@@ -44,11 +54,52 @@ function todayRange(): DateRange {
   return { start: day, end: day }
 }
 
+// 로컬 전용 대시보드 목(있으면 로드). 배포엔 src/_mock 파일이 없어 glob이 비고 RealDashboard로 폴백된다.
+const dashboardMock = import.meta.glob<{ default: () => ReactElement }>(
+  '../_mock/DashboardMock.tsx',
+  { eager: true },
+)
+const MockDashboard = Object.values(dashboardMock)[0]?.default
+
+/**
+ * 대시보드 홈 진입점 — 로컬 목(DEV·VITE_MOCK_AUTH)이 있으면 목, 아니면 실 API 컨테이너로 분기.
+ * (훅을 조건부로 호출하지 않도록 분기와 로직을 분리)
+ */
+export default function DashboardHome() {
+  if (IS_MOCK && MockDashboard) return <MockDashboard />
+  return <RealDashboard />
+}
+
 /**
  * 대시보드 홈 컨테이너 — 캠페인 목록·조회 기간으로 각 섹션 API를 조회해
  * 프레젠테이셔널 HomePage에 주입한다. (응답→props 매핑은 dashboardTransforms)
  */
-export default function DashboardHome() {
+/** 캠페인이 하나도 없을 때의 빈 상태 — 컨텐츠 영역 정가운데 안내 + 등록 버튼 */
+function DashboardEmpty() {
+  const navigate = useNavigate()
+  return (
+    <div className="flex min-h-full flex-1 flex-col items-center justify-center gap-x5 p-x5">
+      {/* 제목↔소제목 gap-x2 */}
+      <div className="flex flex-col items-center gap-x2 text-center">
+        <h2 className="text-title-3-medium text-text-primary">
+          아직 측정할 수 있는 캠페인이 없어요
+        </h2>
+        <p className="text-heading-2-regular text-text-secondary">
+          캠페인을 등록하면 옥외광고 성과를 한눈에 확인할 수 있어요
+        </p>
+      </div>
+      <Button
+        size="large"
+        leadingIcon={Plus}
+        onClick={() => navigate(ROUTES.campaignsNew)}
+      >
+        캠페인 등록하기
+      </Button>
+    </div>
+  )
+}
+
+function RealDashboard() {
   const { data: campaigns, isPending, isError, refetch } = useCampaigns()
   const [override, setOverride] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState<DateRange>(() => todayRange())
@@ -69,12 +120,18 @@ export default function DashboardHome() {
   )
 
   const { data: delivery } = useCampaignDelivery(selected?.campaignId, dateRange)
-  const kpiMetrics = delivery ? toKpiMetrics(delivery) : undefined
+  // 조회 기간이 2일 이상(시작·종료가 다른 날)이면 KPI 분모를 기간 목표로
+  const isMultiDay = Boolean(
+    dateRange.start &&
+      dateRange.end &&
+      !isSameDay(dateRange.start, dateRange.end),
+  )
+  const kpiMetrics = delivery ? toKpiMetrics(delivery, isMultiDay) : undefined
 
   const { data: funnel } = useCampaignFunnel(selected?.campaignId, dateRange)
   const tolaMetrics = funnel ? toTolaMetrics(funnel) : undefined
   const tolaCutoffLabel = funnel
-    ? formatKstTime(funnel.aggregationCutoffTime)
+    ? formatCutoffLabel(funnel.aggregationCutoffTime)
     : undefined
 
   // 기간 미선택(오늘 단일 일자)=실시간(5-1, 5초 라이브·1분 슬롯), 기간 선택=시간별 누적(5-2)
@@ -106,12 +163,10 @@ export default function DashboardHome() {
   const demographics = demographic ? toDemographics(demographic) : undefined
 
   const { data: exposureData } = useExposure(selected?.campaignId, dateRange)
-  const exposure = exposureData ? toExposure(exposureData) : undefined
+  const exposureCells = exposureData ? toExposure(exposureData) : undefined
 
-  // 섹션별 (i) 툴팁 기준시각. KPI는 cutoff 필드가 없어 serverTime 사용.
-  const kpiCutoffLabel = delivery
-    ? formatCutoffLabel(delivery.serverTime)
-    : undefined
+  // 섹션별 (i) 툴팁 기준시각(당일). 다중일(기간)일 때의 '기간 누적' 문구 전환은
+  // dateRange를 아는 HomePage에서 일괄 처리한다(실 API·로컬 목 공통).
   const realtimeCutoffLabel = isTodayView
     ? realtimePoints.length
       ? formatCutoffLabel(realtimePoints[realtimePoints.length - 1].eventTime)
@@ -156,13 +211,7 @@ export default function DashboardHome() {
   }
 
   if (!campaigns || campaigns.length === 0) {
-    return (
-      <div className="flex min-h-[240px] items-center justify-center p-x5">
-        <p className="text-body-1-normal-regular text-text-secondary">
-          표시할 캠페인이 없습니다.
-        </p>
-      </div>
-    )
+    return <DashboardEmpty />
   }
 
   return (
@@ -184,8 +233,7 @@ export default function DashboardHome() {
       averageSeconds={watchTime?.averageSeconds}
       watchBuckets={watchTime?.buckets}
       demographics={demographics}
-      exposure={exposure}
-      kpiCutoffLabel={kpiCutoffLabel}
+      exposureCells={exposureCells}
       realtimeCutoffLabel={realtimeCutoffLabel}
       averageCutoffLabel={averageCutoffLabel}
       demographicCutoffLabel={demographicCutoffLabel}

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { LNB_DEFAULT_MENUS } from '@/components/ui'
 import type { DropdownMenuItem, LNBMenu } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
@@ -59,6 +59,12 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
     if (item && item.path !== pathname) navigate(item.path)
   }
 
+  // 앱 셸 전 경로에 팀 소속을 강제 — 로그인했지만 소속 팀이 없으면 온보딩으로 보낸다.
+  // (RequireAuth·RootRoute가 미로그인을 이미 걸러, 여기 도달 시 status는 authenticated)
+  if (user && !user.hasTeam) {
+    return <Navigate to={ROUTES.welcome} replace />
+  }
+
   return (
     <AppShell
       menus={NAV_ITEMS}
@@ -70,6 +76,10 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
       onSignUpClick={() => navigate(ROUTES.login)}
       onLoginClick={() => navigate(ROUTES.login)}
       profileMenu={profileMenu}
+      // 대시보드(홈)만 컨텐츠 영역 primary, 나머지 공통 LNB/헤더 페이지는 secondary
+      mainClassName={
+        pathname === ROUTES.home ? 'bg-bg-primary' : 'bg-bg-secondary'
+      }
     >
       {children ?? <Outlet />}
     </AppShell>
