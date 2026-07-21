@@ -39,6 +39,15 @@ const STEP_SUBTITLE: Record<RegisterStep, string> = {
   3: '마지막으로 입력한 정보가 올바른지 확인하세요.',
 }
 
+// 저장된 초안이 없을 때 쓰는 빈 폼 초기값
+const EMPTY_INFO: CampaignInfoValues = {
+  name: '',
+  brand: '',
+  period: {},
+  dailyPlayCount: '',
+  memo: '',
+}
+
 /**
  * 업로드한 영상에서 정지 프레임 썸네일(JPEG dataURL)을 추출한다.
  * 실제 업로드 완료와 무관하게 로컬 파일에서 즉시 생성 — 미리보기 표시·다음 단계 진행 판단에 사용.
@@ -106,6 +115,100 @@ const INITIAL_UPLOAD: UploadState = {
   creativeToken: null,
 }
 
+// ── 초안 영속화 ─────────────────────────────────────────
+// 스텝2에서 새로고침해도 입력이 날아가지 않도록, 폼 값과 '완료된' 업로드를 세션에 저장/복원한다.
+// File은 직렬화가 안 되므로 저장하지 않고, 이미 발급된 creativeToken·썸네일만 저장해 이어서 진행한다.
+// sessionStorage: 새로고침엔 유지·탭을 닫으면 정리. 등록 성공 시 명시적으로 비운다.
+const DRAFT_KEY = 'campaign-register-draft'
+
+interface StoredDraft {
+  info: {
+    name: string
+    brand: string
+    period: { start?: string; end?: string }
+    dailyPlayCount: string
+    memo: string
+  }
+  upload: {
+    status: UploadStatus
+    thumbnailUrl: string | null
+    creativeToken: string | null
+  }
+}
+
+function readDraft(): { info: CampaignInfoValues; upload: UploadState } | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY)
+    if (!raw) return null
+    const draft = JSON.parse(raw) as StoredDraft
+    const info: CampaignInfoValues = {
+      name: draft.info.name ?? '',
+      brand: draft.info.brand ?? '',
+      period: {
+        start: draft.info.period?.start
+          ? new Date(draft.info.period.start)
+          : undefined,
+        end: draft.info.period?.end
+          ? new Date(draft.info.period.end)
+          : undefined,
+      },
+      dailyPlayCount: draft.info.dailyPlayCount ?? '',
+      memo: draft.info.memo ?? '',
+    }
+    // 완료된 업로드만 복원해 '다음'을 이어서 활성화. 미완료/실패는 idle로 되돌려 재업로드하게 한다.
+    const saved = draft.upload
+    const upload: UploadState =
+      saved?.status === 'success' && saved.creativeToken
+        ? {
+            status: 'success',
+            file: null,
+            thumbnailUrl: saved.thumbnailUrl,
+            creativeToken: saved.creativeToken,
+          }
+        : { ...INITIAL_UPLOAD }
+    return { info, upload }
+  } catch {
+    return null
+  }
+}
+
+function saveDraft(info: CampaignInfoValues, upload: UploadState): void {
+  try {
+    const draft: StoredDraft = {
+      info: {
+        name: info.name,
+        brand: info.brand,
+        period: {
+          start: info.period?.start?.toISOString(),
+          end: info.period?.end?.toISOString(),
+        },
+        dailyPlayCount: info.dailyPlayCount,
+        memo: info.memo,
+      },
+      // 완료된 업로드만 저장(재개용). 진행/실패 상태는 저장하지 않는다.
+      upload:
+        upload.status === 'success' && upload.creativeToken
+          ? {
+              status: 'success',
+              thumbnailUrl: upload.thumbnailUrl,
+              creativeToken: upload.creativeToken,
+            }
+          : { status: 'idle', thumbnailUrl: null, creativeToken: null },
+    }
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+  } catch {
+    // 저장 실패(용량 초과 등)는 무시 — 영속화는 편의 기능
+  }
+}
+
+function clearDraft(): void {
+  try {
+    sessionStorage.removeItem(DRAFT_KEY)
+  } catch {
+    /* noop */
+  }
+}
+
 /**
  * 캠페인 등록 — 3단계 위저드 (기본 정보 → 매체 선택 → 최종 확인).
  * 폼·업로드·매체 선택 상태는 단계 왕복에도 보존되도록 전부 이 페이지가 소유한다
@@ -118,26 +221,37 @@ export default function CampaignRegisterPage() {
   // 1단계에서 입력 내용이 있는 채로 나가려 할 때 확인 모달
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
+  // 새로고침 대비: 세션에 저장된 초안(입력값 + 완료된 업로드)을 초기값으로 1회 복원
+  const [initialDraft] = useState(readDraft)
+
   // Step1 기본 정보 폼 — 단계를 오가도 값이 유지되도록 페이지가 인스턴스를 소유
   const form = useForm<CampaignInfoValues>({
     resolver: zodResolver(campaignInfoSchema),
     mode: 'onTouched',
-    defaultValues: {
-      name: '',
-      brand: '',
-      period: {},
-      dailyPlayCount: '',
-      memo: '',
-    },
+    defaultValues: initialDraft?.info ?? EMPTY_INFO,
   })
   // isDirty는 렌더 중 읽어야 RHF proxy가 추적·갱신한다(콜백 안에서만 읽으면 초기값 유지)
   const isFormDirty = form.formState.isDirty
 
   // 영상 업로드 — 단계 이동 후에도 진행·토스트가 이어지도록 페이지가 상태를 소유
   const { toast } = useToast()
-  const [upload, setUpload] = useState<UploadState>(INITIAL_UPLOAD)
+  const [upload, setUpload] = useState<UploadState>(
+    initialDraft?.upload ?? INITIAL_UPLOAD,
+  )
+  // form.watch 콜백이 항상 최신 업로드를 참조하도록 ref 경유
+  const uploadRef = useRef(upload)
   // abort가 불가하므로 시퀀스 토큰으로 취소·재업로드 이후 도착한 응답을 무시
   const uploadSeqRef = useRef(0)
+
+  // 폼/업로드 변경 시 세션에 초안 저장(새로고침 복원용)
+  useEffect(() => {
+    const sub = form.watch(() => saveDraft(form.getValues(), uploadRef.current))
+    return () => sub.unsubscribe()
+  }, [form])
+  useEffect(() => {
+    uploadRef.current = upload
+    saveDraft(form.getValues(), upload)
+  }, [upload, form])
 
   const handleFileSelect = (file: File) => {
     // accept="video/*"는 드래그&드롭을 막지 못하므로 형식을 재검증
@@ -280,6 +394,7 @@ export default function CampaignRegisterPage() {
         creativeToken: upload.creativeToken,
       })
       toast('캠페인이 등록되었습니다.', { status: 'success' })
+      clearDraft()
       navigate(ROUTES.campaigns)
     } catch (err) {
       const message =
