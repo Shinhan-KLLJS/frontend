@@ -79,7 +79,6 @@ export default function DashboardToolbar({
         <DatePicker
           key={`${dateRange.start?.getTime()}-${dateRange.end?.getTime()}`}
           type="no_input"
-          allowSingleDay
           value={draftRange}
           minDate={minDate}
           maxDate={maxDate}

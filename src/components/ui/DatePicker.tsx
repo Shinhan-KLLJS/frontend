@@ -22,8 +22,6 @@ export interface DatePickerProps {
    * (status=default/1 Day/2 Days는 선택 값에서 파생돼 렌더된다)
    */
   type?: DatePickerType
-  /** true면 하루만 선택(시작일)해도 '선택 완료' 활성 — 대시보드/개업일처럼 하루 지정을 허용하는 경우 */
-  allowSingleDay?: boolean
   minDate?: Date
   maxDate?: Date
   defaultMonth?: Date
@@ -40,7 +38,6 @@ export default function DatePicker({
   onClose,
   title = '기간 설정',
   type = 'default',
-  allowSingleDay = false,
   minDate,
   maxDate,
   defaultMonth,
@@ -238,8 +235,16 @@ export default function DatePicker({
           </Button>
           <Button
             size="medium"
-            disabled={allowSingleDay ? !range.start : !range.start || !range.end}
-            onClick={() => onApply?.(range)}
+            // 종료일은 필수가 아님 — 시작일만 있으면 선택 완료.
+            disabled={!range.start}
+            // 하루만 선택하면 시작일=종료일로 확정, 두 날이면 그대로 적용.
+            onClick={() =>
+              onApply?.(
+                range.start && !range.end
+                  ? { start: range.start, end: range.start }
+                  : range,
+              )
+            }
           >
             선택 완료
           </Button>

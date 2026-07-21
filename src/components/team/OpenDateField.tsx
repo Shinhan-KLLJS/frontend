@@ -11,7 +11,7 @@ export interface OpenDateFieldProps {
 
 /**
  * 개업일 입력 필드 — 클릭 시 DatePicker(no_input)를 본문 중앙에 딤머와 함께 띄우고,
- * '선택 완료' 시 'YYYY.MM.DD'로 반영한다. 하루만 클릭해도 선택 완료가 활성(allowSingleDay).
+ * '선택 완료' 시 'YYYY.MM.DD'로 반영한다. 하루만 클릭해도 선택 완료가 활성이다.
  */
 export default function OpenDateField({
   value,
@@ -63,7 +63,6 @@ export default function OpenDateField({
         <MainOverlay>
           <DatePicker
             type="no_input"
-            allowSingleDay
             value={selected ? { start: selected } : undefined}
             defaultMonth={selected}
             maxDate={new Date()}
