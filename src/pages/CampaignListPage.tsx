@@ -1,19 +1,22 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, SquarePen } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button, LoadingSpinner, useToast } from '@/components/ui'
 import CampaignListControls from '@/components/campaign/CampaignListControls'
 import CampaignDeleteModal from '@/components/campaign/CampaignDeleteModal'
 import CampaignInfoModal from '@/components/campaign/CampaignInfoModal'
 import CampaignMemoModal from '@/components/campaign/CampaignMemoModal'
 import CampaignListTable from '@/components/campaign/CampaignListTable'
+import TeamNameTitle from '@/components/team/TeamNameTitle'
 import { useAuth } from '@/lib/auth'
 import {
   useDeleteCampaign,
+  useRenameTeam,
   useTeamCampaigns,
   type Campaign,
 } from '@/lib/campaigns'
 import { CampaignApiError } from '@/lib/campaign'
+import { TeamApiError } from '@/lib/team'
 import { ROUTES } from '@/lib/routes'
 import { useCampaignList } from '@/hooks/useCampaignList'
 import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
@@ -27,6 +30,7 @@ export default function CampaignListPage() {
 
   const { data, isPending, isError, refetch } = useTeamCampaigns(teamId)
   const deleteCampaign = useDeleteCampaign(teamId)
+  const renameTeam = useRenameTeam(teamId)
 
   const [filter, setFilter] = useState<CampaignFilter>('all')
   const [keyword, setKeyword] = useState('')
@@ -45,6 +49,20 @@ export default function CampaignListPage() {
     keyword,
     sort,
   )
+
+  // 팀명 변경 — 낙관적 갱신은 mutation이 처리하고, 여기선 실패 메시지(권한·길이 등)만 노출.
+  const handleRenameTeam = (name: string) => {
+    renameTeam.mutate(name, {
+      onError: (error) => {
+        toast(
+          error instanceof TeamApiError
+            ? error.message
+            : '팀명 변경에 실패했습니다. 다시 시도하세요.',
+          { status: 'error' },
+        )
+      },
+    })
+  }
 
   const confirmCampaignDelete = () => {
     if (!campaignToDelete) return
@@ -109,19 +127,7 @@ export default function CampaignListPage() {
     <section className="flex min-h-full flex-col bg-bg-secondary">
       {/* 헤더 — p-x5, space-between */}
       <header className="flex items-center justify-between p-x5">
-        <div className="flex items-center gap-[6px]">
-          <h1 className="text-title-2-medium text-text-primary">
-            {data.teamName}
-          </h1>
-          <Button
-            iconOnly
-            variant="ghost"
-            color="secondary"
-            size="small"
-            leadingIcon={SquarePen}
-            aria-label="팀 이름 편집"
-          />
-        </div>
+        <TeamNameTitle name={data.teamName} onSave={handleRenameTeam} />
         <div className="flex items-center gap-[6px]">
           <Button
             variant="line"
