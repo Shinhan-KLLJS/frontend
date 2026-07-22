@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useId, useLayoutEffect, useState } from 'react'
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { ScrollArea } from '@/components/ui'
 import DashboardPanel from './DashboardPanel'
@@ -35,6 +35,8 @@ const SCROLL_POINT_WIDTH = X_LABEL_PITCH
 const PLOT_X_PAD = 20
 /** y축 눈금 개수(0 제외) — 값이 바뀌어도 항상 5개 고정. */
 const Y_TICKS = 5
+/** 폭 측정 전(plotWidth=0) 임시 표시 개수 — 좁은 폭에서도 안 겹치도록 보수적으로. */
+const FALLBACK_FIT_COUNT = 10
 
 /** rough 값을 1·2·5·10 계열의 깔끔한 눈금 간격으로 올림. */
 function niceStep(rough: number): number {
@@ -87,20 +89,24 @@ function XTick({
   )
 }
 
-/** 컨테이너 폭을 관찰해 반환(ResizeObserver). */
+/**
+ * 컨테이너 폭을 관찰해 반환(ResizeObserver).
+ * 콜백 ref로 노드를 상태에 담아, 노드가 (조건부 렌더로) 뒤늦게 붙어도 그때 다시 측정한다.
+ * (useLayoutEffect([])는 1회만 실행돼, 마운트 시점에 노드가 없으면 폭이 0으로 남는 문제를 방지)
+ */
 function useElementWidth<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
   const [width, setWidth] = useState(0)
+  const [node, setNode] = useState<T | null>(null)
+  const ref = useCallback((el: T | null) => setNode(el), [])
   useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    setWidth(el.clientWidth)
+    if (!node) return
+    setWidth(node.clientWidth)
     const ro = new ResizeObserver((entries) => {
       setWidth(entries[0].contentRect.width)
     })
-    ro.observe(el)
+    ro.observe(node)
     return () => ro.disconnect()
-  }, [])
+  }, [node])
   return [ref, width] as const
 }
 
@@ -120,10 +126,11 @@ export default function RealtimeViewerChart({
   const [plotRef, plotWidth] = useElementWidth<HTMLDivElement>()
 
   // 당일: 그래프 폭에 들어가는 라벨 수 = floor((폭+간격)/피치). 그만큼 최신 분부터 보여준다.
+  // 폭 측정 전에는 전체가 아니라 보수적 개수만(안 겹치게) — 측정되면 정확한 수로 교체된다.
   const fitCount =
     plotWidth > 0
       ? Math.max(1, Math.floor((plotWidth + X_LABEL_GAP) / X_LABEL_PITCH))
-      : data.length
+      : Math.min(data.length, FALLBACK_FIT_COUNT)
   // 윈도우 밖에 이전 데이터가 있으면, 직전 포인트 1개를 커넥터로 앞에 붙여(왼쪽 끝에 배치)
   // 라인이 축에서부터 이어져 보이게 한다. 커넥터의 점·라벨은 숨긴다.
   const hasConnector = !scrollable && plotWidth > 0 && data.length > fitCount
