@@ -82,7 +82,7 @@ export default function TeamPage() {
         ) : (
           <span aria-hidden="true" />
         )}
-        <div className="flex shrink-0 items-center gap-x5">
+        <div className="flex shrink-0 items-center gap-[6px]">
           <Button
             variant="line"
             color="secondary"
@@ -101,17 +101,14 @@ export default function TeamPage() {
       </header>
 
       {/* 본문 — 헤더 하단 p-x5가 상단 여백을 대신하므로 px-x5 pb-x5, gap-x5 */}
-      <div className="flex flex-1 flex-col gap-x5 px-x5 pb-x5">
-        {/* SearchBar 루트가 w-full이라 래퍼로 307px 고정 */}
-        <div className="w-[307px]">
-          <SearchBar
-            value={query}
-            onChange={setQuery}
-            placeholder="팀원 이름을 검색하세요"
-            variant="line"
-            aria-label="팀원 검색"
-          />
-        </div>
+      <div className="flex flex-1 flex-col gap-x5 p-x5 pb-x5">
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          placeholder="팀원 이름을 검색하세요"
+          variant="line"
+          aria-label="팀원 검색"
+        />
 
         <TeamMemberList
           members={filteredMembers}

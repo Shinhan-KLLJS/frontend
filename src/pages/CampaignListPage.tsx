@@ -129,11 +129,7 @@ export default function CampaignListPage() {
       <header className="flex items-center justify-between p-x5">
         <TeamNameTitle name={data.teamName} onSave={handleRenameTeam} />
         <div className="flex items-center gap-[6px]">
-          <Button
-            variant="line"
-            color="secondary"
-            size="large"
-          >
+          <Button variant="line" color="secondary" size="large">
             리포트 추출하기
           </Button>
           <Button
@@ -150,7 +146,7 @@ export default function CampaignListPage() {
       </header>
 
       {/* 컨텐츠 — px-x5, gap-x5 */}
-      <div className="flex flex-1 flex-col gap-x5 px-x5 pb-x5">
+      <div className="flex flex-1 flex-col gap-x5 p-x5 pb-x5">
         <CampaignListControls
           filter={filter}
           keyword={keyword}

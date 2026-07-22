@@ -61,12 +61,7 @@ export default function Header({
         .join(' ')}
       {...props}
     >
-      <div
-        className={[
-          'flex min-w-0 items-center justify-end',
-          login ? 'gap-x6' : 'gap-x4',
-        ].join(' ')}
-      >
+      <div className={'flex min-w-0 items-center justify-end gap-x1'}>
         <TextButton onClick={onServiceIntroClick}>서비스 소개</TextButton>
 
         {login ? (

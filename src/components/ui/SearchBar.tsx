@@ -157,7 +157,7 @@ export default function SearchBar({
       {/* 검색 인풋 */}
       <div
         className={[
-          'flex h-[36px] w-full items-center gap-[6px] rounded-x2 px-x3 py-x2',
+          'flex h-[40px] w-[307px] items-center gap-[6px] rounded-x2 px-x3 py-x2',
           variant === 'line'
             ? 'border border-line-secondary bg-bg-secondary focus-within:border-line-brand'
             : 'bg-bg-primary',

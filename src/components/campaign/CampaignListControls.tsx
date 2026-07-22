@@ -59,7 +59,6 @@ export default function CampaignListControls({
           onChange={onKeywordChange}
           placeholder="캠페인명을 검색하세요"
           variant="line"
-          className="w-[307px] [&>div:first-child]:h-[40px] [&>div:first-child]:py-x2"
         />
         {/* 정렬 트리거 = 공통 TextButton(medium). asChild로 TextButton 자체가 트리거 버튼이 됨 */}
         <DropdownMenu

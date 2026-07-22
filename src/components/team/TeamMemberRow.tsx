@@ -78,7 +78,7 @@ export default function TeamMemberRow({
             </span>
             {isMe && (
               <span className="rounded-x1 bg-primary-brand-weak px-[6px] py-xs text-caption-1-medium text-text-brand">
-                Me
+                나
               </span>
             )}
           </span>
