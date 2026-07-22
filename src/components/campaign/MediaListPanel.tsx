@@ -50,6 +50,7 @@ export default function MediaListPanel({
           onChange={onKeywordChange}
           placeholder="원하는 지역을 검색하세요"
           variant="solid"
+          fullWidth
           aria-label="매체 검색"
         />
 
