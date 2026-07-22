@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import type { CampaignOption } from '@/components/dashboard/DashboardToolbar'
 import { Button, LoadingSpinner } from '@/components/ui'
 import { toCampaignStatus } from '@/lib/campaigns'
+import type { CampaignStatus } from '@/lib/campaigns'
 import { ROUTES } from '@/lib/routes'
 import type { DateRange } from '@/components/ui'
+import type { CampaignSummary } from '@/lib/dashboard'
 import { isSameDay } from '@/components/ui/date'
 import HomePage from '@/pages/HomePage'
 import {
@@ -52,6 +54,26 @@ function isToday(d?: Date): boolean {
 function todayRange(): DateRange {
   const now = new Date()
   const day = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return { start: day, end: day }
+}
+
+// 캠페인 목록 정렬 우선순위 — 집행중 → 집행완료 (집행 전은 대시보드에 거의 없어 뒤로)
+const STATUS_ORDER: Record<CampaignStatus, number> = {
+  running: 0,
+  completed: 1,
+  before: 2,
+}
+
+/**
+ * 캠페인 선택 시 기본 조회일 — 오늘을 집행기간으로 클램프(모두 단일일).
+ * 집행완료(오늘>종료)면 마지막날, 집행 전(오늘<시작)이면 시작일, 진행중이면 오늘.
+ */
+function defaultRangeFor(campaign: CampaignSummary): DateRange {
+  const start = fromApiDate(campaign.executionStartDate)
+  const end = fromApiDate(campaign.executionEndDate)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const day = today > end ? end : today < start ? start : today
   return { start: day, end: day }
 }
 
@@ -110,17 +132,32 @@ function RealDashboard() {
     override ?? (defaultCampaign ? String(defaultCampaign.campaignId) : '')
   const selected = campaigns?.find((c) => String(c.campaignId) === selectedId)
 
-  // 드롭다운 옵션 — 실 캠페인 id·이름 (fixture 없음)
+  // 드롭다운 옵션 — 집행중 → 집행완료 순으로 정렬. 같은 상태 안에선 서버 순서(생성일 최신순) 유지.
+  // 대시보드 API status는 백엔드 enum(IN_EXECUTION 등) → 화면 상태(집행 전/중/완료)로 변환
   const options = useMemo<CampaignOption[]>(
     () =>
-      campaigns?.map((c) => ({
-        id: String(c.campaignId),
-        name: c.campaignName,
-        // 대시보드 API status는 백엔드 enum(IN_EXECUTION 등) → 화면 상태(집행 전/중/완료)로 변환
-        status: toCampaignStatus(c.status),
-      })) ?? [],
+      (campaigns ? [...campaigns] : [])
+        .sort(
+          (a, b) =>
+            STATUS_ORDER[toCampaignStatus(a.status)] -
+            STATUS_ORDER[toCampaignStatus(b.status)],
+        )
+        .map((c) => ({
+          id: String(c.campaignId),
+          name: c.campaignName,
+          status: toCampaignStatus(c.status),
+        })),
     [campaigns],
   )
+
+  // 선택 캠페인이 바뀌면 그 캠페인 기준 기본 조회일로 세팅(집행완료=마지막날, 진행중=오늘).
+  // 같은 캠페인을 유지하는 동안엔 사용자가 고른 날짜를 보존한다.
+  const dateAppliedForRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!selected || dateAppliedForRef.current === selectedId) return
+    dateAppliedForRef.current = selectedId
+    setDateRange(defaultRangeFor(selected))
+  }, [selected, selectedId])
 
   const { data: delivery } = useCampaignDelivery(selected?.campaignId, dateRange)
   // 조회 기간이 2일 이상(시작·종료가 다른 날)이면 KPI 분모를 기간 목표로
