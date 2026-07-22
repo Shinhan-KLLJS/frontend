@@ -27,6 +27,8 @@ export interface SearchBarProps extends Omit<
   listMaxHeight?: CSSProperties['maxHeight']
   /** solid=채운 배경(bg-primary) · line=테두리형(border). 기본 solid */
   variant?: 'solid' | 'line'
+  /** true면 인풋이 컨테이너 폭을 꽉 채운다(기본은 307px 고정). 리스트 패널 등 가변 폭에서 사용 */
+  fullWidth?: boolean
   className?: string
 }
 
@@ -43,6 +45,7 @@ export default function SearchBar({
   defaultOpen = false,
   listMaxHeight = 148,
   variant = 'solid',
+  fullWidth = false,
   className,
   id,
   onFocus,
@@ -157,7 +160,8 @@ export default function SearchBar({
       {/* 검색 인풋 */}
       <div
         className={[
-          'flex h-[36px] w-full items-center gap-[6px] rounded-x2 px-x3 py-x2',
+          'flex h-[40px] items-center gap-[6px] rounded-x2 px-x3 py-x2',
+          fullWidth ? 'w-full' : 'w-[307px]',
           variant === 'line'
             ? 'border border-line-secondary bg-bg-secondary focus-within:border-line-brand'
             : 'bg-bg-primary',

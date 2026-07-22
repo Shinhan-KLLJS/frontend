@@ -33,7 +33,7 @@ export default function DropdownMenuItems({
     >
       {items.map((item, index) => {
         const itemClass = [
-          'flex h-[36px] w-full items-center rounded-x2 p-x2 text-label-1-normal-regular select-none',
+          'flex h-[36px] w-full items-center gap-x2 rounded-x2 p-x2 text-label-1-normal-regular select-none',
           item.disabled
             ? 'text-text-disabled'
             : item.tone === 'negative'
@@ -56,6 +56,7 @@ export default function DropdownMenuItems({
             onClick={() => onActivate(item)}
             onMouseEnter={() => !item.disabled && onHover(index)}
           >
+            {item.leading}
             <span className="min-w-0 flex-1 truncate text-left">
               {item.label}
             </span>

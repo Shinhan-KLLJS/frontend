@@ -17,11 +17,11 @@ export default function OnboardingLayout() {
     return <Navigate to={ROUTES.home} replace />
   }
 
-  // 헤더 프로필 메뉴 — 앱 셸(AppLayout)과 동일 구성
+  // 헤더 프로필 메뉴 — 앱 셸(AppLayout)과 동일. 미구현 항목은 비활성(클릭 차단)
   const profileMenu: DropdownMenuItem[] = [
-    { key: 'mypage', label: '마이 페이지', onSelect: () => navigate(ROUTES.mypage) },
-    { key: 'settings', label: '설정', onSelect: () => navigate(ROUTES.settings) },
-    { key: 'support', label: '고객센터', onSelect: () => navigate(ROUTES.support) },
+    { key: 'mypage', label: '마이 페이지', disabled: true },
+    { key: 'settings', label: '설정', disabled: true },
+    { key: 'support', label: '고객센터', disabled: true },
     { key: 'logout', label: '로그아웃', onSelect: () => void logout() },
   ]
 

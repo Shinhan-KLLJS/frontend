@@ -79,7 +79,7 @@ export default function LNB({
       {/* 상단(헤더) — 56px, 1px line-tertiary 테두리, bg-secondary */}
       <div
         className={[
-          'flex h-[56px] shrink-0 items-center border border-line-tertiary bg-bg-secondary',
+          'flex h-[56px] shrink-0 items-center border-b border-line-tertiary bg-bg-secondary',
           short ? 'justify-center' : 'justify-between px-x5',
         ].join(' ')}
       >

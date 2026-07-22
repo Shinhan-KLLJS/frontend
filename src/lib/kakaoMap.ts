@@ -35,7 +35,8 @@ export function loadKakaoMaps(): Promise<typeof kakao | null> {
 
     timeoutId = window.setTimeout(fail, LOAD_TIMEOUT_MS)
 
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_APP_KEY}&autoload=false`
+    // libraries=services: 좌표→행정구역 역지오코딩('이 지역 재검색')에 필요
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_APP_KEY}&autoload=false&libraries=services`
     script.async = true
     script.onload = () => {
       if (!window.kakao?.maps) {

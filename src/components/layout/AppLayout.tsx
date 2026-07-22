@@ -11,7 +11,7 @@ interface NavItem extends LNBMenu {
   path: string
 }
 
-// 메뉴 key ↔ 라우트 (홈만 실제 화면, 나머지는 준비 중 placeholder)
+// 메뉴 key ↔ 라우트
 const ROUTE_BY_KEY: Record<string, string> = {
   home: ROUTES.home,
   campaign: ROUTES.campaigns,
@@ -19,11 +19,15 @@ const ROUTE_BY_KEY: Record<string, string> = {
   calendar: ROUTES.calendar,
 }
 
+// 아직 구현되지 않은 메뉴 — 클릭을 막고 비활성(기본 커서·흐린 텍스트)으로 노출
+const COMING_SOON_KEYS = new Set(['calendar', 'mypage', 'settings', 'support'])
+
 // 디자인 시스템 LNB 기본 메뉴(아이콘 포함)를 재사용해 라우트를 매핑
 const NAV_ITEMS: NavItem[] = LNB_DEFAULT_MENUS.map((menu) => ({
   ...menu,
   label: menu.key === 'team' ? '팀 관리' : menu.label,
   path: ROUTE_BY_KEY[menu.key] ?? '/',
+  disabled: COMING_SOON_KEYS.has(menu.key),
 }))
 
 /**
@@ -35,15 +39,11 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
   const { pathname } = useLocation()
   const { status, user, logout } = useAuth()
 
-  // 헤더 프로필 메뉴
+  // 헤더 프로필 메뉴 — 마이 페이지·설정·고객센터는 아직 미구현이라 비활성(클릭 차단)
   const profileMenu: DropdownMenuItem[] = [
-    {
-      key: 'mypage',
-      label: '마이 페이지',
-      onSelect: () => navigate(ROUTES.mypage),
-    },
-    { key: 'settings', label: '설정', onSelect: () => navigate(ROUTES.settings) },
-    { key: 'support', label: '고객센터', onSelect: () => navigate(ROUTES.support) },
+    { key: 'mypage', label: '마이 페이지', disabled: true },
+    { key: 'settings', label: '설정', disabled: true },
+    { key: 'support', label: '고객센터', disabled: true },
     { key: 'logout', label: '로그아웃', onSelect: () => void logout() },
   ]
 
@@ -56,7 +56,7 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
 
   const handleSelect = (key: string) => {
     const item = NAV_ITEMS.find((i) => i.key === key)
-    if (item && item.path !== pathname) navigate(item.path)
+    if (item && !item.disabled && item.path !== pathname) navigate(item.path)
   }
 
   // 앱 셸 전 경로에 팀 소속을 강제 — 로그인했지만 소속 팀이 없으면 온보딩으로 보낸다.

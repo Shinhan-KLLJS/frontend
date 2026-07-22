@@ -21,13 +21,14 @@ import {
   toApiDate,
   uploadCampaignVideo,
   useMediaRegions,
-  useMediaUnits,
+  useMediaAreaUnits,
 } from '@/lib/campaign'
 import type {
   CampaignInfoValues,
   CampaignMedia,
   MediaUnitsQuery,
 } from '@/lib/campaign'
+import type { MapViewport } from '@/components/campaign/MediaMap'
 
 const REGISTER_STEPS = ['기본 정보', '매체 선택', '최종 확인']
 
@@ -330,19 +331,26 @@ export default function CampaignRegisterPage() {
     executionEndDate: period.end ? toApiDate(period.end) : undefined,
   }
 
-  const {
-    data: mediaData,
-    isPending: mediaLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useMediaUnits(onStep2, mediaQuery)
-  // 무한 스크롤 페이지들을 하나의 목록으로 펼친다(지도 마커·리스트 공통).
-  // useMemo로 참조를 안정화 — 매 렌더 새 배열이면 MediaMap 이펙트(핀 동기화·setBounds)가 과하게 재실행됨.
-  const mediaList = useMemo(
-    () => mediaData?.pages.flatMap((page) => page.items) ?? [],
-    [mediaData],
+  // 현재 지역(구)의 매체를 통째로 로드 — 지도 이동 시 viewport로 즉시 필터하기 위함.
+  // useMemo로 참조 안정화 — 매 렌더 새 배열이면 MediaMap 핀 동기화 이펙트가 과하게 재실행됨.
+  const { data: mediaData, isPending: mediaLoading } = useMediaAreaUnits(
+    onStep2,
+    mediaQuery,
   )
+  const mediaList = useMemo(() => mediaData ?? [], [mediaData])
+
+  // 지도가 멈출 때 보고된 보이는 영역 — 목록을 이 범위 안의 매체로 좁힌다(지도=목록 동기화).
+  const [mapViewport, setMapViewport] = useState<MapViewport | null>(null)
+  const visibleMedia = useMemo(() => {
+    if (!mapViewport) return mediaList
+    return mediaList.filter(
+      (m) =>
+        m.lat >= mapViewport.swLat &&
+        m.lat <= mapViewport.neLat &&
+        m.lng >= mapViewport.swLng &&
+        m.lng <= mapViewport.neLng,
+    )
+  }, [mediaList, mapViewport])
 
   // 매체 목록 패널 접기/펴기 (사이드 탭)
   const [listCollapsed, setListCollapsed] = useState(false)
@@ -377,6 +385,26 @@ export default function CampaignRegisterPage() {
     setSido(next)
     setSigungu(ALL_SIGUNGU) // 시/도 변경 시 전체(해당 시/도 전체 매체)로
   }
+
+  // '이 지역 재검색' 클릭 시 MediaMap이 지도 중심 역지오코딩 결과로 이 콜백을 호출 — 그 구를 로드.
+  // 매체 지역 목록에 없는 구면 등록 매체가 없는 곳 — 안내만 한다(현재 결과 유지).
+  // 검색어가 있으면 지역 필터가 무시되므로, 지도 이동이 우선하도록 검색어를 비운다.
+  const handleResearchArea = (nextSido: string, nextSigungu: string) => {
+    const region = regions.find((r) => r.sido === nextSido)
+    if (!region?.sigungu.includes(nextSigungu)) {
+      toast('현 지도 영역에는 등록된 매체가 없습니다.', { status: 'error' })
+      return
+    }
+    setKeyword('')
+    setDebouncedKeyword('')
+    setSido(nextSido)
+    setSigungu(nextSigungu)
+  }
+
+  // 보이는 영역에 로드된 매체가 없으면(로드 범위 이탈) '이 지역 재검색' 버튼을 노출한다.
+  // 로드/조회 중이거나 아직 영역 미보고면 숨김.
+  const showResearch =
+    onStep2 && !mediaLoading && mapViewport != null && visibleMedia.length === 0
 
   // 캠페인 등록 제출
   const [submitting, setSubmitting] = useState(false)
@@ -473,6 +501,7 @@ export default function CampaignRegisterPage() {
             {/* 지도는 전체를 채우고, 리스트는 좌측에 rounded-x3 카드로 떠 있음 (Figma 구조).
                 MediaMap 루트가 relative라 위치 충돌 방지 위해 래퍼가 absolute를 담당 */}
             <div className="absolute inset-0">
+              {/* 지도에는 현재 구 전체 핀을 그린다(화면 밖 핀은 지도가 자연히 가림) */}
               <MediaMap
                 className="size-full"
                 mediaList={mediaList}
@@ -481,6 +510,9 @@ export default function CampaignRegisterPage() {
                 sigungu={sigungu}
                 onSidoChange={handleSidoChange}
                 onSigunguChange={setSigungu}
+                onResearchArea={handleResearchArea}
+                onViewportChange={setMapViewport}
+                showResearch={showResearch}
                 selectedMediaId={selectedMediaId}
                 onSelectMedia={handleSelectMedia}
               />
@@ -494,13 +526,11 @@ export default function CampaignRegisterPage() {
                 .filter(Boolean)
                 .join(' ')}
             >
+              {/* 목록은 지도에 보이는 영역의 매체만 — 지도를 움직이면 즉시 동기화 */}
               <MediaListPanel
                 className="h-full w-[372px] overflow-hidden rounded-x3 border border-line-secondary"
-                mediaList={mediaList}
+                mediaList={visibleMedia}
                 loading={mediaLoading}
-                hasMore={hasNextPage}
-                loadingMore={isFetchingNextPage}
-                onLoadMore={() => void fetchNextPage()}
                 keyword={keyword}
                 onKeywordChange={setKeyword}
                 selectedMediaId={selectedMediaId}
@@ -534,7 +564,6 @@ export default function CampaignRegisterPage() {
 
       <Modal
         open={showLeaveConfirm}
-        scoped
         title="캠페인 등록을 그만두시겠어요?"
         body={
           <>

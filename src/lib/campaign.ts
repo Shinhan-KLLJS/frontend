@@ -4,7 +4,7 @@
  */
 import axios, { isAxiosError } from 'axios'
 import type { AxiosResponse } from 'axios'
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import type { DateRange } from '@/components/ui'
 import { api } from './api'
@@ -175,9 +175,10 @@ export interface MediaPage {
   hasMore: boolean
 }
 
-// 지도·리스트를 한 번에 다 받지 않고 점진 로드: 첫 페이지 10개, 이후 6개씩.
-const FIRST_PAGE_SIZE = 10
-const NEXT_PAGE_SIZE = 6
+// 한 번에 받는 최대치(백엔드 limit 상한). 시/군/구 단위는 매체 수가 적어 대개 1콜로 끝난다.
+const AREA_PAGE_SIZE = 50
+// 무한 루프 방지 상한 — 시/군/구 단위면 실제로는 몇 페이지 안 됨(50×20=1000)
+const MAX_AREA_PAGES = 20
 
 /**
  * 송출 매체 한 페이지 조회 — keyword/sido/sigungu 필터 + 송출기간별 available 계산.
@@ -204,30 +205,42 @@ export async function fetchCampaignMedia(
   return { items: result.mediaUnits.map(toCampaignMedia), hasMore: result.hasMore }
 }
 
+/**
+ * 해당 지역(시/군/구 또는 검색어)의 매체를 hasMore가 끝날 때까지 모두 모아 반환.
+ * 지도 viewport 필터는 이미 받아온 데이터 안에서만 되므로, 한 지역은 통째로 로드한다.
+ * 시/도 '전체'는 매체가 많아 콜 수가 늘 수 있으나(상한 MAX_AREA_PAGES), 기본 흐름은 구 단위라 가볍다.
+ */
+export async function fetchAreaMedia(
+  query: MediaUnitsQuery,
+): Promise<CampaignMedia[]> {
+  const all: CampaignMedia[] = []
+  let offset = 0
+  for (let page = 0; page < MAX_AREA_PAGES; page += 1) {
+    const { items, hasMore } = await fetchCampaignMedia(
+      query,
+      offset,
+      AREA_PAGE_SIZE,
+    )
+    all.push(...items)
+    if (!hasMore || items.length === 0) break
+    offset += items.length
+  }
+  return all
+}
+
 export const mediaUnitKeys = {
   all: ['media-units'] as const,
   list: (query: MediaUnitsQuery) => ['media-units', 'list', query] as const,
 }
 
 /**
- * 매체 목록 무한 스크롤 훅 — 첫 페이지 10개, 이후 6개씩 서버에서 이어 받는다.
- * enabled=false면 조회를 미룬다(매체 선택 단계 진입 전). 필터(query)가 바뀌면 처음부터 다시 받는다.
+ * 한 지역(시/군/구·검색어)의 매체를 통째로 로드하는 훅 — 지도 이동 시 viewport 필터로 즉시 동기화하기 위함.
+ * enabled=false면 조회를 미룬다(매체 선택 단계 진입 전). 필터(query)가 바뀌면 그 지역을 다시 통째로 받는다.
  */
-export function useMediaUnits(enabled = true, query: MediaUnitsQuery = {}) {
-  return useInfiniteQuery({
+export function useMediaAreaUnits(enabled = true, query: MediaUnitsQuery = {}) {
+  return useQuery({
     queryKey: mediaUnitKeys.list(query),
-    queryFn: ({ pageParam }) =>
-      fetchCampaignMedia(
-        query,
-        pageParam,
-        pageParam === 0 ? FIRST_PAGE_SIZE : NEXT_PAGE_SIZE,
-      ),
-    initialPageParam: 0,
-    // 다음 offset = 지금까지 받은 개수(실제 수신량 기준). hasMore=false거나 빈 페이지면 종료.
-    getNextPageParam: (lastPage, allPages) => {
-      if (!lastPage.hasMore || lastPage.items.length === 0) return undefined
-      return allPages.reduce((total, page) => total + page.items.length, 0)
-    },
+    queryFn: () => fetchAreaMedia(query),
     enabled,
   })
 }

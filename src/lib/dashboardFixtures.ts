@@ -11,10 +11,12 @@ import type { ViewerPoint } from '@/components/dashboard/RealtimeViewerChart'
 import type { WatchTimeBucket } from '@/components/dashboard/AverageWatchTimeCard'
 import type { ExposureCell } from '@/components/dashboard/AgeExposureHeatmap'
 import { createExposureCells } from './dashboardHeatmapFixture'
+import type { CampaignStatus } from './campaigns'
 
 export interface DashboardCampaignFixture {
   id: string
   name: string
+  status: CampaignStatus
   kpi: KpiMetric[]
   tola: TolaMetric[]
   viewers: ViewerPoint[]
@@ -86,6 +88,7 @@ export const DASHBOARD_CAMPAIGNS: DashboardCampaignFixture[] = [
   {
     id: 'campaign-summer-brand',
     name: '나이키 썸머 프로모션 명동 전광판 옥외광고',
+    status: 'running',
     kpi: createKpi('285', '99.9', '52'),
     tola: [
       {
@@ -136,6 +139,7 @@ export const DASHBOARD_CAMPAIGNS: DashboardCampaignFixture[] = [
   {
     id: 'campaign-long-name',
     name: '신제품 론칭 프로모션 캠페인 · 수도권 주요 거점 통합 운영 장기 캠페인',
+    status: 'before',
     kpi: createKpi('210', '76.5', '44'),
     tola: [
       {

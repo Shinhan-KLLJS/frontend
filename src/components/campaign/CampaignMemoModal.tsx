@@ -30,7 +30,6 @@ export default function CampaignMemoModal({
   return (
     <Modal
       open
-      scoped
       aria-label="캠페인 메모"
       // 470×352 고정, p-x6, 세로 정렬(gap-x5는 Modal children 기본)
       className="h-[352px] w-[470px] !p-x6"

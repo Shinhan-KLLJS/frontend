@@ -67,6 +67,11 @@ const STATUS_MAP: Record<BackendCampaignStatus, CampaignStatus> = {
   AFTER_EXECUTION: 'completed',
 }
 
+/** 백엔드 캠페인 상태(문자열) → 화면 상태(집행 전/중/완료). 미지의 값은 집행 전으로 취급. */
+export function toCampaignStatus(status: string): CampaignStatus {
+  return STATUS_MAP[status as BackendCampaignStatus] ?? 'before'
+}
+
 /** 매체 형태 enum → 한글 태그 (campaign.ts와 동일 규칙). */
 const SHAPE_TYPE_LABEL: Record<string, string> = {
   FLAT: '평면형',
@@ -119,7 +124,7 @@ function toCampaign(dto: CampaignListItemDto): Campaign {
   return {
     id: String(dto.campaignId),
     name: dto.campaignName,
-    status: STATUS_MAP[dto.status] ?? 'before',
+    status: toCampaignStatus(dto.status),
     startDate: toDotDate(dto.executionStartDate),
     endDate: toDotDate(dto.executionEndDate),
     mediaAddress: dto.mediaLocationAddress,

@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { Minus, Plus } from 'lucide-react'
+import { Minus, Plus, RotateCw } from 'lucide-react'
 import { Button, Dropdown } from '@/components/ui'
 import { ALL_SIGUNGU } from '@/lib/campaign'
 import type { CampaignMedia, MediaRegion } from '@/lib/campaign'
 import { loadKakaoMaps } from '@/lib/kakaoMap'
 import { DEFAULT_MAP_CENTER, findRegionCoords } from '@/lib/regions'
+
+/** 지도에 현재 보이는 영역(남서·북동 모서리) — 부모가 목록을 보이는 매체로 좁히는 데 사용 */
+export interface MapViewport {
+  swLat: number
+  swLng: number
+  neLat: number
+  neLng: number
+}
 
 export interface MediaMapProps {
   mediaList: CampaignMedia[]
@@ -14,6 +22,12 @@ export interface MediaMapProps {
   sigungu: string
   onSidoChange: (sido: string) => void
   onSigunguChange: (sigungu: string) => void
+  /** '이 지역 재검색' 클릭 시 지도 중심을 역지오코딩한 시/군/구로 로드 */
+  onResearchArea: (sido: string, sigungu: string) => void
+  /** 지도가 멈출 때(idle) 현재 보이는 영역을 보고 — 부모가 목록을 그 범위로 필터 */
+  onViewportChange: (viewport: MapViewport) => void
+  /** 보이는 영역에 로드된 매체가 없을 때(로드 범위 이탈) '이 지역 재검색' 버튼 노출 */
+  showResearch: boolean
   selectedMediaId: string | null
   onSelectMedia: (media: CampaignMedia) => void
   className?: string
@@ -22,10 +36,6 @@ export interface MediaMapProps {
 // 확대 레벨 — 시/도는 광역, 시/군/구는 동 단위가 보이는 수준
 const SIDO_LEVEL = 8
 const SIGUNGU_LEVEL = 5
-
-// 좌측 리스트 패널(372px + 여백 12px)만큼 왼쪽 여백을 확보해, 결과 매체가 패널에 가리지 않고
-// 지도의 보이는(패널 오른쪽) 영역 중앙에 오도록 한다. (드롭다운 left-[384px]와 정렬)
-const LIST_PANEL_PADDING = 384
 
 /**
  * 핀 스타일 — CustomOverlay content는 React 밖 DOM이라 클래스 문자열로 관리.
@@ -47,8 +57,10 @@ type MapStatus = 'loading' | 'ready' | 'unavailable'
 
 /**
  * 매체 선택 지도 — 카카오맵 + 매체 썸네일 핀(CustomOverlay) + 지역 이동 드롭다운.
- * 필터(지역/검색)는 부모가 소유하고, 여기선 전달받은 mediaList를 핀으로 그린다.
- * 목록이 바뀌면 핀을 갱신하고 결과 범위로 지도를 맞춘다. SDK 키가 없으면 안내 placeholder.
+ * 지역(시/군/구)은 부모가 소유하고, 여기선 전달받은 mediaList(현재 구 전체)를 핀으로 그린다.
+ * 지도를 멈추면 보이는 영역을 부모에 보고(목록 viewport 필터)한다. 로드 범위를 벗어나
+ * 보이는 매체가 없으면 '이 지역 재검색' 버튼을 띄우고, 클릭 시에만 그 구를 역지오코딩해 로드한다
+ * (탐색 중 자동 재조회로 인한 로딩 깜빡임을 피함). SDK 키가 없으면 안내 placeholder.
  */
 export default function MediaMap({
   mediaList,
@@ -57,6 +69,9 @@ export default function MediaMap({
   sigungu,
   onSidoChange,
   onSigunguChange,
+  onResearchArea,
+  onViewportChange,
+  showResearch,
   selectedMediaId,
   onSelectMedia,
   className,
@@ -68,13 +83,15 @@ export default function MediaMap({
   )
   const [status, setStatus] = useState<MapStatus>('loading')
 
-  // 핀 클릭 리스너가 항상 최신 값을 부르도록 ref 경유 (오버레이 DOM은 재생성하지 않으므로).
+  // idle 리스너·핀 클릭은 mount 1회 바인딩이라, 항상 최신 값을 부르도록 ref 경유.
   // 렌더 중 mutate 대신 커밋 후 useEffect에서 갱신 (중단된 렌더의 값 누수 방지)
   const onSelectMediaRef = useRef(onSelectMedia)
   const mediaListRef = useRef(mediaList)
+  const onViewportChangeRef = useRef(onViewportChange)
   useEffect(() => {
     onSelectMediaRef.current = onSelectMedia
     mediaListRef.current = mediaList
+    onViewportChangeRef.current = onViewportChange
   })
 
   const currentRegion = regions.find((r) => r.sido === sido)
@@ -89,12 +106,26 @@ export default function MediaMap({
         setStatus('unavailable')
         return
       }
-      mapRef.current = new sdk.maps.Map(containerRef.current, {
+      const map = new sdk.maps.Map(containerRef.current, {
         center: new sdk.maps.LatLng(
           DEFAULT_MAP_CENTER.lat,
           DEFAULT_MAP_CENTER.lng,
         ),
         level: SIGUNGU_LEVEL,
+      })
+      mapRef.current = map
+      // 지도가 멈출 때마다 보이는 영역을 부모에 보고 → 부모가 목록을 그 범위로 필터(즉시 동기화).
+      // 자동 재조회는 하지 않는다(탐색 중 로딩 깜빡임 방지). 로드 범위를 벗어나면 재검색 버튼으로 로드.
+      sdk.maps.event.addListener(map, 'idle', () => {
+        const b = map.getBounds()
+        const sw = b.getSouthWest()
+        const ne = b.getNorthEast()
+        onViewportChangeRef.current({
+          swLat: sw.getLat(),
+          swLng: sw.getLng(),
+          neLat: ne.getLat(),
+          neLng: ne.getLng(),
+        })
       })
       setStatus('ready')
     })
@@ -149,16 +180,8 @@ export default function MediaMap({
     })
   }, [status, mediaList, selectedMediaId])
 
-  // 목록(필터 결과)이 바뀌면 결과 매체가 모두 보이도록 지도 범위를 맞춘다
-  useEffect(() => {
-    const map = mapRef.current
-    const sdk = window.kakao
-    if (status !== 'ready' || !map || !sdk?.maps || mediaList.length === 0) return
-    const bounds = new sdk.maps.LatLngBounds()
-    mediaList.forEach((m) => bounds.extend(new sdk.maps.LatLng(m.lat, m.lng)))
-    // 왼쪽 리스트 패널에 가리지 않도록 좌측 여백을 주고 범위를 맞춘다
-    map.setBounds(bounds, 0, 0, 0, LIST_PANEL_PADDING)
-  }, [status, mediaList])
+  // 지도 범위는 자동으로 다시 맞추지 않는다(사용자 이동을 방해하지 않도록).
+  // 드롭다운으로 지역을 고르면 handleSidoChange/handleSigunguChange가 그 지역으로 이동한다.
 
   // unmount 시 오버레이 정리
   useEffect(() => {
@@ -199,7 +222,7 @@ export default function MediaMap({
     map.setCenter(new sdk.maps.LatLng(lat, lng))
   }
 
-  // 확대(-1)·축소(+1) — 카카오는 레벨이 작을수록 확대
+  // 확대(-1)·축소(+1) — 카카오는 레벨이 작을수록 확대. idle 시 viewport 재보고됨
   const handleZoom = (delta: number) => {
     const map = mapRef.current
     if (!map) return
@@ -221,6 +244,23 @@ export default function MediaMap({
     if (coords) moveTo(coords.lat, coords.lng, SIGUNGU_LEVEL)
   }
 
+  // '이 지역 재검색' — 지금 지도 중심을 역지오코딩한 시/군/구로 목록을 로드한다.
+  // (백엔드가 좌표/bounds 조회를 지원하지 않아 지역 필터로 우회 — 중심점 기준 근사)
+  const handleResearch = () => {
+    const map = mapRef.current
+    const sdk = window.kakao
+    if (!map || !sdk?.maps?.services) return
+    const center = map.getCenter()
+    const geocoder = new sdk.maps.services.Geocoder()
+    geocoder.coord2RegionCode(center.getLng(), center.getLat(), (result, s) => {
+      if (s !== sdk.maps.services.Status.OK) return
+      // 행정동(H) 우선 — 시/도(1depth)·시/군/구(2depth)
+      const region = result.find((r) => r.region_type === 'H') ?? result[0]
+      if (!region) return
+      onResearchArea(region.region_1depth_name, region.region_2depth_name)
+    })
+  }
+
   return (
     <div className={['relative', className].filter(Boolean).join(' ')}>
       <div ref={containerRef} className="absolute inset-0" />
@@ -233,8 +273,8 @@ export default function MediaMap({
                 지도를 불러올 수 없습니다
               </p>
               <p className="px-x5 text-center text-label-1-normal-regular text-text-caption">
-                VITE_KAKAO_MAP_APP_KEY 설정과 카카오 개발자 콘솔의 사이트
-                도메인 등록을 확인해 주세요.
+                VITE_KAKAO_MAP_APP_KEY 설정과 카카오 개발자 콘솔의 사이트 도메인
+                등록을 확인해 주세요.
               </p>
             </>
           )}
@@ -265,6 +305,21 @@ export default function MediaMap({
         </div>
       </div>
 
+      {/* 이 지역 재검색 — 로드 범위를 벗어나 보이는 매체가 없을 때만 노출. 클릭 시 그 구 로드 */}
+      {status === 'ready' && showResearch && (
+        <div className="absolute left-[384px] right-x3 bottom-[24px] z-10 flex justify-center">
+          <Button
+            variant="default"
+            color="primary"
+            size="small"
+            leadingIcon={RotateCw}
+            onClick={handleResearch}
+          >
+            이 지역 재검색
+          </Button>
+        </div>
+      )}
+
       {/* 확대/축소 버튼 — 지도 우하단 (아이콘 온리 Button, Figma: 흰 배경·line-primary·그림자) */}
       {status === 'ready' && (
         <div className="absolute bottom-[19px] right-[19px] z-10 flex w-[32px] flex-col gap-x1">
@@ -276,7 +331,7 @@ export default function MediaMap({
             leadingIcon={Plus}
             aria-label="지도 확대"
             onClick={() => handleZoom(-1)}
-            className="border border-line-primary bg-[var(--cool-neutral-0)] shadow-normal-small"
+            className="border border-line-primary !bg-bg-secondary shadow-normal-small"
           />
           <Button
             iconOnly
@@ -286,7 +341,7 @@ export default function MediaMap({
             leadingIcon={Minus}
             aria-label="지도 축소"
             onClick={() => handleZoom(1)}
-            className="border border-line-primary bg-[var(--cool-neutral-0)] shadow-normal-small"
+            className="border border-line-primary !bg-bg-secondary shadow-normal-small"
           />
         </div>
       )}

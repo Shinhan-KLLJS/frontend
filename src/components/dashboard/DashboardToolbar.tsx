@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { DatePicker, DateTrigger, DropdownMenu, Icon } from '@/components/ui'
 import type { DateRange, DropdownMenuItem } from '@/components/ui'
+import CampaignStatusTag from '@/components/campaign/CampaignStatusTag'
+import type { CampaignStatus } from '@/lib/campaigns'
 
 export interface CampaignOption {
   id: string
   name: string
+  status: CampaignStatus
 }
 
 export interface DashboardToolbarProps {
@@ -32,9 +35,11 @@ export default function DashboardToolbar({
   const [dateOpen, setDateOpen] = useState(false)
   const [draftRange, setDraftRange] = useState<DateRange>(dateRange)
   const selected = campaigns.find(({ id }) => id === selectedId)
-  const menuItems: DropdownMenuItem[] = campaigns.map(({ id, name }) => ({
+  const menuItems: DropdownMenuItem[] = campaigns.map(({ id, name, status }) => ({
     key: id,
     label: name,
+    // 캠페인명 앞에 상태 태그(집행 전/중/완료)를 gap-x2로 붙인다
+    leading: <CampaignStatusTag status={status} />,
     onSelect: () => onCampaignChange(id),
   }))
 
