@@ -296,7 +296,11 @@ export default function RealtimeViewerChart({
         <ScrollArea axis="horizontal" size="small" className="min-w-0 flex-1">
           <div
             style={{
-              minWidth: data.length * SCROLL_POINT_WIDTH + PLOT_X_PAD * 2,
+              // 점 간격 = SCROLL_POINT_WIDTH가 되도록 (N-1)칸 + 좌우 인셋(PLOT_X_PAD).
+              // N칸으로 잡으면 recharts 점 간격이 60·N/(N-1)로 커져 라벨(고정 60)과 어긋난다.
+              minWidth:
+                Math.max(0, data.length - 1) * SCROLL_POINT_WIDTH +
+                PLOT_X_PAD * 2,
             }}
           >
             <div
@@ -305,8 +309,9 @@ export default function RealtimeViewerChart({
             >
               {plot}
             </div>
+            {/* 라벨 행 — 점과 같은 원점(px 없음)·같은 피치(폭40+gap20=60)로 점 x와 정렬 */}
             <div
-              className="flex items-center gap-x5 px-x2 py-x1"
+              className="flex items-center gap-x5 py-x1"
               style={{ height: X_AXIS_HEIGHT }}
             >
               {data.map((p, i) => (
