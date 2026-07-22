@@ -145,8 +145,8 @@ export default function RealtimeViewerChart({
     ? Math.max(...visibleData.map((p) => p.viewers))
     : 0
   const yMax = niceYMax(dataMax)
-  // 위에서부터 yMax, 4/5·yMax, …, 1/5·yMax (0은 축 바닥이라 라벨 생략)
-  const yLabels = Array.from({ length: Y_TICKS }, (_, i) =>
+  // 위에서부터 yMax, 4/5·yMax, …, 1/5·yMax, 0 (총 6꼭지 — 0 값이 잦아 0도 표기)
+  const yLabels = Array.from({ length: Y_TICKS + 1 }, (_, i) =>
     Math.round((yMax * (Y_TICKS - i)) / Y_TICKS),
   )
 
@@ -192,25 +192,25 @@ export default function RealtimeViewerChart({
     />
   )
 
-  // y축(0 제외 5개, 항상 같은 위치) — 그래프 왼쪽에 고정.
+  // y축(0 제외 5개) — 그래프 왼쪽에 고정. flexbox 균등배치가 아니라 recharts 값 스케일에 맞춰
+  // 각 라벨을 절대 위치로 둔다: 값 yMax·(5-i)/5는 위에서 PLOT_HEIGHT·i/5 지점(중앙 정렬)에 온다.
   const yAxis = (
     <div
-      className="flex shrink-0 items-end justify-center"
-      style={{ height: PLOT_HEIGHT }}
+      className="relative shrink-0"
+      style={{ height: PLOT_HEIGHT, width: Y_LABEL_WIDTH + 8 }}
     >
-      <div className="flex h-full flex-col justify-center gap-x6 py-x2 pr-x2">
-        {yLabels.map((v, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-end"
-            style={{ width: Y_LABEL_WIDTH }}
-          >
-            <span className="text-label-1-normal-regular text-text-secondary">
-              {v}
-            </span>
-          </div>
-        ))}
-      </div>
+      {yLabels.map((v, i) => (
+        <span
+          key={i}
+          className="absolute right-x2 text-label-1-normal-regular text-text-secondary"
+          style={{
+            top: (PLOT_HEIGHT * i) / Y_TICKS,
+            transform: 'translateY(-50%)',
+          }}
+        >
+          {v}
+        </span>
+      ))}
     </div>
   )
 
