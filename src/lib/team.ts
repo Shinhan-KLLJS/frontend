@@ -7,6 +7,7 @@
  */
 import { isAxiosError } from 'axios'
 import type { AxiosResponse } from 'axios'
+import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { maskDateInput } from '@/components/ui/date'
 import { api } from './api'
@@ -187,6 +188,20 @@ export async function fetchTeamMembers(
       profileImageUrl: m.profileImageUrl,
     })),
   }
+}
+
+/**
+ * 내 팀 내 역할 조회 훅 — 팀원 목록에서 isMe 멤버의 role.
+ * 팀명 수정 등 권한 UI(캠페인 관리·팀 관리 공통)에 사용. 로딩 중엔 undefined.
+ */
+export function useMyTeamRole(teamId: number | null | undefined) {
+  return useQuery({
+    queryKey: ['team-members', teamId],
+    queryFn: () => fetchTeamMembers(teamId as number),
+    enabled: teamId != null,
+    select: (data): TeamRole =>
+      data.members.find((m) => m.isMe)?.role ?? 'MEMBER',
+  })
 }
 
 /**

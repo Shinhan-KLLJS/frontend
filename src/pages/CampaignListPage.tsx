@@ -16,7 +16,7 @@ import {
   type Campaign,
 } from '@/lib/campaigns'
 import { CampaignApiError } from '@/lib/campaign'
-import { TeamApiError } from '@/lib/team'
+import { TeamApiError, useMyTeamRole } from '@/lib/team'
 import { ROUTES } from '@/lib/routes'
 import { useCampaignList } from '@/hooks/useCampaignList'
 import type { CampaignFilter, CampaignSort } from '@/hooks/useCampaignList'
@@ -31,6 +31,8 @@ export default function CampaignListPage() {
   const { data, isPending, isError, refetch } = useTeamCampaigns(teamId)
   const deleteCampaign = useDeleteCampaign(teamId)
   const renameTeam = useRenameTeam(teamId)
+  // 팀원(MEMBER)에겐 팀명 수정을 숨긴다 — 팀 관리 페이지와 동일 규칙(서버도 403).
+  const { data: myRole } = useMyTeamRole(teamId)
 
   const [filter, setFilter] = useState<CampaignFilter>('all')
   const [keyword, setKeyword] = useState('')
@@ -127,7 +129,11 @@ export default function CampaignListPage() {
     <section className="flex min-h-full flex-col bg-bg-secondary">
       {/* 헤더 — p-x5, space-between */}
       <header className="flex items-center justify-between p-x5">
-        <TeamNameTitle name={data.teamName} onSave={handleRenameTeam} />
+        <TeamNameTitle
+          name={data.teamName}
+          onSave={handleRenameTeam}
+          canEdit={myRole != null && myRole !== 'MEMBER'}
+        />
         <div className="flex items-center gap-[6px]">
           <Button variant="line" color="secondary" size="large">
             리포트 추출하기
