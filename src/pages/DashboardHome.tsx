@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import type { CampaignOption } from '@/components/dashboard/DashboardToolbar'
 import { Button, LoadingSpinner } from '@/components/ui'
+import { toCampaignStatus } from '@/lib/campaigns'
 import { ROUTES } from '@/lib/routes'
 import type { DateRange } from '@/components/ui'
 import { isSameDay } from '@/components/ui/date'
@@ -115,6 +116,8 @@ function RealDashboard() {
       campaigns?.map((c) => ({
         id: String(c.campaignId),
         name: c.campaignName,
+        // 대시보드 API status는 백엔드 enum(IN_EXECUTION 등) → 화면 상태(집행 전/중/완료)로 변환
+        status: toCampaignStatus(c.status),
       })) ?? [],
     [campaigns],
   )

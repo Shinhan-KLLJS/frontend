@@ -5,6 +5,8 @@ import DropdownMenuItems from './DropdownMenuItems'
 export interface DropdownMenuItem {
   key: string
   label: string
+  /** 라벨 앞에 붙는 요소(예: 상태 태그) — 라벨은 말줄임되고 이 요소는 유지된다 */
+  leading?: ReactNode
   onSelect?: () => void
   disabled?: boolean
   tone?: 'default' | 'negative'

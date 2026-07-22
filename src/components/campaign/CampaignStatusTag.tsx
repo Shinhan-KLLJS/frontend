@@ -21,7 +21,9 @@ export default function CampaignStatusTag({
 }: {
   status: CampaignStatus
 }) {
+  // 계약상 status는 3종(집행 전/중/완료)이지만, 미지의 값이 들어와도 전체가 크래시하지 않도록 방어
   const preset = STATUS_STYLE[status]
+  if (!preset) return null
 
   return (
     <span
